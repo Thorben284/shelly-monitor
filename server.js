@@ -9,6 +9,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 const cfg = {
   pvHost:   process.env.PV_SHELLY_HOST   || '',
   pvType:   process.env.PV_SHELLY_TYPE   || 'pm1',
+  pv2Host:  process.env.PV2_SHELLY_HOST  || '',
+  pv2Type:  process.env.PV2_SHELLY_TYPE  || 'gen1',
   gridHost: process.env.GRID_SHELLY_HOST || '',
   gridType: process.env.GRID_SHELLY_TYPE || 'em3',
   pollMs:   parseInt(process.env.POLL_INTERVAL || '5000'),
@@ -92,11 +94,12 @@ async function poll() {
     const grid = consumption - pv; // positiv = Netzbezug, negativ = Einspeisung
     current = { pv, grid, consumption, ts: Date.now(), error: false, simulated: true };
   } else {
-    const [pvRaw, gridRaw] = await Promise.all([
-      readMeter(cfg.pvHost, cfg.pvType),
+    const [pvRaw, pv2Raw, gridRaw] = await Promise.all([
+      readMeter(cfg.pvHost,   cfg.pvType),
+      readMeter(cfg.pv2Host,  cfg.pv2Type),
       readMeter(cfg.gridHost, cfg.gridType),
     ]);
-    const pv  = Math.max(0, pvRaw ?? 0);
+    const pv  = Math.max(0, (pvRaw ?? 0) + (pv2Raw ?? 0));
     const grid = gridRaw ?? 0;
     // Hausverbrauch = PV-Erzeugung + Netzbezug (grid negativ = Einspeisung)
     const consumption = Math.max(0, pv + grid);
@@ -128,7 +131,9 @@ app.listen(cfg.port, () => {
   const mode = cfg.simulate ? ' [SIMULATIONSMODUS]' : '';
   console.log(`Shelly Monitor läuft auf http://localhost:${cfg.port}${mode}`);
   if (!cfg.simulate) {
-    console.log(`  PV-Shelly:   ${cfg.pvHost} (Typ: ${cfg.pvType})`);
+    console.log(`  PV-Shelly 1: ${cfg.pvHost} (Typ: ${cfg.pvType})`);
+    if (cfg.pv2Host)
+      console.log(`  PV-Shelly 2: ${cfg.pv2Host} (Typ: ${cfg.pv2Type})`);
     if (cfg.gridHost)
       console.log(`  Netz-Shelly: ${cfg.gridHost} (Typ: ${cfg.gridType})`);
   }
