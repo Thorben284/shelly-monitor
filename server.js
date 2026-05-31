@@ -6,16 +6,26 @@ const path = require('path');
 const app = express();
 app.use(express.static(path.join(__dirname, 'public')));
 
+// PV-Meter: PV1_SHELLY_HOST … PV9_SHELLY_HOST (alle konfigurierten werden summiert)
+function loadPvMeters() {
+  const meters = [];
+  for (let i = 1; i <= 9; i++) {
+    const host = process.env[`PV${i}_SHELLY_HOST`];
+    if (!host) break;
+    meters.push({ host, type: process.env[`PV${i}_SHELLY_TYPE`] || 'pm1', index: i });
+  }
+  return meters;
+}
+
+const pvMeters = loadPvMeters();
+
 const cfg = {
-  pvHost:   process.env.PV_SHELLY_HOST   || '',
-  pvType:   process.env.PV_SHELLY_TYPE   || 'pm1',
-  pv2Host:  process.env.PV2_SHELLY_HOST  || '',
-  pv2Type:  process.env.PV2_SHELLY_TYPE  || 'gen1',
+  pvMeters,
   gridHost: process.env.GRID_SHELLY_HOST || '',
   gridType: process.env.GRID_SHELLY_TYPE || 'em3',
   pollMs:   parseInt(process.env.POLL_INTERVAL || '5000'),
   port:     parseInt(process.env.PORT          || '3000'),
-  simulate: process.env.SIMULATE === 'true' || !process.env.PV_SHELLY_HOST,
+  simulate: process.env.SIMULATE === 'true' || pvMeters.length === 0,
 };
 
 // Ring-Puffer: 720 Punkte × 5 s = 1 Stunde
@@ -38,11 +48,11 @@ function fetchJson(url) {
 }
 
 // Unterstützte Gerätetypen:
-//   em3    – Shelly Pro 3EM          (Gen2, /rpc/EM.GetStatus,     total_act_power)
-//   em     – Shelly Pro EM-50        (Gen2, /rpc/EM.GetStatus,     act_power)
-//   pm1    – Shelly PM Mini / Plus 1PM (Gen2/3, /rpc/PM1.GetStatus, apower)
-//   switch – Shelly Plus Plug S / Plug S Gen2 (/rpc/Switch.GetStatus, apower)
-//   gen1   – Shelly Plug S Gen1 / Shelly 1PM  (/status, meters[0].power)
+//   em3    – Shelly Pro 3EM             (Gen2, /rpc/EM.GetStatus,      total_act_power)
+//   em     – Shelly Pro EM-50           (Gen2, /rpc/EM.GetStatus,      act_power)
+//   pm1    – Shelly PM Mini / Plus 1PM  (Gen2/3, /rpc/PM1.GetStatus,   apower)
+//   switch – Shelly Plus Plug S         (Gen2, /rpc/Switch.GetStatus,  apower)
+//   gen1   – Shelly Plug S (alt)        (Gen1, /status,                meters[0].power)
 async function readMeter(host, type) {
   if (!host) return null;
   try {
@@ -78,7 +88,6 @@ async function readMeter(host, type) {
 function simulate() {
   const now = new Date();
   const hour = now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
-  // Sinuskurve: Sonnenaufgang 6 Uhr, Peak 13 Uhr, Untergang 20 Uhr
   const solarFactor = Math.max(0, Math.sin(Math.PI * (hour - 6) / 14));
   const pv = Math.max(0, Math.round(solarFactor * 4800 + (Math.random() - 0.5) * 150));
   const spike = Math.random() < 0.03 ? 800 + Math.random() * 1500 : 0;
@@ -91,19 +100,21 @@ let current = { pv: 0, grid: 0, consumption: 0, ts: Date.now(), error: false };
 async function poll() {
   if (cfg.simulate) {
     const { pv, consumption } = simulate();
-    const grid = consumption - pv; // positiv = Netzbezug, negativ = Einspeisung
+    const grid = consumption - pv;
     current = { pv, grid, consumption, ts: Date.now(), error: false, simulated: true };
   } else {
-    const [pvRaw, pv2Raw, gridRaw] = await Promise.all([
-      readMeter(cfg.pvHost,   cfg.pvType),
-      readMeter(cfg.pv2Host,  cfg.pv2Type),
+    const results = await Promise.all([
+      ...cfg.pvMeters.map(m => readMeter(m.host, m.type)),
       readMeter(cfg.gridHost, cfg.gridType),
     ]);
-    const pv  = Math.max(0, (pvRaw ?? 0) + (pv2Raw ?? 0));
+
+    const pvReadings = results.slice(0, cfg.pvMeters.length);
+    const gridRaw    = results[cfg.pvMeters.length];
+
+    const pv   = Math.max(0, pvReadings.reduce((sum, v) => sum + (v ?? 0), 0));
     const grid = gridRaw ?? 0;
-    // Hausverbrauch = PV-Erzeugung + Netzbezug (grid negativ = Einspeisung)
     const consumption = Math.max(0, pv + grid);
-    current = { pv, grid, consumption, ts: Date.now(), error: pvRaw === null };
+    current = { pv, grid, consumption, ts: Date.now(), error: pvReadings.some(v => v === null) };
   }
 
   history.push({ ...current });
@@ -116,7 +127,7 @@ setInterval(poll, cfg.pollMs);
 app.get('/api/data', (_req, res) => {
   res.json({
     current,
-    history: history.slice(-72), // letzte 72 Punkte = 6 Min. bei 5-s-Intervall
+    history: history.slice(-72),
     pollInterval: cfg.pollMs,
     simulated: cfg.simulate,
     hasGrid: !!cfg.gridHost || cfg.simulate,
@@ -131,9 +142,7 @@ app.listen(cfg.port, () => {
   const mode = cfg.simulate ? ' [SIMULATIONSMODUS]' : '';
   console.log(`Shelly Monitor läuft auf http://localhost:${cfg.port}${mode}`);
   if (!cfg.simulate) {
-    console.log(`  PV-Shelly 1: ${cfg.pvHost} (Typ: ${cfg.pvType})`);
-    if (cfg.pv2Host)
-      console.log(`  PV-Shelly 2: ${cfg.pv2Host} (Typ: ${cfg.pv2Type})`);
+    cfg.pvMeters.forEach(m => console.log(`  PV-Shelly ${m.index}: ${m.host} (Typ: ${m.type})`));
     if (cfg.gridHost)
       console.log(`  Netz-Shelly: ${cfg.gridHost} (Typ: ${cfg.gridType})`);
   }
