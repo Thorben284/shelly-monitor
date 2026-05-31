@@ -527,18 +527,13 @@ const $ = id => document.getElementById(id);
 
 // ── Update ────────────────────────────────────────────────────────
 let pollInterval = 5000;
-let firstLoad = true;
 
 async function update() {
   try {
     const res = await fetch('/api/data');
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    const { current: c, history, simulated, hasGrid } = await res.json();
-
-    if (firstLoad) {
-      pollInterval = (await fetch('/api/data').then(r => r.json()).catch(() => ({}))).pollInterval || 5000;
-      firstLoad = false;
-    }
+    const { current: c, history, simulated, hasGrid, pollInterval: pi } = await res.json();
+    pollInterval = pi || 5000;
 
     $('error-banner').style.display = c.error ? 'block' : 'none';
     $('sim-badge').style.display = simulated ? 'inline-block' : 'none';
@@ -595,7 +590,7 @@ async function update() {
     );
 
     // Opacity when no flow
-    ['arr-pv', 'arr-pv-head'].forEach(id => $('arr-pv').style.opacity = pvActive ? 1 : 0.25);
+    $('arr-pv').parentElement.style.opacity = pvActive ? 1 : 0.25;
     $('arr-grid').parentElement.style.opacity = gridActive ? 1 : 0.25;
 
     // Stats
@@ -622,8 +617,7 @@ async function update() {
   }
 }
 
-update();
-setInterval(update, pollInterval);
+update().then(() => setInterval(update, pollInterval));
 </script>
 </body>
 </html>
