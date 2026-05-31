@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shelly PV Monitor</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg:        #0f172a;
+      --surface:   #1e293b;
+      --surface2:  #273549;
+      --border:    #334155;
+      --solar:     #f59e0b;
+      --blue:      #3b82f6;
+      --green:     #22c55e;
+      --red:       #ef4444;
+      --text:      #e2e8f0;
+      --muted:     #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      padding: 0 1rem 2rem;
+    }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    header {
+      text-align: center;
+      padding: 2rem 0 1rem;
+    }
+
+    h1 {
+      font-size: clamp(1.4rem, 4vw, 2rem);
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--solar) 0%, var(--blue) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 0.3rem;
+    }
+
+    .sim-badge {
+      display: inline-block;
+      background: #7c3aed;
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      padding: 0.2rem 0.75rem;
+      border-radius: 9999px;
+      margin-top: 0.5rem;
+    }
+
+    /* ── Layout ──────────────────────────────────────────────── */
+    .wrapper {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    /* ── Metric Cards ────────────────────────────────────────── */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 1.5rem 0 1rem;
+    }
+
+    @media (max-width: 560px) {
+      .cards { grid-template-columns: 1fr 1fr; }
+      .cards .card:last-child { grid-column: 1 / -1; }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.25rem 1rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.4s;
+    }
+
+    .card::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 3px;
+      border-radius: 0 0 1rem 1rem;
+    }
+
+    .card.solar::after    { background: var(--solar); }
+    .card.house::after    { background: var(--blue); }
+    .card.export::after   { background: var(--green); }
+    .card.import::after   { background: var(--red); }
+    .card.neutral::after  { background: var(--border); }
+
+    .card-icon { font-size: 1.75rem; }
+
+    .card-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 0.4rem 0;
+    }
+
+    .card-value {
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1.1;
+      transition: color 0.4s;
+    }
+
+    .card-unit {
+      font-size: 0.95rem;
+      font-weight: 400;
+      color: var(--muted);
+      margin-left: 0.15em;
+    }
+
+    .card-sub {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.35rem;
+    }
+
+    .card.solar .card-value    { color: var(--solar); }
+    .card.house .card-value    { color: var(--blue); }
+    .card.export .card-value   { color: var(--green); }
+    .card.import .card-value   { color: var(--red); }
+    .card.neutral .card-value  { color: var(--muted); }
+
+    /* ── Energy Flow ─────────────────────────────────────────── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .panel-title {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 1.25rem;
+    }
+
+    .flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      flex-wrap: nowrap;
+    }
+
+    .flow-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.2rem;
+      flex: 0 0 auto;
+    }
+
+    .node-circle {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      transition: border-color 0.4s, background 0.4s;
+    }
+
+    .node-circle.solar  { border-color: var(--solar);  background: rgba(245,158,11,.12); }
+    .node-circle.house  { border-color: var(--blue);   background: rgba(59,130,246,.12); }
+    .node-circle.export { border-color: var(--green);  background: rgba(34,197,94,.12);  }
+    .node-circle.import { border-color: var(--red);    background: rgba(239,68,68,.12);  }
+    .node-circle.off    { border-color: var(--border); background: var(--surface2);      }
+
+    .node-name  { font-size: 0.72rem; color: var(--muted); }
+    .node-watt  { font-size: 0.88rem; font-weight: 600; transition: color 0.4s; }
+
+    /* Arrow between nodes */
+    .flow-arrow {
+      display: flex;
+      align-items: center;
+      flex: 0 0 auto;
+      position: relative;
+      width: 80px;
+      height: 20px;
+    }
+
+    .arrow-track {
+      position: absolute;
+      left: 0; right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 4px;
+      border-radius: 2px;
+      background: var(--surface2);
+      overflow: hidden;
+    }
+
+    .arrow-track .dot {
+      position: absolute;
+      top: 0;
+      width: 24px;
+      height: 100%;
+      border-radius: 2px;
+      opacity: 0;
+    }
+
+    .arrow-track.active .dot {
+      animation: slide-right 1.2s linear infinite;
+    }
+
+    .arrow-track.active-rev .dot {
+      animation: slide-left 1.2s linear infinite;
+    }
+
+    @keyframes slide-right {
+      0%   { left: -24px; opacity: 0; }
+      15%  { opacity: 1; }
+      85%  { opacity: 1; }
+      100% { left: 100%; opacity: 0; }
+    }
+
+    @keyframes slide-left {
+      0%   { right: -24px; left: auto; opacity: 0; }
+      15%  { opacity: 1; }
+      85%  { opacity: 1; }
+      100% { right: 100%; left: auto; opacity: 0; }
+    }
+
+    .arrow-head {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+    }
+
+    .arrow-head.right {
+      right: 0;
+      border-top: 7px solid transparent;
+      border-bottom: 7px solid transparent;
+      border-left: 10px solid var(--border);
+      transition: border-left-color 0.4s;
+    }
+
+    .arrow-head.left {
+      left: 0;
+      border-top: 7px solid transparent;
+      border-bottom: 7px solid transparent;
+      border-right: 10px solid var(--border);
+      transition: border-right-color 0.4s;
+      display: none;
+    }
+
+    @media (max-width: 480px) {
+      .flow-arrow { width: 40px; }
+      .node-circle { width: 56px; height: 56px; font-size: 1.4rem; }
+    }
+
+    /* ── Stats Row ───────────────────────────────────────────── */
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.4rem;
+    }
+
+    .stat-value {
+      font-size: 1.6rem;
+      font-weight: 700;
+    }
+
+    .stat-bar {
+      width: 100%;
+      height: 6px;
+      background: var(--surface2);
+      border-radius: 3px;
+      margin-top: 0.4rem;
+      overflow: hidden;
+    }
+
+    .stat-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+
+    /* ── Chart ───────────────────────────────────────────────── */
+    .chart-wrap {
+      position: relative;
+      height: 220px;
+    }
+
+    /* ── Error Banner ────────────────────────────────────────── */
+    .error-banner {
+      background: rgba(239,68,68,.15);
+      border: 1px solid rgba(239,68,68,.4);
+      color: #fca5a5;
+      border-radius: 0.5rem;
+      padding: 0.6rem 1rem;
+      font-size: 0.8rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>☀️ Shelly PV Monitor</h1>
+  <div class="subtitle" id="last-update">Verbinde…</div>
+  <div id="sim-badge" class="sim-badge" style="display:none">Simulationsmodus</div>
+</header>
+
+<div class="wrapper">
+
+  <div class="error-banner" id="error-banner">
+    ⚠️ Shelly nicht erreichbar – letzte bekannte Werte werden angezeigt.
+  </div>
+
+  <!-- Metric cards -->
+  <div class="cards">
+    <div class="card solar" id="card-pv">
+      <div class="card-icon">☀️</div>
+      <div class="card-label">PV Erzeugung</div>
+      <div class="card-value"><span id="pv-val">—</span><span class="card-unit" id="pv-unit">W</span></div>
+    </div>
+
+    <div class="card house" id="card-house">
+      <div class="card-icon">🏠</div>
+      <div class="card-label">Hausverbrauch</div>
+      <div class="card-value"><span id="house-val">—</span><span class="card-unit" id="house-unit">W</span></div>
+    </div>
+
+    <div class="card neutral" id="card-grid">
+      <div class="card-icon" id="grid-icon">⚡</div>
+      <div class="card-label">Netz</div>
+      <div class="card-value"><span id="grid-val">—</span><span class="card-unit" id="grid-unit">W</span></div>
+      <div class="card-sub" id="grid-sub">—</div>
+    </div>
+  </div>
+
+  <!-- Energy flow -->
+  <div class="panel" id="flow-panel">
+    <div class="panel-title">Energiefluss</div>
+    <div class="flow">
+
+      <!-- Solar node -->
+      <div class="flow-node">
+        <div class="node-circle solar">☀️</div>
+        <div class="node-name">Solar</div>
+        <div class="node-watt" id="fn-pv" style="color:var(--solar)">0 W</div>
+      </div>
+
+      <!-- Solar → Haus arrow -->
+      <div class="flow-arrow">
+        <div class="arrow-track" id="arr-pv">
+          <div class="dot" id="arr-pv-dot" style="background:var(--solar)"></div>
+        </div>
+        <div class="arrow-head right" id="arr-pv-head" style="border-left-color:var(--solar)"></div>
+      </div>
+
+      <!-- Haus node -->
+      <div class="flow-node">
+        <div class="node-circle house">🏠</div>
+        <div class="node-name">Haus</div>
+        <div class="node-watt" id="fn-house" style="color:var(--blue)">0 W</div>
+      </div>
+
+      <!-- Haus ↔ Netz arrow -->
+      <div class="flow-arrow">
+        <div class="arrow-track" id="arr-grid">
+          <div class="dot" id="arr-grid-dot"></div>
+        </div>
+        <div class="arrow-head right" id="arr-grid-head-r"></div>
+        <div class="arrow-head left"  id="arr-grid-head-l"></div>
+      </div>
+
+      <!-- Grid node -->
+      <div class="flow-node">
+        <div class="node-circle" id="grid-node-circle">⚡</div>
+        <div class="node-name" id="grid-node-name">Netz</div>
+        <div class="node-watt" id="fn-grid">0 W</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Self-consumption / autarky stats -->
+  <div class="panel" id="stats-panel">
+    <div class="panel-title">Kennzahlen (aktuell)</div>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">Eigenverbrauch</div>
+        <div class="stat-value" id="stat-sc" style="color:var(--solar)">—</div>
+        <div class="stat-bar"><div class="stat-fill" id="bar-sc" style="background:var(--solar);width:0%"></div></div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Autarkie</div>
+        <div class="stat-value" id="stat-au" style="color:var(--blue)">—</div>
+        <div class="stat-bar"><div class="stat-fill" id="bar-au" style="background:var(--blue);width:0%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <div class="panel">
+    <div class="panel-title">📈 Verlauf (letzte 6 Minuten)</div>
+    <div class="chart-wrap">
+      <canvas id="chart"></canvas>
+    </div>
+  </div>
+
+</div><!-- /wrapper -->
+
+<script>
+// ── Chart setup ────────────────────────────────────────────────────
+const chartCtx = document.getElementById('chart').getContext('2d');
+const pvDataset = {
+  label: 'PV Erzeugung',
+  data: [], borderColor: '#f59e0b',
+  backgroundColor: 'rgba(245,158,11,0.12)',
+  borderWidth: 2, fill: true, tension: 0.4, pointRadius: 0,
+};
+const houseDataset = {
+  label: 'Hausverbrauch',
+  data: [], borderColor: '#3b82f6',
+  backgroundColor: 'rgba(59,130,246,0.10)',
+  borderWidth: 2, fill: true, tension: 0.4, pointRadius: 0,
+};
+const gridDataset = {
+  label: 'Netzbezug',
+  data: [], borderColor: '#ef4444',
+  backgroundColor: 'rgba(239,68,68,0.05)',
+  borderWidth: 1.5, fill: false, tension: 0.4, pointRadius: 0,
+};
+
+const chart = new Chart(chartCtx, {
+  type: 'line',
+  data: { labels: [], datasets: [pvDataset, houseDataset, gridDataset] },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 250 },
+    plugins: {
+      legend: { labels: { color: '#94a3b8', boxWidth: 12, font: { size: 11 } } },
+      tooltip: {
+        callbacks: {
+          label: ctx => ` ${ctx.dataset.label}: ${formatW(ctx.raw)}`,
+        }
+      }
+    },
+    scales: {
+      x: {
+        ticks: { color: '#94a3b8', maxTicksLimit: 7, font: { size: 10 } },
+        grid: { color: 'rgba(51,65,85,0.6)' },
+      },
+      y: {
+        min: 0,
+        ticks: { color: '#94a3b8', callback: v => formatW(v), font: { size: 10 } },
+        grid: { color: 'rgba(51,65,85,0.6)' },
+      },
+    },
+  },
+});
+
+// ── Helpers ────────────────────────────────────────────────────────
+function formatW(w) {
+  if (w == null) return '—';
+  const abs = Math.abs(w);
+  if (abs >= 1000) return (abs / 1000).toFixed(2) + ' kW';
+  return Math.round(abs) + ' W';
+}
+
+function fmtVal(w) {
+  if (w == null) return { v: '—', u: 'W' };
+  const abs = Math.abs(w);
+  if (abs >= 1000) return { v: (abs / 1000).toFixed(2), u: 'kW' };
+  return { v: Math.round(abs), u: 'W' };
+}
+
+function fmtTime(ts) {
+  return new Date(ts).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+function setArrow(trackEl, dotEl, headR, headL, active, color, reverse) {
+  trackEl.className = 'arrow-track' + (active && !reverse ? ' active' : active && reverse ? ' active-rev' : '');
+  dotEl.style.background = color;
+  if (headR) { headR.style.borderLeftColor = color; headR.style.display = reverse ? 'none' : 'block'; }
+  if (headL) { headL.style.borderRightColor = color; headL.style.display = reverse ? 'block' : 'none'; }
+}
+
+// ── DOM refs ──────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+// ── Update ────────────────────────────────────────────────────────
+let pollInterval = 5000;
+
+async function update() {
+  try {
+    const res = await fetch('/api/data');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const { current: c, history, simulated, hasGrid, pollInterval: pi } = await res.json();
+    pollInterval = pi || 5000;
+
+    $('error-banner').style.display = c.error ? 'block' : 'none';
+    $('sim-badge').style.display = simulated ? 'inline-block' : 'none';
+    $('last-update').textContent = 'Letzte Aktualisierung: ' + fmtTime(c.ts);
+
+    // Cards: PV
+    const pv = fmtVal(c.pv);
+    $('pv-val').textContent = pv.v;
+    $('pv-unit').textContent = pv.u;
+
+    // Cards: Haus
+    const house = fmtVal(c.consumption);
+    $('house-val').textContent = house.v;
+    $('house-unit').textContent = house.u;
+
+    // Cards: Netz
+    const gridAbs = fmtVal(c.grid);
+    const exporting = c.grid < -10;
+    const importing = c.grid > 10;
+    $('grid-val').textContent = gridAbs.v;
+    $('grid-unit').textContent = gridAbs.u;
+
+    const gridCard = $('card-grid');
+    gridCard.className = 'card ' + (exporting ? 'export' : importing ? 'import' : 'neutral');
+    $('grid-icon').textContent = exporting ? '🔌' : '⚡';
+    $('grid-sub').textContent = exporting ? 'Einspeisung' : importing ? 'Netzbezug' : 'Ausgeglichen';
+
+    // Show/hide grid card
+    $('flow-panel').style.display = hasGrid ? '' : 'none';
+    $('stats-panel').style.display = hasGrid ? '' : 'none';
+
+    // Flow nodes
+    $('fn-pv').textContent = formatW(c.pv);
+    $('fn-house').textContent = formatW(c.consumption);
+    $('fn-grid').textContent = formatW(Math.abs(c.grid));
+    $('fn-grid').style.color = exporting ? 'var(--green)' : importing ? 'var(--red)' : 'var(--muted)';
+
+    const gridCircle = $('grid-node-circle');
+    gridCircle.className = 'node-circle ' + (exporting ? 'export' : importing ? 'import' : 'off');
+    gridCircle.textContent = exporting ? '🔌' : '⚡';
+    $('grid-node-name').textContent = exporting ? 'Einspeisung' : 'Netzbezug';
+
+    // Arrows
+    const pvActive = c.pv > 10;
+    const gridActive = Math.abs(c.grid) > 10;
+
+    setArrow($('arr-pv'), $('arr-pv-dot'), $('arr-pv-head'), null, pvActive, '#f59e0b', false);
+    setArrow(
+      $('arr-grid'), $('arr-grid-dot'),
+      $('arr-grid-head-r'), $('arr-grid-head-l'),
+      gridActive,
+      exporting ? '#22c55e' : '#ef4444',
+      importing  // importing = reverse (grid → house)
+    );
+
+    // Opacity when no flow
+    $('arr-pv').parentElement.style.opacity = pvActive ? 1 : 0.25;
+    $('arr-grid').parentElement.style.opacity = gridActive ? 1 : 0.25;
+
+    // Stats
+    if (hasGrid && c.pv > 0) {
+      const used = Math.min(c.pv, c.consumption);
+      const sc  = Math.round(used / c.pv * 100);
+      const au  = c.consumption > 0 ? Math.round(used / c.consumption * 100) : 100;
+      $('stat-sc').textContent = sc + '%';
+      $('stat-au').textContent = au + '%';
+      $('bar-sc').style.width = sc + '%';
+      $('bar-au').style.width = au + '%';
+    }
+
+    // Chart
+    chart.data.labels = history.map(h => fmtTime(h.ts));
+    pvDataset.data    = history.map(h => h.pv);
+    houseDataset.data = history.map(h => h.consumption);
+    gridDataset.data  = history.map(h => Math.max(0, h.grid));
+    chart.update('none');
+
+  } catch (e) {
+    $('last-update').textContent = 'Verbindungsfehler – ' + new Date().toLocaleTimeString('de-DE');
+    console.error(e);
+  }
+}
+
+update().then(() => setInterval(update, pollInterval));
+</script>
+</body>
+</html>
