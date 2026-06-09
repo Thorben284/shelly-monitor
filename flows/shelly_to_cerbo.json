@@ -107,9 +107,10 @@
   },
   {
     "id": "victron-pv-out",
-    "type": "victron-virtual-pvinverter",
+    "type": "victron-virtual-device",
     "z": "tab-shelly-direct",
     "name": "Shelly PV Messung",
+    "serviceType": "com.victronenergy.pvinverter",
     "deviceInstance": "30",
     "position": "1",
     "x": 1450,
