@@ -5,6 +5,43 @@ const path = require('path');
 const app = express();
 app.use(express.static(path.join(__dirname, 'public')));
 
+// ── Optionales MQTT-Publishing zum Cerbo GX ───────────────────────────────────
+// Wird nur aktiviert wenn CERBO_MQTT_HOST gesetzt ist.
+let mqttClient = null;
+const CERBO_MQTT_HOST  = process.env.CERBO_MQTT_HOST;
+const CERBO_MQTT_PORT  = parseInt(process.env.CERBO_MQTT_PORT  || '1883');
+const CERBO_MQTT_TOPIC = process.env.CERBO_MQTT_TOPIC || 'shellies/pv_monitor';
+
+if (CERBO_MQTT_HOST) {
+  try {
+    const mqtt = require('mqtt');
+    mqttClient = mqtt.connect(`mqtt://${CERBO_MQTT_HOST}:${CERBO_MQTT_PORT}`, {
+      clientId: 'shelly-monitor',
+      reconnectPeriod: 5000,
+      connectTimeout: 8000,
+    });
+    mqttClient.on('connect', () =>
+      console.log(`MQTT verbunden: ${CERBO_MQTT_HOST}:${CERBO_MQTT_PORT} → ${CERBO_MQTT_TOPIC}`)
+    );
+    mqttClient.on('error', err =>
+      console.error('MQTT-Fehler:', err.message)
+    );
+  } catch {
+    console.log('mqtt-Paket nicht installiert – MQTT deaktiviert. (npm install mqtt)');
+  }
+}
+
+function publishMqtt(data) {
+  if (!mqttClient?.connected) return;
+  const payload = JSON.stringify({
+    pv:          data.pv,
+    grid:        data.grid,
+    consumption: data.consumption,
+    ts:          data.ts,
+  });
+  mqttClient.publish(CERBO_MQTT_TOPIC, payload, { retain: true });
+}
+
 function loadPvMeters() {
   const meters = [];
   for (let i = 1; i <= 9; i++) {
@@ -99,6 +136,7 @@ async function poll() {
   }
   history.push({ ...current });
   if (history.length > HISTORY_LEN) history.shift();
+  publishMqtt(current);
 }
 
 poll();
