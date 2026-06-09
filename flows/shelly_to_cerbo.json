@@ -140,8 +140,23 @@
     "scope": ["http-shelly-cloud"],
     "uncaught": false,
     "x": 630,
-    "y": 300,
-    "wires": [["debug-fehler"]]
+    "y": 320,
+    "wires": [["fn-catch-null"]]
+  },
+  {
+    "id": "fn-catch-null",
+    "type": "function",
+    "z": "tab-shelly-direct",
+    "name": "Fehler → 0 Watt",
+    "func": "node.warn('Geraet nicht erreichbar (' + (msg._id || '?') + '): ' + msg.error.message);\nmsg.payload = 0;\nreturn [msg, msg];",
+    "outputs": 2,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 840,
+    "y": 320,
+    "wires": [["join-alle-5"], ["debug-fehler"]]
   },
   {
     "id": "debug-fehler",
@@ -152,12 +167,12 @@
     "tosidebar": true,
     "console": false,
     "tostatus": false,
-    "complete": "error.message",
+    "complete": "payload",
     "targetType": "msg",
     "statusVal": "",
     "statusType": "auto",
-    "x": 820,
-    "y": 300,
+    "x": 1060,
+    "y": 320,
     "wires": []
   }
 ]
