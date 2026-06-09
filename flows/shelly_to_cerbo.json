@@ -103,19 +103,7 @@
     "libs": [],
     "x": 1230,
     "y": 200,
-    "wires": [["victron-pv-out", "debug-summe"]]
-  },
-  {
-    "id": "victron-pv-out",
-    "type": "victron-virtual-device",
-    "z": "tab-shelly-direct",
-    "name": "Shelly PV Messung",
-    "serviceType": "com.victronenergy.pvinverter",
-    "deviceInstance": "30",
-    "position": "1",
-    "x": 1450,
-    "y": 200,
-    "wires": []
+    "wires": [["debug-summe"]]
   },
   {
     "id": "debug-summe",
