@@ -25,7 +25,7 @@ const cfg = {
   gridType:  process.env.GRID_SHELLY_TYPE || 'em3',
   heizstabId:   process.env.HEIZSTAB_SHELLY_ID   || '',
   heizstabType: process.env.HEIZSTAB_SHELLY_TYPE || 'pm1',
-  pollMs:    parseInt(process.env.POLL_INTERVAL || '10000'),
+  pollMs:    parseInt(process.env.POLL_INTERVAL || '60000'),
   port:      parseInt(process.env.PORT          || '3000'),
   victronEmail:    process.env.VICTRON_EMAIL    || '',
   victronPassword: process.env.VICTRON_PASSWORD || '',
@@ -83,21 +83,33 @@ function simulateShelly() {
   return { pv, consumption: Math.round(280 + Math.random() * 200 + spike + heizstab), heizstab };
 }
 
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// Sequential polling with 600ms gap between requests to avoid HTTP 429
+async function readAllMeters() {
+  const devices = [
+    ...cfg.pvMeters.map(m => ({ id: m.id, type: m.type, role: 'pv' })),
+    { id: cfg.gridId,     type: cfg.gridType,     role: 'grid' },
+    { id: cfg.heizstabId, type: cfg.heizstabType, role: 'heizstab' },
+  ];
+  const results = [];
+  for (const dev of devices) {
+    results.push(await readMeter(dev.id, dev.type));
+    await sleep(600);
+  }
+  return results;
+}
+
 async function pollShelly() {
   if (cfg.simulate) {
     const { pv, consumption, heizstab } = simulateShelly();
     shellyCurrent = { pv, grid: consumption - pv, consumption, heizstab, ts: Date.now(), error: false, simulated: true };
   } else {
-    const results = await Promise.all([
-      ...cfg.pvMeters.map(m => readMeter(m.id, m.type)),
-      readMeter(cfg.gridId, cfg.gridType),
-      readMeter(cfg.heizstabId, cfg.heizstabType),
-    ]);
+    const results = await readAllMeters();
     const pvReadings  = results.slice(0, cfg.pvMeters.length);
     const gridRaw     = results[cfg.pvMeters.length];
     const heizstabRaw = results[cfg.pvMeters.length + 1];
-    // Math.abs() pro PV-Gerät: negative Werte entstehen wenn der Shelly-Stromsensor
-    // umgekehrt eingebaut ist — die Energie wird trotzdem erzeugt
+    // Math.abs() per device: negative values occur when CT clamp is installed reversed
     const pv          = pvReadings.reduce((s, v) => s + Math.abs(v ?? 0), 0);
     const grid        = gridRaw ?? 0;
     const heizstab    = heizstabRaw != null ? Math.abs(heizstabRaw) : null;
