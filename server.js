@@ -23,6 +23,8 @@ const cfg = {
   pvMeters:  loadPvMeters(),
   gridId:    process.env.GRID_SHELLY_ID   || '',
   gridType:  process.env.GRID_SHELLY_TYPE || 'em3',
+  heizstabId:   process.env.HEIZSTAB_SHELLY_ID   || '',
+  heizstabType: process.env.HEIZSTAB_SHELLY_TYPE || 'pm1',
   pollMs:    parseInt(process.env.POLL_INTERVAL || '10000'),
   port:      parseInt(process.env.PORT          || '3000'),
   victronEmail:    process.env.VICTRON_EMAIL    || '',
@@ -77,23 +79,29 @@ function simulateShelly() {
   const sun = Math.max(0, Math.sin(Math.PI * (h - 6) / 14));
   const pv  = Math.max(0, Math.round(sun * 4800 + (Math.random() - 0.5) * 150));
   const spike = Math.random() < 0.03 ? 800 + Math.random() * 1500 : 0;
-  return { pv, consumption: Math.round(280 + Math.random() * 200 + spike) };
+  const heizstab = Math.random() < 0.4 ? 840 : 0;
+  return { pv, consumption: Math.round(280 + Math.random() * 200 + spike + heizstab), heizstab };
 }
 
 async function pollShelly() {
   if (cfg.simulate) {
-    const { pv, consumption } = simulateShelly();
-    shellyCurrent = { pv, grid: consumption - pv, consumption, ts: Date.now(), error: false, simulated: true };
+    const { pv, consumption, heizstab } = simulateShelly();
+    shellyCurrent = { pv, grid: consumption - pv, consumption, heizstab, ts: Date.now(), error: false, simulated: true };
   } else {
     const results = await Promise.all([
       ...cfg.pvMeters.map(m => readMeter(m.id, m.type)),
       readMeter(cfg.gridId, cfg.gridType),
+      readMeter(cfg.heizstabId, cfg.heizstabType),
     ]);
     const pvReadings  = results.slice(0, cfg.pvMeters.length);
     const gridRaw     = results[cfg.pvMeters.length];
-    const pv          = Math.max(0, pvReadings.reduce((s, v) => s + (v ?? 0), 0));
+    const heizstabRaw = results[cfg.pvMeters.length + 1];
+    // Math.abs() pro PV-Gerät: negative Werte entstehen wenn der Shelly-Stromsensor
+    // umgekehrt eingebaut ist — die Energie wird trotzdem erzeugt
+    const pv          = pvReadings.reduce((s, v) => s + Math.abs(v ?? 0), 0);
     const grid        = gridRaw ?? 0;
-    shellyCurrent = { pv, grid, consumption: Math.max(0, pv + grid), ts: Date.now(), error: pvReadings.some(v => v === null) };
+    const heizstab    = heizstabRaw != null ? Math.abs(heizstabRaw) : null;
+    shellyCurrent = { pv, grid, consumption: Math.max(0, pv + grid), heizstab, ts: Date.now(), error: pvReadings.some(v => v === null) };
   }
   shellyHistory.push({ ...shellyCurrent });
   if (shellyHistory.length > HIST) shellyHistory.shift();

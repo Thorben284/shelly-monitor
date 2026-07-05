@@ -549,7 +549,7 @@
     🔶 Simulationsmodus — kein Shelly Auth-Key konfiguriert. Setze <code>SHELLY_AUTH_KEY</code> in den Umgebungsvariablen.
   </div>
 
-  <div class="cards" id="shelly-cards">
+  <div class="cards cards-4" id="shelly-cards">
     <div class="card c-solar">
       <div class="card-icon">☀️</div>
       <div class="card-label">PV Erzeugung</div>
@@ -565,6 +565,12 @@
       <div class="card-label">Netz</div>
       <div class="card-value"><span id="s-grid">—</span><span class="card-unit" id="s-grid-u">W</span></div>
       <div class="card-sub" id="s-grid-sub">—</div>
+    </div>
+    <div class="card c-muted" id="s-heizstab-card">
+      <div class="card-icon" id="s-heizstab-icon">🔥</div>
+      <div class="card-label">Heizstab</div>
+      <div class="card-value"><span id="s-heizstab">—</span><span class="card-unit" id="s-heizstab-u">W</span></div>
+      <div class="card-sub" id="s-heizstab-sub">—</div>
     </div>
   </div>
 
@@ -1001,6 +1007,14 @@ async function updateShelly() {
     gc.className = 'card ' + (exporting ? 'c-aqua' : importing ? 'c-red' : 'c-muted');
     $('s-grid-icon').textContent = exporting ? '🔌' : '⚡';
     $('s-grid-sub').textContent  = exporting ? 'Einspeisung' : importing ? 'Netzbezug' : 'Ausgeglichen';
+
+    // Heizstab
+    const heizOn = c.heizstab != null && c.heizstab > 20;
+    $('s-heizstab-card').className = 'card ' + (heizOn ? 'c-red' : 'c-muted');
+    $('s-heizstab-icon').textContent = heizOn ? '🔥' : '💤';
+    setCard('s-heizstab', c.heizstab, 's-heizstab-u');
+    $('s-heizstab-sub').textContent = c.heizstab == null ? 'Nicht konfiguriert' : heizOn ? 'Heizt gerade' : 'Aus';
+    $('s-heizstab-card').style.display = '';
 
     // Flow
     $('s-flow-panel').style.display  = hasGrid ? '' : 'none';
