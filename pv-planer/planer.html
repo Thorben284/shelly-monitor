@@ -25,6 +25,14 @@ h3{font-size:.76rem;text-transform:uppercase;letter-spacing:.08em;color:var(--mu
 .step.now{border-color:var(--sun);color:var(--ink);font-weight:600}.step.now b{background:var(--sun);color:#1b1404}
 .step.done b{background:var(--ok);color:#fff}
 .banner{border-radius:8px;padding:10px 14px;font-size:.93rem;background:var(--sun-soft)}
+.prog{display:flex;flex-direction:column;gap:8px}
+.prog .bar{height:12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);overflow:hidden}
+.prog .fill{height:100%;background:var(--sun);border-radius:999px;transition:width .6s ease}
+.prog .row2{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+.prog .pct{font-family:var(--f-display);font-weight:800}
+.prog ol{margin:0;padding-left:20px;display:flex;flex-wrap:wrap;gap:4px 18px;font-size:.85rem;color:var(--muted)}
+.prog li.done{color:var(--ok)}.prog li.now{color:var(--ink);font-weight:600}
+@media (prefers-reduced-motion:reduce){.prog .fill{transition:none}}
 .banner.ok{background:var(--ok-soft)}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
 .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
@@ -89,6 +97,23 @@ const sel=()=>D.areas.filter(a=>a.selected);
 const pending=()=>!!D.request&&(!D.processed||D.processed.at<D.request.at);
 const lastIds=()=>D.request&&D.request.type==="auswahl"?D.request.ids:D.areas.filter(a=>a.analysed&&a.selected).map(a=>a.id);
 const changed=()=>sel().map(a=>a.id).sort().join()!==lastIds().slice().sort().join();
+/* Fortschritt: echte Schritte meldet Claude über D.progress {step, at}; dazwischen Schätzung nach üblicher Dauer */
+const PHASES={adresse:{min:20,steps:["Adresse und Kataster","3D-Gebäudemodell","Luftbild","Street View","Gegenprüfung","Planer aufbauen"]},
+  auswahl:{min:10,steps:["Hindernisse erkennen","Ertragsdaten (PVGIS)","Module auslegen","Gegenprüfung"]}};
+function progress(req){
+  const P=PHASES[req.type],t0=new Date(req.at).getTime(),el=(Date.now()-t0)/6e4,n=P.steps.length;
+  const g=D.progress&&D.progress.type===req.type&&D.progress.at>=req.at?D.progress:null,done=g?Math.min(g.step-1,n):0;
+  const tp=Math.min(el/P.min,.95),sp=done/n,next=(done+1)/n;
+  const pct=Math.round(100*Math.max(sp,Math.min(tp,next-.02)));
+  const rest=Math.max(0,Math.round(P.min*(1-pct/100)));
+  return {P,el,done,pct,over:el>P.min*1.5,rest};
+}
+function progHTML(req){const g=progress(req),what=req.type==="adresse"?`Gebäude und mögliche Dachflächen für „${esc(req.address)}“`:`Hindernisse und Modulbelegung für ${esc(req.ids.join(", "))}`;
+    return `<div class="prog" role="status" aria-live="polite"><div class="row2"><span>In Arbeit seit ${when(req.at)}: ${what}</span><span class="pct">${g.pct} %</span></div>
+      <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${g.pct}" aria-label="Fortschritt"><div class="fill" style="width:${g.pct}%"></div></div>
+      <ol>${g.P.steps.map((t,k)=>`<li class="${k<g.done?"done":k===g.done?"now":""}">${k<g.done?"✓ ":""}${t}</li>`).join("")}</ol>
+      <div class="row2"><span>${g.over?"Dauert länger als üblich.":g.rest>0?`Noch ca. ${g.rest} Min. (Schätzung)`:"Gleich fertig …"}</span><span>Die Seite lädt sich danach selbst neu.</span></div>
+      ${g.el>5&&g.done===0?`<span>Noch keine Rückmeldung von Claude: bitte im Chat „gesendet“ schreiben oder die Zeile unter „Falls Senden nicht funktioniert“ einfügen.</span>`:""}</div>`}
 const when=t=>new Date(t).toLocaleString("de-DE",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
 
 $("app").innerHTML=`<div class="wrap">
@@ -121,10 +146,9 @@ function render(){
   $("title").textContent=fresh?"Neue Planung":D.title||D.address||"Neue Planung";$("newBtn").hidden=!D.image||fresh;
   $("steps").innerHTML=[["Adresse",0],["Flächen auswählen",1],["Hindernisse erkennen",2],["Module auslegen",3]].map(([t,n])=>`<div class="step ${stage===n?"now":stage>n?"done":""}"><b>${stage>n?"✓":n+1}</b>${t}</div>`).join("");
   const b=$("banner");b.className="banner"+(stage===3?" ok":"");
-  b.textContent=pend&&req.type==="adresse"?`In Arbeit seit ${when(req.at)}: Claude sucht Gebäude, Luftbild und mögliche Dachflächen für „${req.address}“. Die Seite lädt sich danach selbst neu.`+(Date.now()-new Date(req.at)>3e5?" Dauert es länger als 5 Minuten, die Zeile unter „Falls Senden nicht funktioniert“ im Chat einfügen.":"")
-    :pend?`In Arbeit seit ${when(req.at)}: Claude erkennt auf ${req.ids.join(", ")} die Hindernisse und legt die Module aus. Die Seite lädt sich danach selbst neu.`+(Date.now()-new Date(req.at)>3e5?" Dauert es länger als 5 Minuten, die Zeile unter „Falls Senden nicht funktioniert“ im Chat einfügen.":"")
-    :D.status&&!fresh?D.status
-    :stage===0?"Adresse eingeben und „Planen“ drücken. Claude sucht dann das Gebäude und alle möglichen Dachflächen im Luftbild."
+  if(pend)b.innerHTML=progHTML(req);
+  else b.textContent=D.status&&!fresh?D.status
+    :stage===0?"Adresse eingeben und „Planen“ drücken. Claude sucht dann das Gebäude und alle möglichen Dachflächen."
     :stage===1&&!an.length?"Flächen im Luftbild oder in der Liste anklicken, dann „Auswahl senden“."
     :stage===1?"Auswahl geändert. Erneut senden, damit die neuen Flächen analysiert werden."
     :`Belegung für ${an.map(a=>a.id).join(", ")}. Weitere Flächen anwählen und erneut senden, um sie hinzuzunehmen.`;
@@ -179,7 +203,7 @@ async function submit(request,msgEl,btn){
   btn.disabled=true;msgEl.className="msg";msgEl.textContent="Wird gesendet …";
   const art=window.claude?await window.claude.use("artifact"):null;
   if(!art){msgEl.className="msg err";msgEl.textContent="Senden geht in dieser Ansicht nicht. Bitte die Zeile unter „Falls Senden nicht funktioniert“ in den Chat kopieren.";btn.disabled=false;return}
-  const data=JSON.parse(JSON.stringify(D));data.request=Object.assign(request,{at:new Date().toISOString()});data.status=null;
+  const data=JSON.parse(JSON.stringify(D));data.request=Object.assign(request,{at:new Date().toISOString()});data.status=null;data.progress=null;
   if(request.type==="adresse"){Object.assign(data,{address:request.address,title:request.address,image:null,areas:[],excluded:[],notes:[],processed:null,geo:null})}
   try{await art.publish(pageSource(data));msgEl.textContent="Gesendet. Die Seite lädt neu."}
   catch(e){const c=e&&e.code;msgEl.className="msg err";btn.disabled=false;
@@ -195,5 +219,6 @@ $("newNo").addEventListener("click",()=>{$("newAsk").hidden=true;render()});
 $("newYes").addEventListener("click",()=>{fresh=true;$("newAsk").hidden=true;$("addr").value="";$("addrMsg").textContent="";render();$("addr").focus()});
 $("send").addEventListener("click",()=>{const ids=sel().map(a=>a.id);if(ids.length)submit({type:"auswahl",ids},$("sendMsg"),$("send"))});
 render();
+setInterval(()=>{if(!fresh&&pending())$("banner").innerHTML=progHTML(D.request)},15000);   // Balken und Restzeit laufend nachführen
 })();
 </script>

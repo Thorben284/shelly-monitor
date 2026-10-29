@@ -89,7 +89,7 @@ async function main(cfgFile, out) {
     address: R.address || "", title: R.title || R.address || "", created: new Date().toISOString().slice(0, 10), stamp: Date.now(), module: M,
     image: AE ? { src: jpg, w: (cx1 - cx0) * S, h: (cy1 - cy0) * S, mpp: A.mpp(AE) / S, source: AE.source } : null,
     excluded: (R.excluded || []).map(e => ({ name: e.name, poly: e.poly.map(px) })),
-    areas, notes: R.notes || [], geo: R.geo || null, request: R.request || null, processed: R.processed || null, status: R.status || null
+    areas, notes: R.notes || [], geo: R.geo || null, request: R.request || null, processed: R.processed || null, status: R.status || null, progress: R.progress || null
   };
   const tpl = fs.readFileSync(path.join(__dirname, "..", "planer.html"), "utf8");
   const esc = s => String(s).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);

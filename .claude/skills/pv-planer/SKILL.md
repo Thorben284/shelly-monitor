@@ -17,6 +17,12 @@ Nur Modulauslegung: keine Wirtschaftlichkeit, kein Speicher, kein Verbrauch. Ver
 Die Seite speichert Anfragen, indem sie sich selbst neu veröffentlicht. Das Wecken der Sitzung kommt nicht zuverlässig an; bei jeder Nachricht zum Planer zuerst das Artifact mit `action: "read"` lesen, JSON aus `<script id="pv-data">` → `request` (und `processed`). Offen ist eine Anfrage, wenn `processed.at < request.at`.
 Bei einem Publish-Konflikt die gespeicherte Version auswerten (sie enthält oft eine neue Anfrage) und darauf aufbauen.
 
+## Fortschritt melden (Pflicht)
+Die Seite zeigt einen Prozentbalken mit Schritten und geschätzter Restzeit (Schätzung: Adresse 20 Min., Auswahl 10 Min.). Echten Fortschritt meldest du, indem du nach jedem abgeschlossenen Schritt `progress = {type, step, at: jetzt}` in roof.json setzt (step = Nummer des Schritts, der jetzt beginnt), mit areas.js baust und veröffentlichst:
+- adresse: 1 Adresse und Kataster, 2 3D-Gebäudemodell, 3 Luftbild, 4 Street View, 5 Gegenprüfung, 6 Planer aufbauen
+- auswahl: 1 Hindernisse erkennen, 2 Ertragsdaten (PVGIS), 3 Module auslegen, 4 Gegenprüfung
+Erste Meldung (step 1) sofort nach dem Lesen der Anfrage. Beim Abschluss `processed` setzen; `progress` kann bleiben.
+
 ## request.type = "adresse"
 Rangfolge der Quellen: **amtliche Daten vor Bildauswertung.** Luftbilder (Bing) sind keine echten Orthofotos (Dächer leicht versetzt), Linien im Dach sind mehrdeutig (First, Traufkante, Fensterband).
 
