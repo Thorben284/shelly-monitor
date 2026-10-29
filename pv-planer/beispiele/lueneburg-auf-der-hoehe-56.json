@@ -8,8 +8,35 @@
  },
  "areas": [
   {
+   "id": "T",
+   "name": "Technikfläche",
+   "kind": "Flachdach",
+   "building": "Bürogebäude",
+   "poly": [
+    [
+     0.3,
+     0.3
+    ],
+    [
+     17,
+     0.3
+    ],
+    [
+     17,
+     8.4
+    ],
+    [
+     0.3,
+     8.4
+    ]
+   ],
+   "note": "weitgehend mit Lüftungsgeräten belegt",
+   "selected": false
+  },
+  {
    "id": "D1",
-   "name": "Oberstes Dach",
+   "name": "Oberes Flachdach",
+   "kind": "Flachdach",
    "building": "Bürogebäude",
    "poly": [
     [
@@ -45,16 +72,13 @@
      8.4
     ]
    ],
-   "mountings": [
-    "ow",
-    "sued"
-   ],
-   "edge": 0.8,
-   "on": true
+   "note": "oberste Ebene laut Schattenanalyse",
+   "selected": false
   },
   {
    "id": "D2",
-   "name": "Ost, tiefer",
+   "name": "Flachdach Ost",
+   "kind": "Flachdach",
    "building": "Bürogebäude",
    "poly": [
     [
@@ -74,16 +98,13 @@
      13.6
     ]
    ],
-   "mountings": [
-    "ow",
-    "sued"
-   ],
-   "edge": 0.8,
-   "on": false
+   "note": "eine Ebene tiefer",
+   "selected": false
   },
   {
    "id": "D3",
-   "name": "Ost-Rand, am tiefsten",
+   "name": "Flachdach Ost-Rand",
+   "kind": "Flachdach",
    "building": "Bürogebäude",
    "poly": [
     [
@@ -103,16 +124,13 @@
      13.6
     ]
    ],
-   "mountings": [
-    "ow",
-    "sued"
-   ],
-   "edge": 0.8,
-   "on": false
+   "note": "unterste Ebene",
+   "selected": false
   },
   {
    "id": "D4",
-   "name": "Südflügel, vermutl. tiefer",
+   "name": "Südflügel",
+   "kind": "Flachdach",
    "building": "Bürogebäude",
    "poly": [
     [
@@ -148,17 +166,40 @@
      14.5
     ]
    ],
-   "mountings": [
-    "ow",
-    "sued"
-   ],
-   "edge": 0.8,
-   "on": false
+   "note": "vermutlich tiefer als D1",
+   "selected": false
   },
   {
-   "id": "C1",
-   "name": "Carport",
-   "building": "Carport",
+   "id": "K1",
+   "name": "Nebengebäude West",
+   "kind": "Flachdach",
+   "building": "Nebengebäude",
+   "poly": [
+    [
+     -4.7,
+     -4.3
+    ],
+    [
+     -0.1,
+     -4.4
+    ],
+    [
+     -2.2,
+     4.5
+    ],
+    [
+     -6.2,
+     3.9
+    ]
+   ],
+   "note": "ca. 4,6 × 9 m, evtl. Carport/Garage",
+   "selected": false
+  },
+  {
+   "id": "K2",
+   "name": "Helle Fläche Ost",
+   "kind": "Flachdach?",
+   "building": "Nebenfläche",
    "poly": [
     [
      18.7,
@@ -177,36 +218,37 @@
      34.8
     ]
    ],
-   "mountings": [
-    "eben"
-   ],
-   "edge": 0.2,
-   "on": true
-  }
- ],
- "excluded": [
+   "note": "ca. 4,8 × 16 m; Dach oder befestigte Fläche, bitte prüfen",
+   "selected": false
+  },
   {
-   "name": "Technikfläche",
+   "id": "K3",
+   "name": "Carport Südost",
+   "kind": "Carport",
+   "building": "Carport",
    "poly": [
     [
-     0.3,
-     0.3
+     29.8,
+     28.3
     ],
     [
-     17,
-     0.3
+     40.5,
+     27.2
     ],
     [
-     17,
-     8.4
+     41.1,
+     37.3
     ],
     [
-     0.3,
-     8.4
+     30.4,
+     38.4
     ]
-   ]
+   ],
+   "note": "ca. 10,7 × 10,1 m, wirft Schatten; Baum ragt über die Ostecke",
+   "selected": false
   }
  ],
+ "excluded": [],
  "obstacles": [
   {
    "type": "lichtkuppel",
@@ -314,9 +356,9 @@
   "cx": 700,
   "cy": 590,
   "crop": [
-   480,
+   440,
    330,
-   1010,
+   1180,
    840
   ],
   "scale": 2,
@@ -329,14 +371,10 @@
   "5|-28": 866.3
  },
  "notes": [
-  "Belegt sind nur das oberste Dach (D1) und der Carport. Höhenermittlung aus den Schattenlängen im Luftbild: Technikfläche und D1 ca. 5,5–6 m Schatten (oberste Ebene), D2 ca. 4,1 m, D3 ca. 2,8 m (je eine Stufe tiefer). Für den Südflügel D4 zeigt das Bild kein höheres Niveau; er wird als tiefer angenommen. Im Aufmaß bestätigen.",
-  "Dachflächen, Technikfläche und 18 Hindernisse (Lüfter, Lichtkuppel, Dachausstieg) aus dem Luftbild (Bing Maps, ca. 9 cm je Pixel) und dem OpenStreetMap-Umriss ermittelt. Lagegenauigkeit etwa ±0,5 m; Aufnahmedatum unbekannt.",
-  "Randabstand 0,8 m zu Attika und Dachkanten (Windsog-Randbereich, Absturzsicherung), Carport 0,2 m. Endgültige Rand- und Eckbereiche nach Windlastgutachten des Montagesystems (DIN EN 1991-1-4).",
-  "Abstände um Hindernisse: Lüfter 0,3 m, Lichtkuppel und Dachausstieg 0,5 m. Wartungswege, Feuerwehrzugang und Abstand zu Brandwänden (meist 1,25 m) sind noch nicht eingeplant und verringern die Belegung.",
-  "Ost-West 10°: Modulpaare Rücken an Rücken, 0,35 m Gang je Paar; höhere Leistung, geringere Windlast und Ballast. Süd 15°: Reihenabstand 2,2 m gegen Verschattung im Winter; höherer Ertrag je Modul, weniger Module.",
-  "Die Technikgeräte (ca. 1–1,5 m hoch) stehen westlich und nördlich von D1 auf derselben Ebene und können nachmittags die angrenzenden Module verschatten; Abstand dort derzeit 0,8 m.",
-  "Technikfläche (Lüftungsgeräte) ausgeschlossen. Höhenunterschiede zwischen den Dachabschnitten und Schatten der Technikaufbauten sind nicht berechnet; Module nahe der Technikfläche im Aufmaß prüfen.",
-  "Statik: Flachdach mit Ballast typisch 10–25 kg/m² Zusatzlast; Tragfähigkeit und Dachabdichtung prüfen lassen. Carport: leichte Dächer haben oft keine Reserve, Nachweis zwingend.",
-  "Modul: 450 Wp, 1,762 × 1,134 m (Annahme). Ertrag aus PVGIS 5.3 (EU), 14 % Systemverluste, ohne Verschattung durch Nachbargebäude und Bäume."
- ]
+  "Flächen aus dem Luftbild (Bing Maps, ca. 9 cm je Pixel) und dem OpenStreetMap-Umriss ermittelt; Lagegenauigkeit etwa ±0,5 m, Aufnahmedatum unbekannt.",
+  "Höhenstufen des Bürogebäudes aus den Schattenlängen: Technikfläche und D1 oberste Ebene, D2 eine Ebene tiefer, D3 am tiefsten; D4 vermutlich tiefer als D1.",
+  "Nebengebäude K1, Fläche K2 und Carport K3 sind in OpenStreetMap nicht als Gebäude erfasst und aus dem Bild nachgezeichnet. Grundstücksgrenzen sind nicht bekannt.",
+  "Nach dem Senden erkennt Claude auf den gewählten Flächen Hindernisse (Lüfter, Lichtkuppeln, Ausstiege, Bäume) und legt die Module aus: Flachdach Ost-West 10° und Süd 15° zum Vergleich, Carport flach."
+ ],
+ "request": null
 }

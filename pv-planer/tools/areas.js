@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-/* Modulauslegung aus einer Luftbild-Dachanalyse.
+/* Planer mit Luftbild: Flächenauswahl und Modulauslegung.
    node tools/areas.js <roof.json> <out.html>
-   roof.json: frame (Ursprung lon/lat + Längsachse °), areas (Umrisse in Gebäudekoordinaten u/v, Meter),
-   excluded, obstacles, aerial (Bild + Georeferenz + Ausschnitt), pvgis (kWh/kWp·a je "Neigung|Azimut"). */
+   roof.json: frame (Ursprung lon/lat + Längsachse °), areas = Kandidaten (Umrisse in Gebäudekoordinaten u/v, Meter;
+   `selected` = vom Nutzer gewählt, `mountings` gesetzt = analysiert und belegt), excluded, obstacles,
+   aerial (Bild + Georeferenz + Ausschnitt), pvgis (kWh/kWp·a je "Neigung|Azimut"), request (letzte Auswahl der Seite). */
 "use strict";
 const fs = require("fs"), path = require("path");
 const E = require("../engine.js"), A = require("./aerial.js");
@@ -43,9 +44,9 @@ async function main(cfgFile, out) {
 
   const areas = R.areas.map(a => {
     const area = (() => { let s = 0; const P = a.poly; for (let i = 0; i < P.length; i++) { const p = P[i], q = P[(i + 1) % P.length]; s += p[0] * q[1] - q[0] * p[1]; } return Math.abs(s) / 2; })();
-    const obs = obst.filter(o => inside(o, a.poly));
+    const obs = a.mountings ? obst.filter(o => inside(o, a.poly)) : [];
     const variants = {};
-    for (const mk of a.mountings) {
+    for (const mk of a.mountings || []) {
       const m = MOUNT[mk];
       const L = E.layoutArea({
         poly: a.poly.map(p => toLocal(m.axes, p)), edge: a.edge, w: m.w, h: m.h, pitches: m.pitches,
@@ -55,7 +56,8 @@ async function main(cfgFile, out) {
       const mods = L.pos.map(q => [[q.x, q.y], [q.x + L.w, q.y], [q.x + L.w, q.y + L.h], [q.x, q.y + L.h]].map(p => px(fromLocal(m.axes, p))));
       variants[mk] = { label: m.label, tilt: m.tilt, aspects: m.comp.map(toAsp), count: L.count, spec: Math.round(yieldOf(m)), mods };
     }
-    return { id: a.id, name: a.name, building: a.building, area: Math.round(area), edge: a.edge, mounting: a.mountings[0], on: a.on !== false,
+    return { id: a.id, name: a.name, building: a.building, kind: a.kind || "", note: a.note || "", area: Math.round(area), edge: a.edge,
+      analysed: !!a.mountings, mounting: a.mountings ? a.mountings[0] : null, selected: !!a.selected,
       outline: a.poly.map(px), obstacles: obs.map(o => ({ label: o.label, poly: [[o.u - o.w / 2, o.v - o.h / 2], [o.u + o.w / 2, o.v - o.h / 2], [o.u + o.w / 2, o.v + o.h / 2], [o.u - o.w / 2, o.v + o.h / 2]].map(px),
         zone: [[o.u - o.w / 2 - o.c, o.v - o.h / 2 - o.c], [o.u + o.w / 2 + o.c, o.v - o.h / 2 - o.c], [o.u + o.w / 2 + o.c, o.v + o.h / 2 + o.c], [o.u - o.w / 2 - o.c, o.v + o.h / 2 + o.c]].map(px) })),
       variants };
@@ -73,15 +75,15 @@ async function main(cfgFile, out) {
   await b.close();
 
   const data = {
-    address: R.address, created: new Date().toISOString().slice(0, 10), stamp: Date.now(), module: M,
+    address: R.address, title: R.title || R.address, created: new Date().toISOString().slice(0, 10), stamp: Date.now(), module: M,
     image: { src: jpg, w: (cx1 - cx0) * S, h: (cy1 - cy0) * S, mpp: A.mpp(AE) / S, source: AE.source },
     excluded: (R.excluded || []).map(e => ({ name: e.name, poly: e.poly.map(px) })),
-    areas, notes: R.notes || [], geo: R.geo
+    areas, notes: R.notes || [], geo: R.geo, request: R.request || null
   };
-  const tpl = fs.readFileSync(path.join(__dirname, "..", "layout.html"), "utf8");
+  const tpl = fs.readFileSync(path.join(__dirname, "..", "planer.html"), "utf8");
   const esc = s => String(s).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
   fs.writeFileSync(out, tpl.replace(/__TITLE__/g, esc(R.title || R.address)).replace("/*__DATA__*/null", () => JSON.stringify(data).replace(/</g, "\\u003c")));
-  for (const a of areas) console.log(a.id.padEnd(3), a.name.padEnd(16), `${a.area} m²`.padStart(7), Object.entries(a.variants).map(([k, v]) => `${k}: ${v.count} Mod. (${v.spec} kWh/kWp)`).join(" | "), `Hindernisse ${a.obstacles.length}`);
+  for (const a of areas) console.log(a.selected ? "[x]" : "[ ]", a.id.padEnd(3), a.name.padEnd(22), `${a.area} m²`.padStart(7), Object.entries(a.variants).map(([k, v]) => `${k}: ${v.count} Mod. (${v.spec} kWh/kWp)`).join(" | "), `Hindernisse ${a.obstacles.length}`);
   console.log(out, Math.round(fs.statSync(out).size / 1024) + " KB");
 }
 main(process.argv[2], process.argv[3]).catch(e => { console.error(e.message || e); process.exit(1); });

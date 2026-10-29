@@ -82,7 +82,8 @@ Wenn nur die Modulauslegung gefragt ist oder das Dach komplex ist:
 3. Georeferenz prüfen: `node pv-planer/tools/aerial.js overlay bild.png a.json ov.png` (OSM-Umriss einzeichnen, ansehen). Für Details: `tools/aerial.js grid bild.png x0 y0 x1 y1 out.png 3`.
 4. Gebäudesystem u/v (u = Längsachse ab OSM-Ecke, Meter) anlegen; Dachabschnitte, nicht nutzbare Flächen und Hindernisse (Lüfter, Lichtkuppeln, Ausstiege …) in u/v eintragen; zur Kontrolle wieder auf das Luftbild legen. Carports u. ä. fehlen oft in OSM: aus dem Bild nachzeichnen.
 5. PVGIS je Montage holen (Süd 15°, Ost-West 10° beide Richtungen, flach 5°), als Jahreswert in `pvgis` eintragen.
-6. `node pv-planer/tools/areas.js roof.json layout.html` → Seite mit Luftbild, Belegung, Flächen an/aus und Aufständerungsvergleich. Beispiel: `pv-planer/beispiele/lueneburg-auf-der-hoehe-56.json`.
+6. Zweistufig: Erst ALLE möglichen Flächen des Grundstücks als Kandidaten (`areas` ohne `mountings`, `selected: false`, Nebengebäude/Carports aus dem Bild nachzeichnen) → `node pv-planer/tools/areas.js roof.json seite.html` → mit `capabilities: {artifact: {}}` veröffentlichen. Der Nutzer wählt im Luftbild und sendet; die Seite veröffentlicht sich selbst mit `request.ids` (weckt die Sitzung) oder er fügt die Kopierzeile in den Chat ein.
+7. Nach der Auswahl (Artifact `read`, `pv-data` → `request.ids`): nur für die gewählten Flächen Hindernisse aus dem Luftbild erfassen (`obstacles`, ggf. `excluded`), `mountings` + `edge` setzen, `selected: true`, `request` übernehmen, neu bauen und unter derselben URL veröffentlichen. Beispiel: `pv-planer/beispiele/lueneburg-auf-der-hoehe-56.json`.
 Luftbilder nicht ins Repo legen (Bildrechte).
 
 ## Tests nach jeder Änderung am Code

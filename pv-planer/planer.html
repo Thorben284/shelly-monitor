@@ -1,0 +1,172 @@
+<title>PV-Planer __TITLE__</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style id="pv-css">
+/* Layout: Schrittleiste, Luftbild links und Flächenliste rechts; einspaltig auf dem Handy */
+:root{
+  --bg:#eef1f3; --surface:#ffffff; --ink:#16202a; --muted:#596673; --line:#d3dae0;
+  --sun:#c97f00; --sun-soft:#fbe7bf; --pick:#ffb020; --mod:#14263d; --mod-line:#9fc0e4; --obs:#ff4fb0; --excl:#ff3b3b; --ok:#2a7a4b; --ok-soft:#d9efe2;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",Roboto,Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#10151b;--surface:#18212a;--ink:#e4eaf0;--muted:#98a6b3;--line:#2b3642;--sun:#f0a92a;--sun-soft:#3a2b0f;--ok:#5cc08a;--ok-soft:#163024;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#10151b;--surface:#18212a;--ink:#e4eaf0;--muted:#98a6b3;--line:#2b3642;--sun:#f0a92a;--sun-soft:#3a2b0f;--ok:#5cc08a;--ok-soft:#163024;color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45}
+[hidden]{display:none!important}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 56px;display:flex;flex-direction:column;gap:16px}
+.eyebrow{font-size:.76rem;text-transform:uppercase;letter-spacing:.09em;color:var(--sun);font-weight:600}
+h1{font-family:var(--f-display);font-weight:800;font-size:1.8rem;letter-spacing:-.01em;margin:2px 0 4px;text-wrap:balance}
+h2{font-family:var(--f-display);font-weight:600;font-size:1.05rem;margin:0 0 10px}
+h3{font-size:.76rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;margin:14px 0 6px}
+.steps{display:flex;flex-wrap:wrap;gap:8px}
+.step{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:.9rem;color:var(--muted)}
+.step b{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--line);color:var(--ink);font-size:.8rem}
+.step.now{border-color:var(--sun);color:var(--ink);font-weight:600}.step.now b{background:var(--sun);color:#1b1404}
+.step.done b{background:var(--ok);color:#fff}
+.banner{border-radius:8px;padding:10px 14px;font-size:.93rem;background:var(--sun-soft)}
+.banner.ok{background:var(--ok-soft)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+@media (max-width:640px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{background:var(--surface);padding:12px 16px;display:flex;flex-direction:column;gap:2px}
+.kpi .k{font-size:.74rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.kpi .v{font-family:var(--f-display);font-weight:800;font-size:1.5rem;font-variant-numeric:tabular-nums;line-height:1.15}
+.kpi .v small{font-family:var(--f-body);font-weight:400;font-size:.85rem;color:var(--muted);margin-left:3px}
+.main{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.main{grid-template-columns:minmax(0,1fr)}}
+.map{border-radius:8px;overflow:hidden;background:#000}
+.map svg{display:block;width:100%;height:auto}
+.map .cand{cursor:pointer}
+.map .cand:focus{outline:none}
+.map .cand:focus-visible polygon.edge{stroke-width:6}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.82rem;color:var(--muted);margin-top:10px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:5px;vertical-align:-2px}
+.list{display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:start;padding:9px 2px;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row input{width:18px;height:18px;margin-top:2px;accent-color:var(--sun)}
+.row .t{font-weight:600}
+.row .sub{display:block;font-size:.8rem;color:var(--muted)}
+.row .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;font-size:.9rem}
+.row .n small{display:block;color:var(--muted);font-size:.78rem}
+.row.off .t{color:var(--muted);font-weight:400}
+.seg{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.seg button{font:inherit;font-size:.82rem;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:4px 9px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--sun-soft);border-color:var(--sun);font-weight:600}
+.send{display:flex;flex-direction:column;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+button.primary{font:inherit;font-weight:600;background:var(--sun);border:1px solid var(--sun);color:#1b1404;border-radius:6px;padding:10px 16px;cursor:pointer}
+button.primary:disabled{opacity:.5;cursor:default}
+button.ghost{font:inherit;font-size:.85rem;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px 10px;cursor:pointer}
+.copy{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.copy code{font-family:ui-monospace,Consolas,monospace;font-size:.82rem;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:5px 8px;user-select:all;word-break:break-all}
+.msg{font-size:.88rem;color:var(--muted)}
+.msg.err{color:var(--excl)}
+.notes{margin:0;padding-left:18px;color:var(--muted);font-size:.88rem;max-width:90ch}
+.notes li{margin-bottom:6px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--sun);outline-offset:1px}
+</style>
+<div id="app"></div>
+<script type="application/json" id="pv-data">/*__DATA__*/null</script>
+<script id="pv-app">
+(function(){
+const D=JSON.parse(document.getElementById("pv-data").textContent),$=id=>document.getElementById(id);
+const fmt=(x,d=0)=>Number.isFinite(x)?x.toLocaleString("de-DE",{minimumFractionDigits:d,maximumFractionDigits:d}):"–";
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
+const pts=P=>P.map(p=>p.join(",")).join(" ");
+/* Beschriftungspunkt: Punkt im Umriss mit größtem Randabstand (auch bei L-Formen innerhalb) */
+const inP=(x,y,P)=>{let c=false;for(let i=0,j=P.length-1;i<P.length;j=i++){const[a,b]=P[i],[e,f]=P[j];if((b>y)!==(f>y)&&x<(e-a)*(y-b)/(f-b)+a)c=!c}return c};
+const dSeg=(x,y,[a,b],[e,f])=>{const dx=e-a,dy=f-b,L=dx*dx+dy*dy,t=L?Math.max(0,Math.min(1,((x-a)*dx+(y-b)*dy)/L)):0;return Math.hypot(x-a-t*dx,y-b-t*dy)};
+const cen=P=>{const xs=P.map(p=>p[0]),ys=P.map(p=>p[1]),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);let best=[(x0+x1)/2,(y0+y1)/2],bd=-1;
+  for(let i=1;i<24;i++)for(let j=1;j<24;j++){const x=x0+(x1-x0)*i/24,y=y0+(y1-y0)*j/24;if(!inP(x,y,P))continue;const d=Math.min(...P.map((p,k)=>dSeg(x,y,p,P[(k+1)%P.length])));if(d>bd){bd=d;best=[x,y]}}return best};
+const sel=()=>D.areas.filter(a=>a.selected);
+const pending=()=>D.request&&D.request.ids.some(id=>{const a=D.areas.find(x=>x.id===id);return a&&!a.analysed});
+const changed=()=>{const r=D.request?D.request.ids.slice().sort().join():"";return sel().map(a=>a.id).sort().join()!==r};
+
+$("app").innerHTML=`<div class="wrap">
+<header><div class="eyebrow">PV-Planer · Luftbild</div><h1>${esc(D.title||D.address)}</h1></header>
+<div class="steps" id="steps"></div>
+<div class="banner" id="banner"></div>
+<section class="kpis" id="kpis"></section>
+<div class="main">
+  <section class="card"><div class="map" id="map"></div>
+    <div class="legend"><span><i style="border:3px solid var(--pick)"></i>ausgewählt</span><span><i style="border:2px dashed #fff;background:#555"></i>mögliche Fläche</span><span><i style="background:var(--mod);outline:1px solid var(--mod-line)"></i>Modul</span><span><i style="background:var(--obs)"></i>Hindernis mit Abstand</span><span><i style="background:rgba(255,59,59,.4)"></i>nicht nutzbar</span></div>
+  </section>
+  <section class="card"><h2>Mögliche Flächen</h2><div class="list" id="list"></div>
+    <div class="send"><button class="primary" id="send" type="button">Auswahl an Claude senden</button>
+      <div class="msg" id="sendMsg"></div>
+      <div class="copy"><code id="copyLine"></code><button class="ghost" id="copyBtn" type="button">Kopieren</button></div>
+      <div class="msg">Falls das Senden hier nicht geht: Zeile kopieren und im Chat einfügen.</div></div>
+  </section>
+</div>
+<section class="card"><h2>Hinweise</h2><ul class="notes" id="notes"></ul></section>
+</div>`;
+
+function render(){
+  const s=sel(),an=s.filter(a=>a.analysed),req=D.request,pend=pending();
+  const stage=!req?1:pend&&!changed()?2:an.length?3:1;
+  $("steps").innerHTML=[["Flächen auswählen",1],["Hindernisse erkennen",2],["Module auslegen",3]].map(([t,n])=>`<div class="step ${stage===n?"now":stage>n?"done":""}"><b>${stage>n?"✓":n}</b>${t}</div>`).join("");
+  const b=$("banner");b.className="banner"+(stage===3&&!changed()?" ok":"");
+  b.textContent=stage===1&&!req?"Klicke im Luftbild oder in der Liste die Flächen an, die belegt werden sollen. Dann „Auswahl an Claude senden“."
+    :pend&&!changed()?`Auswahl gesendet (${req.ids.join(", ")}). Claude erkennt jetzt Hindernisse und legt die Module aus; die Seite aktualisiert sich danach von selbst.`
+    :changed()?"Auswahl geändert. Erneut senden, damit Claude die neuen Flächen analysiert."
+    :`Belegung für ${an.map(a=>a.id).join(", ")}. Andere Flächen anwählen und erneut senden, um sie hinzuzunehmen.`;
+  // Kennzahlen nur für belegte Flächen
+  let n=0,kwp=0,kwh=0;an.forEach(a=>{const v=a.variants[a.mounting],k=v.count*D.module.wp/1000;n+=v.count;kwp+=k;kwh+=k*v.spec});
+  $("kpis").hidden=!an.length;
+  $("kpis").innerHTML=`<div class="kpi"><span class="k">Module</span><span class="v">${fmt(n)}<small>à ${D.module.wp} Wp</small></span></div><div class="kpi"><span class="k">Leistung</span><span class="v">${fmt(kwp,1)}<small>kWp</small></span></div><div class="kpi"><span class="k">Modulfläche</span><span class="v">${fmt(n*D.module.l*D.module.b)}<small>m²</small></span></div><div class="kpi"><span class="k">Ertrag ca.</span><span class="v">${fmt(kwh/1000,1)}<small>MWh/a</small></span></div>`;
+  // Karte
+  const I=D.image;let o=`<svg viewBox="0 0 ${I.w} ${I.h}" role="img" aria-label="Luftbild mit möglichen Dachflächen"><image href="${I.src}" width="${I.w}" height="${I.h}"/>`;
+  if(an.length)D.excluded.forEach(e=>{o+=`<polygon points="${pts(e.poly)}" fill="rgba(255,59,59,.3)" stroke="var(--excl)" stroke-width="2"><title>${esc(e.name)}: nicht nutzbar</title></polygon>`});
+  D.areas.forEach((a,i)=>{const on=a.selected,v=a.analysed&&on?a.variants[a.mounting]:null;
+    o+=`<g class="cand" data-i="${i}" tabindex="0" role="checkbox" aria-checked="${on}" aria-label="${esc(a.id+" "+a.name)}">`+
+      `<polygon class="edge" points="${pts(a.outline)}" fill="${on?"rgba(255,176,32,.16)":"rgba(0,0,0,.18)"}" stroke="${on?"var(--pick)":"#fff"}" stroke-width="${on?3.5:2}" ${on?"":'stroke-dasharray="9 6"'}/>`;
+    if(v){v.mods.forEach(m=>{o+=`<polygon points="${pts(m)}" fill="var(--mod)" stroke="var(--mod-line)" stroke-width=".8" pointer-events="none"/>`});
+      a.obstacles.forEach(q=>{o+=`<polygon points="${pts(q.zone)}" fill="rgba(255,79,176,.18)" stroke="var(--obs)" stroke-dasharray="3 2" pointer-events="none"/><polygon points="${pts(q.poly)}" fill="var(--obs)"><title>${esc(q.label)}</title></polygon>`})}
+    const c=cen(a.outline);o+=`<text x="${c[0]}" y="${c[1]+12}" text-anchor="middle" font-family="var(--f-body)" font-size="34" font-weight="700" fill="#fff" stroke="#000" stroke-width="6" paint-order="stroke" pointer-events="none">${a.id}${v?" · "+v.count:""}</text></g>`});
+  const sb=5/I.mpp;o+=`<g transform="translate(16 ${I.h-20})"><rect x="-8" y="-26" width="${sb+70}" height="38" rx="4" fill="rgba(0,0,0,.55)"/><line x1="0" y1="0" x2="${sb}" y2="0" stroke="#fff" stroke-width="3"/><text x="${sb+8}" y="6" fill="#fff" font-size="24" font-family="var(--f-body)">5 m</text></g>`;
+  o+=`<g transform="translate(${I.w-34} 44)"><path d="M0 -26l10 26l-10-8l-10 8z" fill="#fff" stroke="#000"/><text y="20" text-anchor="middle" fill="#fff" stroke="#000" stroke-width="3" paint-order="stroke" font-size="16" font-weight="700" font-family="var(--f-body)">N</text></g></svg>`;
+  $("map").innerHTML=o;
+  // Liste
+  $("list").innerHTML=D.areas.map((a,i)=>{const v=a.analysed&&a.selected?a.variants[a.mounting]:null,ks=Object.keys(a.variants||{});
+    return `<div class="row ${a.selected?"":"off"}"><input type="checkbox" data-i="${i}" ${a.selected?"checked":""} aria-label="${esc(a.id+" "+a.name)} auswählen">
+      <div><span class="t">${a.id} ${esc(a.name)}</span><span class="sub">${esc(a.kind)} · ca. ${fmt(a.area)} m²${a.note?" · "+esc(a.note):""}</span>
+      ${v&&ks.length>1?`<div class="seg" data-i="${i}">${ks.map(k=>`<button type="button" data-k="${k}" aria-pressed="${k===a.mounting}">${esc(a.variants[k].label)}: ${a.variants[k].count}</button>`).join("")}</div>`:""}
+      ${v&&a.obstacles.length?`<span class="sub">${a.obstacles.length} Hindernisse erkannt</span>`:""}
+      ${a.selected&&!a.analysed?`<span class="sub" style="color:var(--sun)">${pend&&req.ids.includes(a.id)?"wird analysiert":"noch nicht analysiert"}</span>`:""}</div>
+      <div class="n">${v?`${v.count} Module<small>${fmt(v.count*D.module.wp/1000,1)} kWp · ${fmt(v.spec)} kWh/kWp</small>`:""}</div></div>`}).join("");
+  const line=`PV-Auswahl ${D.address}: ${s.map(a=>a.id).join(", ")||"keine"}`;$("copyLine").textContent=line;
+  $("send").disabled=!s.length||!changed();
+  $("send").textContent=!s.length?"Erst Flächen auswählen":changed()?"Auswahl an Claude senden":"Auswahl ist gesendet";
+  $("notes").innerHTML=D.notes.map(t=>`<li>${t}</li>`).join("");
+}
+function toggle(i){D.areas[i].selected=!D.areas[i].selected;render()}
+$("map").addEventListener("click",e=>{const g=e.target.closest(".cand");g&&toggle(+g.dataset.i)});
+$("map").addEventListener("keydown",e=>{const g=e.target.closest(".cand");if(g&&(e.key==="Enter"||e.key===" ")){e.preventDefault();toggle(+g.dataset.i);const n=document.querySelector(`.cand[data-i="${g.dataset.i}"]`);n&&n.focus()}});
+$("list").addEventListener("change",e=>{const i=e.target.dataset.i;if(i!=null){D.areas[+i].selected=e.target.checked;render()}});
+$("list").addEventListener("click",e=>{const b=e.target.closest(".seg button");if(!b)return;D.areas[+b.closest(".seg").dataset.i].mounting=b.dataset.k;render()});
+$("copyBtn").addEventListener("click",async()=>{const t=$("copyLine").textContent;try{await navigator.clipboard.writeText(t);$("copyBtn").textContent="Kopiert"}catch(e){const r=document.createRange();r.selectNodeContents($("copyLine"));const s=getSelection();s.removeAllRanges();s.addRange(r);$("copyBtn").textContent="Markiert, Strg+C"}});
+
+/* Senden: die Seite veröffentlicht sich selbst mit der Auswahl; das weckt Claude */
+const RESET=":root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.4 system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}";
+function pageSource(data){
+  const head=[...document.querySelectorAll("title,meta[name='claude:viewport-fit-sides'],link[rel=preconnect],link[rel=stylesheet]")].map(n=>n.outerHTML).join("");
+  return "<!doctype html><html><head><meta charset=utf8><meta name=viewport content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><style>"+RESET+"</style></head><body>"+head+
+    `<style id="pv-css">${$("pv-css").textContent}</style><div id="app"></div><script type="application/json" id="pv-data">${JSON.stringify(data).replace(/</g,"\\u003c")}<\/script><script id="pv-app">${$("pv-app").textContent}<\/script></body></html>`;
+}
+$("send").addEventListener("click",async()=>{
+  const msg=$("sendMsg"),ids=sel().map(a=>a.id);if(!ids.length)return;
+  $("send").disabled=true;msg.className="msg";msg.textContent="Wird gesendet …";
+  const art=window.claude?await window.claude.use("artifact"):null;
+  if(!art){msg.className="msg err";msg.textContent="Senden ist in dieser Ansicht nicht möglich. Bitte die Zeile unten kopieren und im Chat einfügen.";$("send").disabled=false;return}
+  const data=JSON.parse(JSON.stringify(D));data.request={ids,at:new Date().toISOString()};
+  try{await art.publish(pageSource(data));msg.textContent="Gesendet."}
+  catch(e){const c=e&&e.code;msg.className="msg err";$("send").disabled=false;
+    msg.textContent=c==="conflict"?"Die Seite wurde inzwischen aktualisiert und lädt neu. Danach bitte erneut senden."
+      :c==="not_writer"||c==="not_granted"?"Du hast hier nur Lesezugriff. Bitte die Zeile unten kopieren und im Chat einfügen."
+      :c==="too_large"?"Die Seite ist zu groß zum Speichern. Bitte die Zeile unten kopieren und im Chat einfügen."
+      :"Senden fehlgeschlagen. Bitte die Zeile unten kopieren und im Chat einfügen."}
+});
+render();
+})();
+</script>
