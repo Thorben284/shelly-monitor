@@ -14,189 +14,163 @@
   "bearing": 67.7
  },
  "aerial": {
-  "file": "bing.png",
-  "lat": 53.2389921,
-  "lon": 10.3857518,
-  "zoom": 20,
+  "file": "luftbild-54.png",
+  "lat": 53.23894,
+  "lon": 10.38573,
+  "zoom": 21,
   "cx": 700,
   "cy": 590,
   "crop": [
-   470,
-   400,
+   290,
+   150,
    960,
-   900
+   1040
   ],
-  "scale": 2,
+  "scale": 1.5,
   "source": "Bing Maps (Maxar)"
  },
  "areas": [
   {
-   "id": "H1W",
-   "name": "Satteldach West",
-   "kind": "Satteldach, Ziegel, ca. 40°",
-   "building": "Hauptgebäude",
-   "note": "Dachseite nach WSW",
-   "selected": false,
-   "poly": [
-    [
-     0,
-     0
-    ],
-    [
-     3.2,
-     -0.03
-    ],
-    [
-     7.49,
-     19.18
-    ],
-    [
-     3.22,
-     19.92
-    ],
-    [
-     -0.03,
-     16.1
-    ]
-   ],
-   "slope": {
-    "tilt": 40,
-    "fall": 235
-   }
-  },
-  {
    "id": "H1O",
-   "name": "Satteldach Ost",
-   "kind": "Satteldach, Ziegel, ca. 40°",
-   "building": "Hauptgebäude",
-   "note": "Dachseite nach ONO",
-   "selected": false,
+   "name": "Hauptdach Ost",
+   "kind": "Satteldach",
+   "building": "Haus",
+   "note": "Ziegel, lange Dachseite nach ONO, ca. 40° (Street View Süd/West); 3 Dachfenster",
    "poly": [
     [
-     3.2,
-     -0.03
+     3.37,
+     -0.16
     ],
     [
-     11.21,
-     -0.01
+     11.18,
+     -0.12
     ],
     [
-     14.67,
-     17.91
+     14.31,
+     18.04
     ],
     [
-     7.49,
-     19.18
+     6.47,
+     19.14
     ]
    ],
+   "selected": false,
    "slope": {
     "tilt": 40,
     "fall": 55
    }
   },
   {
+   "id": "H1W",
+   "name": "Pultdach West",
+   "kind": "Pultdach",
+   "building": "Haus",
+   "note": "Ziegel, niedrigeres Pultdach unter einem Fensterband, nach WSW; Neigung geschätzt 35° (unsicher); 2 Dachfenster",
+   "poly": [
+    [
+     0.01,
+     -0.2
+    ],
+    [
+     3.37,
+     -0.16
+    ],
+    [
+     6.47,
+     19.14
+    ],
+    [
+     3.14,
+     19.59
+    ]
+   ],
+   "selected": false,
+   "slope": {
+    "tilt": 35,
+    "fall": 235
+   }
+  },
+  {
    "id": "H2",
    "name": "Anbau Süd",
    "kind": "Flachdach",
-   "building": "Hauptgebäude",
-   "note": "eingeschossiger Anbau mit Flachdach (Street View)",
-   "selected": false,
+   "building": "Anbau",
+   "note": "eingeschossiger Klinker-Anbau mit Attika (Street View Süd); dunkles Band an der Nordwestseite ist Schatten",
    "poly": [
     [
-     -4.6,
-     19
+     -4.8,
+     20.6
     ],
     [
-     16.5,
-     21.3
+     2.67,
+     19.21
     ],
     [
-     16.2,
-     26.3
+     14.05,
+     18.31
     ],
     [
-     -4.1,
-     28.8
+     14.83,
+     25.83
+    ],
+    [
+     -3.26,
+     28.62
     ]
-   ]
+   ],
+   "selected": false
   },
   {
    "id": "W1",
    "name": "Vorbau West",
-   "kind": "Flachdach (hell)",
-   "building": "Nebengebäude",
-   "note": "klein, ca. 4 × 5 m",
-   "selected": false,
+   "kind": "Flachdach",
+   "building": "Vorbau",
+   "note": "heller Flachdachbau, ca. 4 × 6,5 m (Luftbild, Street View West); Höhe unklar",
    "poly": [
     [
-     -4.8,
-     8.8
+     -4.62,
+     9.08
     ],
     [
-     -0.6,
-     8.6
+     -0.59,
+     8.91
     ],
     [
-     -0.3,
-     13.5
+     -1.13,
+     15.64
     ],
     [
-     -4.5,
-     13.9
+     -3.95,
+     15.1
     ]
-   ]
+   ],
+   "selected": false
   },
   {
    "id": "S1",
    "name": "Schuppen Nord",
-   "kind": "Dach (blaugrau)",
-   "building": "Nebengebäude",
-   "note": "klein, ca. 2 × 4,5 m",
-   "selected": false,
+   "kind": "Dach",
+   "building": "Schuppen",
+   "note": "blaugrau, ca. 3 × 4,5 m; nur im Luftbild sichtbar, Zugehörigkeit unsicher",
    "poly": [
-    [
-     13.8,
-     -5.3
-    ],
-    [
-     15.9,
-     -4.8
-    ],
-    [
-     16,
-     -0.4
-    ],
     [
      13.7,
-     -0.5
+     -4.75
+    ],
+    [
+     16.49,
+     -4.47
+    ],
+    [
+     16.05,
+     -0.81
+    ],
+    [
+     13.23,
+     -1.01
     ]
-   ]
-  },
-  {
-   "id": "S2",
-   "name": "Bau Ost (weiß)",
-   "kind": "Flachdach",
-   "building": "Nebengebäude",
-   "note": "ca. 3,8 × 9 m; jenseits des Weges, evtl. anderes Grundstück",
-   "selected": false,
-   "poly": [
-    [
-     26.5,
-     17.2
-    ],
-    [
-     30.3,
-     17.4
-    ],
-    [
-     30.9,
-     26.3
-    ],
-    [
-     27.1,
-     26.2
-    ]
-   ]
+   ],
+   "selected": false
   }
  ],
  "excluded": [],
@@ -209,11 +183,11 @@
  },
  "processed": {
   "type": "adresse",
-  "at": "2026-10-29T19:47:41.045Z"
+  "at": "2026-10-29T19:58:40.000Z"
  },
  "notes": [
-  "OpenStreetMap kennt für Nr. 54 nur einen Adresspunkt; Flächen aus dem Luftbild (Bing Maps, ca. 9 cm je Pixel). Dachform aus Google Street View (Juni 2022, drei Blickrichtungen): zweigeschossiges Haus mit Ziegel-Satteldach, Giebel nach Südosten, Neigung geschätzt 40°; davor eingeschossiger Klinker-Anbau mit Flachdach und Attika (H2).",
-  "Die dunkle Fläche nordwestlich des Hauptdachs ist dessen Schatten, kein Dach. Grundstücksgrenzen sind nicht bekannt; S2 liegt jenseits des Weges.",
+  "OpenStreetMap kennt für Nr. 54 nur einen Adresspunkt; Flächen aus dem Luftbild (Bing Maps, Zoom 21, ca. 4,5 cm je Pixel) nachgezeichnet. Dachform aus Google Street View (Juni 2022, Blick von Süden und Westen): Hauptdach mit langer Dachseite nach Ostnordost (ca. 40°); westlich darunter ein niedrigeres Pultdach mit Fensterband, Neigung geschätzt 35°. Davor eingeschossiger Klinker-Anbau mit Flachdach und Attika (H2).",
+  "Die dunklen Flächen nordwestlich des Hauptdachs und am Anbau sind Schatten (Sonne aus Südost), keine Dächer. Der weiße Bau jenseits des Weges im Osten gehört nicht zu Nr. 54 und ist nicht mehr aufgeführt. Schuppen S1 nur im Luftbild sichtbar.",
   "Nach dem Senden erkennt Claude auf den gewählten Flächen Hindernisse (u. a. Dachfenster) und legt die Module aus. Verschattung wird nicht berücksichtigt."
  ]
 }
