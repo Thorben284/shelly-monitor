@@ -26,20 +26,26 @@
     return a;
   })();
 
-  function poaHourly(lat, tilt, aspect) {
-    const phi = lat * D2R, b = tilt * D2R, g = aspect * D2R, cb = Math.cos(b), sb = Math.sin(b);
+  /* Sommerzeit 2026: 29.3. bis 25.10. (Tag 87 bis 297, 0-basiert) */
+  const dstOffset = d => (d >= 87 && d < 297 ? 2 : 1);
+
+  /* Stundenindex = Ortszeit (MEZ/MESZ); Sonnenstand über Längengrad und Zeitgleichung */
+  function poaHourly(lat, tilt, aspect, lon) {
+    const phi = lat * D2R, b = tilt * D2R, g = aspect * D2R, cb = Math.cos(b), sb = Math.sin(b), lo = Number.isFinite(lon) ? lon : 10;
     const out = new Float64Array(8760);
     let i = 0;
     for (let d = 0; d < 365; d++) {
       const nd = d + 1, dec = 23.45 * D2R * Math.sin(2 * Math.PI * (284 + nd) / 365);
       const g0 = 1367 * (1 + .033 * Math.cos(2 * Math.PI * nd / 365)), kt = DAYKT[d], kd = erbs(kt);
+      const B = 2 * Math.PI * (nd - 81) / 364, eot = 9.87 * Math.sin(2 * B) - 7.53 * Math.cos(B) - 1.5 * Math.sin(B);
+      const shift = lo / 15 - dstOffset(d) + eot / 60;
       for (let h = 0; h < 24; h++, i++) {
-        const w = 15 * (h + .5 - 12) * D2R;
+        const w = 15 * (h + .5 + shift - 12) * D2R;
         const cz = Math.sin(phi) * Math.sin(dec) + Math.cos(phi) * Math.cos(dec) * Math.cos(w);
         if (cz <= .03) continue;
         const sz = Math.sqrt(1 - cz * cz);
         const az = Math.atan2(Math.sin(w), Math.cos(w) * Math.sin(phi) - Math.tan(dec) * Math.cos(phi));
-        const ghi = kt * g0 * cz, dhi = ghi * kd;
+        const ghi = kt * g0 * cz * Math.pow(cz, .3), dhi = ghi * kd;   // cz^0,3: Abschwächung bei tiefer Sonne, gegen PVGIS-Tagesgänge kalibriert
         const cth = cz * cb + sz * sb * Math.cos(az - g);
         out[i] = (cth > 0 ? (ghi - dhi) * cth / cz : 0) + dhi * (1 + cb) / 2 + ghi * .2 * (1 - cb) / 2;
       }
@@ -48,8 +54,8 @@
   }
 
   /* Stundenprofil in kWh je kWp, Monatssummen = PVGIS E_m */
-  function pvProfile(lat, tilt, aspect, monthly) {
-    const p = poaHourly(lat, tilt, aspect), ms = new Array(12).fill(0), out = new Float64Array(8760);
+  function pvProfile(lat, tilt, aspect, monthly, lon) {
+    const p = poaHourly(lat, tilt, aspect, lon), ms = new Array(12).fill(0), out = new Float64Array(8760);
     for (let i = 0; i < 8760; i++) ms[MONTH[i]] += p[i];
     for (let i = 0; i < 8760; i++) { const m = MONTH[i]; out[i] = ms[m] > 0 ? p[i] / ms[m] * monthly[m] : 0; }
     return out;
@@ -75,12 +81,20 @@
         dhw[i] = HP24[h]; sw += dhw[i];
       }
     }
-    const base = new Float64Array(8760), H = c.household || 0, P = c.heatpump || 0;
-    for (let j = 0; j < 8760; j++) base[j] = hh[j] / sh * H + (hp[j] / sp * .8 + dhw[j] / sw * .2) * P;
-    return { base, evDay: (c.ev || 0) / 365, evMode: c.evMode || "abends" };
+    const base = new Float64Array(8760), house = new Float64Array(8760), H = c.household || 0, P = c.heatpump || 0;
+    for (let j = 0; j < 8760; j++) { house[j] = hh[j] / sh * H; base[j] = house[j] + (hp[j] / sp * .8 + dhw[j] / sw * .2) * P; }
+    return { base, house, evDay: (c.ev || 0) / 365, evMode: c.evMode || "abends" };
   }
 
   /* ---------- Simulation ---------- */
+  /* Lastspitzen innerhalb der Stunde: Anteil PEAK.share des Haushaltsstroms fällt in PEAK.time der Stunde an
+     (Wasserkocher, Herd, Waschmaschine). Wärmepumpe und E-Auto laufen gleichmäßig. Kalibriert auf HTW-Referenzfälle. */
+  const PEAK = { share: .5, time: .1 };
+  function directUse(p, l, house) {
+    const lp = house * PEAK.share, lc = l - lp, t = PEAK.time;
+    return Math.min(p * (1 - t), lc * (1 - t)) + Math.min(p * t, lc * t + lp);
+  }
+
   function simulate(pv, L, cap, feedCapKw) {
     const eta = .95, pmax = cap > 0 ? Math.max(2.5, cap * .5) : 0, fc = feedCapKw > 0 ? feedCapKw : Infinity;
     let soc = 0, evNeed = 0, P = 0, load = 0, direct = 0, evSolar = 0, toBat = 0, fromBat = 0, feed = 0, curt = 0, grid = 0;
@@ -90,7 +104,7 @@
       if (h === 0) evNeed = L.evDay;
       const p = pv[i], l = L.base[i];
       P += p; load += l; mPv[m] += p; mLoad[m] += l;
-      const d = Math.min(p, l); direct += d; mSelf[m] += d;
+      const d = L.house ? directUse(p, l, L.house[i]) : Math.min(p, l); direct += d; mSelf[m] += d;
       let sur = p - d, def = l - d;
       if (L.evMode === "tag" && evNeed > 0 && h >= 8 && h <= 17 && sur > 0) {
         const c = Math.min(sur, evNeed, 11); evNeed -= c; sur -= c; evSolar += c; load += c; mLoad[m] += c; mSelf[m] += c;
@@ -207,7 +221,7 @@
 
   /* Dachflächen aus Umriss und Dachform ableiten. compass: Richtung der Flächennormalen, 0° = Nord */
   function deriveFaces(fp, roof) {
-    const t = roof.tilt, ct = Math.cos(t * D2R), e = roof.edge, ov = roof.overhang || 0;
+    const t = clamp(+roof.tilt || 0, 0, 75), ct = Math.cos(t * D2R), e = Math.max(0, +roof.edge || 0), ov = roof.overhang || 0;
     const ax = roof.ridge === "short" ? fp.bearing + 90 : fp.bearing;   // Firstrichtung
     const along = roof.ridge === "short" ? fp.W : fp.L, across = roof.ridge === "short" ? fp.L : fp.W;
     const mk = (compass, shape) => Object.assign({ compass: ((compass % 360) + 360) % 360, tilt: t, edge: e }, shape);
@@ -268,6 +282,6 @@
     return out;
   }
 
-  const API = { MONTH, MDAYS, pvProfile, loadProfile, simulate, economics, fitRate, cost, layoutFace, footprint, deriveFaces, compassName, toAspect, evaluate, optimize, BATS };
+  const API = { PEAK, MONTH, MDAYS, pvProfile, loadProfile, simulate, economics, fitRate, cost, layoutFace, footprint, deriveFaces, compassName, toAspect, evaluate, optimize, BATS };
   if (typeof module !== "undefined" && module.exports) module.exports = API; else G.PVE = API;
 })(typeof window !== "undefined" ? window : globalThis);

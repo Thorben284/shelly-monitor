@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /* PV-Planer CLI
    node plan.js init  <nominatim.json> <config.json>   Konfiguration aus Adresssuche anlegen
+   node plan.js rect  <config.json> <L> <B> <Achse°>   Rechteck statt OSM-Umriss (Maße in m, Längsachse ab Nord)
    node plan.js faces <config.json>                    Dachflächen + benötigte PVGIS-Abfragen anzeigen
    node plan.js pvgis <config.json> <tilt> <aspect> <E_m1,...,E_m12>   PVGIS-Monatswerte eintragen
    node plan.js build <config.json> <out.html>         Optimieren und Planungsseite erzeugen */
@@ -22,6 +23,7 @@ const DEFAULTS = {
 const key = (t, a) => `${Math.round(t)}|${Math.round(a)}`;
 const fmt = (x, d = 0) => Number.isFinite(x) ? x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d }) : "–";
 const shortAddr = a => { const p = String(a || "").split(",").map(x => x.trim()); return /^\d/.test(p[0]) ? `${p[1]} ${p[0]}` : p[0]; };
+const esc = s => String(s).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 const read = f => JSON.parse(fs.readFileSync(f, "utf8"));
 const merge = (d, c) => { const o = {}; for (const k in d) o[k] = (d[k] && typeof d[k] === "object" && !Array.isArray(d[k])) ? Object.assign({}, d[k], c[k] || {}) : (c[k] !== undefined ? c[k] : d[k]); for (const k in c) if (!(k in o)) o[k] = c[k]; return o; };
 
@@ -66,6 +68,17 @@ if (cmd === "init") {
   console.log(`Gespeichert: ${a2}\nTreffer: ${r.display_name} (${cfg.geo.category})`);
   if (!coords) console.log("WARNUNG: kein Gebäudeumriss – Maße erfragen und geo.coords manuell setzen.");
   else printFaces(load(a2));
+} else if (cmd === "rect") {   // Ersatz ohne OSM-Umriss: Länge, Breite, Längsachse (° von Nord)
+  const raw = read(a1), Lm = +a2, Wm = +a3, br = +a4;
+  if (!(Lm > 0 && Wm > 0 && Number.isFinite(br))) throw new Error("rect <config> <Länge m> <Breite m> <Längsachse °>");
+  if (!raw.geo || !Number.isFinite(+raw.geo.lat)) throw new Error("geo.lat/geo.lon fehlen.");
+  const b = br * Math.PI / 180, u = [Math.sin(b), Math.cos(b)], v = [u[1], -u[0]];
+  const kx = Math.cos(raw.geo.lat * Math.PI / 180) * 111320, ky = 110540;
+  const pts = [[-1, -1], [1, -1], [1, 1], [-1, 1], [-1, -1]].map(([s, t]) =>
+    [+(raw.geo.lon + (s * Lm / 2 * u[0] + t * Wm / 2 * v[0]) / kx).toFixed(7), +(raw.geo.lat + (s * Lm / 2 * u[1] + t * Wm / 2 * v[1]) / ky).toFixed(7)]);
+  raw.geo.coords = pts; raw.geo.manual = true;
+  fs.writeFileSync(a1, JSON.stringify(raw, null, 2));
+  printFaces(load(a1));
 } else if (cmd === "faces") {
   printFaces(load(a1));
 } else if (cmd === "pvgis") {
@@ -80,12 +93,16 @@ if (cmd === "init") {
     const m = c.pvgis[key(f.tilt, f.aspect)];
     if (!m) throw new Error(`PVGIS fehlt für ${f.id} (${key(f.tilt, f.aspect)}). Erst 'faces' ausführen.`);
     f.pvgisYear = m.reduce((x, y) => x + y, 0);
-    f.profile = E.pvProfile(c.geo.lat, f.tilt, f.aspect, m);
+    f.profile = E.pvProfile(c.geo.lat, f.tilt, f.aspect, m, c.geo.lon);
   }
   const L = E.loadProfile(c.consumption);
   const vars = E.optimize(c.faces, L, c);
   if (!vars.length) throw new Error("Keine belegbare Dachfläche.");
-  const best = c.best || { counts: vars[0].counts, cap: vars[0].cap };
+  let best = { counts: vars[0].counts, cap: vars[0].cap };
+  if (c.best) {
+    if (!Array.isArray(c.best.counts) || c.best.counts.length !== c.faces.length) console.log("HINWEIS: 'best' passt nicht zu den Dachflächen und wird ignoriert.");
+    else best = { counts: c.best.counts.map((n, i) => Math.max(0, Math.min(c.faces[i].max, Math.round(n) || 0))), cap: Math.max(0, +c.best.cap || 0) };
+  }
   const sel = E.evaluate(c.faces, best.counts, best.cap, L, c);
   // Ausgabe
   console.log(`\nVORSCHLAG (Kapitalwert ${c.econ.disc} %, ${c.econ.years} J.)`);
@@ -106,10 +123,10 @@ if (cmd === "init") {
   };
   const tpl = fs.readFileSync(path.join(__dirname, "template.html"), "utf8");
   const html = tpl.replace("/*__ENGINE__*/", () => fs.readFileSync(path.join(__dirname, "engine.js"), "utf8"))
-    .replace("/*__DATA__*/null", () => JSON.stringify(data))
-    .replace(/__TITLE__/g, () => shortAddr(c.address));
+    .replace("/*__DATA__*/null", () => JSON.stringify(data).replace(/</g, "\\u003c"))
+    .replace(/__TITLE__/g, () => esc(shortAddr(c.address)));
   fs.writeFileSync(a2, html);
   console.log(`\nSeite: ${a2} (${fmt(html.length / 1024)} KB)`);
 } else {
-  console.log(fs.readFileSync(__filename, "utf8").split("\n").slice(1, 7).join("\n"));
+  console.log(fs.readFileSync(__filename, "utf8").split("\n").slice(1, 8).join("\n"));
 }

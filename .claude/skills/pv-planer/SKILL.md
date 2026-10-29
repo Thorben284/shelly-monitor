@@ -19,7 +19,8 @@ JSON-Array aus `rawHtml` unverändert nach `nom.json` schreiben, dann:
 ```
 node pv-planer/plan.js init nom.json cfg.json
 ```
-- `category` muss `building` sein. Sonst (Straße, Punkt) nach Hausnummer/Schreibweise fragen oder Gebäudemaße erfragen und `geo.coords` als Rechteck selbst setzen.
+- `category` muss `building` sein. Sonst (Straße, Punkt) nach Hausnummer/Schreibweise fragen oder Gebäudemaße erfragen und ein Rechteck setzen:
+  `node pv-planer/plan.js rect cfg.json <Länge m> <Breite m> <Längsachse ° ab Nord>`
 - Ausgabe nennt Maße, Längsachse und abgeleitete Dachflächen.
 
 ## 2. Fragen (eine AskUserQuestion-Runde, 4 Fragen)
@@ -65,8 +66,14 @@ Antwort an den Nutzer, knapp: Anlagengröße, Module je Fläche, Speicher, Ertra
 Wunsch in `cfg.json` übertragen (Dachform, Neigung, `reduce`, `exclude`, Verbrauch, Preise, `best`), ab Schritt 4 wiederholen (PVGIS nur für neue Neigung/Ausrichtung), neu veröffentlichen.
 Modulzahl, Speicher, Verbrauch und Preise kann der Nutzer auch direkt auf der Seite ändern; die Seite rechnet live.
 
+## Tests nach jeder Änderung am Code
+```
+node pv-planer/test.js                                   # Rechenkern + CLI
+NODE_PATH=$(npm root -g) node pv-planer/test-ui.js plan.html   # Seite im Browser
+```
+
 ## Grenzen, immer offen benennen
 - Maße aus dem OSM-Umriss ohne Dachüberstand, Dachfenster und Gauben; Aufmaß vor Ort nötig.
-- Stundenwerte modelliert (PVGIS-Monatssummen, synthetisches Wetter, vereinfachtes Lastprofil): Eigenverbrauch/Autarkie eher zu hoch.
+- Stundenwerte modelliert (PVGIS-Monatssummen, synthetisches Wetter, vereinfachtes Lastprofil). Gegen HTW-Referenzen geprüft (±1 Punkt), mit Wärmepumpe eher zu hoch.
 - Vergütungssätze Stand 08/2026 aus Ratgeberseiten, nicht amtlich bestätigt; EEG-Novelle 2027 offen.
 - Statik nicht nachgewiesen.
