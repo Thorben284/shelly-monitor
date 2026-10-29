@@ -1,0 +1,186 @@
+{
+ "address": "Auf der Höhe 54, 21339 Lüneburg",
+ "title": "Auf der Höhe 54, Lüneburg",
+ "geo": {
+  "lat": 53.2389921,
+  "lon": 10.3857518,
+  "osm": "node/3021706567"
+ },
+ "frame": {
+  "origin": [
+   10.3855077,
+   53.2390258
+  ],
+  "bearing": 67.7
+ },
+ "aerial": {
+  "file": "bing.png",
+  "lat": 53.2389921,
+  "lon": 10.3857518,
+  "zoom": 20,
+  "cx": 700,
+  "cy": 590,
+  "crop": [
+   470,
+   400,
+   960,
+   900
+  ],
+  "scale": 2,
+  "source": "Bing Maps (Maxar)"
+ },
+ "areas": [
+  {
+   "id": "H1",
+   "name": "Hauptdach",
+   "kind": "Dach rot, Neigung unklar",
+   "building": "Hauptgebäude",
+   "note": "ca. 11 × 20 m; Mittellinie sichtbar (First oder Fuge)",
+   "selected": false,
+   "poly": [
+    [
+     0,
+     0
+    ],
+    [
+     11.2,
+     0
+    ],
+    [
+     14.7,
+     17.9
+    ],
+    [
+     3.2,
+     19.9
+    ],
+    [
+     0,
+     16.1
+    ]
+   ]
+  },
+  {
+   "id": "H2",
+   "name": "Anbau Süd",
+   "kind": "Flachdach mit Attika",
+   "building": "Hauptgebäude",
+   "note": "rotbraune Dachhaut",
+   "selected": false,
+   "poly": [
+    [
+     -4.6,
+     19
+    ],
+    [
+     16.5,
+     21.3
+    ],
+    [
+     16.2,
+     26.3
+    ],
+    [
+     -4.1,
+     28.8
+    ]
+   ]
+  },
+  {
+   "id": "W1",
+   "name": "Vorbau West",
+   "kind": "Flachdach (hell)",
+   "building": "Nebengebäude",
+   "note": "klein, ca. 4 × 5 m",
+   "selected": false,
+   "poly": [
+    [
+     -4.8,
+     8.8
+    ],
+    [
+     -0.6,
+     8.6
+    ],
+    [
+     -0.3,
+     13.5
+    ],
+    [
+     -4.5,
+     13.9
+    ]
+   ]
+  },
+  {
+   "id": "S1",
+   "name": "Schuppen Nord",
+   "kind": "Dach (blaugrau)",
+   "building": "Nebengebäude",
+   "note": "klein, ca. 2 × 4,5 m",
+   "selected": false,
+   "poly": [
+    [
+     13.8,
+     -5.3
+    ],
+    [
+     15.9,
+     -4.8
+    ],
+    [
+     16,
+     -0.4
+    ],
+    [
+     13.7,
+     -0.5
+    ]
+   ]
+  },
+  {
+   "id": "S2",
+   "name": "Bau Ost (weiß)",
+   "kind": "Flachdach",
+   "building": "Nebengebäude",
+   "note": "ca. 3,8 × 9 m; jenseits des Weges, evtl. anderes Grundstück",
+   "selected": false,
+   "poly": [
+    [
+     26.5,
+     17.2
+    ],
+    [
+     30.3,
+     17.4
+    ],
+    [
+     30.9,
+     26.3
+    ],
+    [
+     27.1,
+     26.2
+    ]
+   ]
+  }
+ ],
+ "excluded": [],
+ "obstacles": [],
+ "pvgis": {},
+ "request": {
+  "type": "adresse",
+  "address": "Auf der Höhe 54, 21339 Lüneburg",
+  "at": "2026-10-29T19:34:20.534Z"
+ },
+ "processed": {
+  "type": "adresse",
+  "at": "2026-10-29T19:40:42.011Z"
+ },
+ "notes": [
+  "OpenStreetMap kennt für Nr. 54 nur einen Adresspunkt; die Flächen sind aus dem Luftbild (Bing Maps, ca. 9 cm je Pixel) nachgezeichnet, Lagegenauigkeit etwa ±0,5 m.",
+  "Die dunkle Fläche nordwestlich des Hauptdachs ist dessen Schatten, kein Dach.",
+  "Grundstücksgrenzen sind nicht bekannt; S2 liegt jenseits des Weges.",
+  "Nach dem Senden erkennt Claude auf den gewählten Flächen Hindernisse und legt die Module aus. Verschattung wird nicht berücksichtigt."
+ ]
+}

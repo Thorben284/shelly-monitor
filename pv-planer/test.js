@@ -2,8 +2,6 @@
 /* Tests für den PV-Planer: node test.js */
 "use strict";
 const E = require("./engine.js");
-const { execFileSync } = require("child_process");
-const fs = require("fs"), os = require("os"), path = require("path");
 
 let pass = 0, fail = 0;
 function ok(cond, msg) { if (cond) pass++; else { fail++; console.log("FEHLER:", msg); } }
@@ -251,51 +249,6 @@ const ECON = { pvFix: 2500, pvKwp: 1000, batFix: 2000, batKwh: 450, price: 32, i
   ok(v.every(x => x.counts[2] === 0), "Fläche ohne Module bleibt leer");
   ok(v.some(x => x.kwp <= 10 && x.kwp > 9), "10-kWp-Variante vorhanden");
   ok(E.optimize([{ profile: pr, max: 0 }], L, P).length === 0, "keine belegbare Fläche → leer");
-}
-
-/* ---------- CLI ---------- */
-{
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "pvt-")), cli = (...a) => execFileSync("node", [path.join(__dirname, "plan.js"), ...a], { cwd: dir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
-  const fails = (...a) => { try { cli(...a); return false; } catch (e) { return true; } };
-  const nom = [{ osm_type: "way", osm_id: 1, lat: "52", lon: "10", category: "building", type: "house", display_name: "7, Teststraße, Musterstadt, Deutschland",
-    geojson: { type: "Polygon", coordinates: [rect(12, 8, 90)] } }];
-  fs.writeFileSync(path.join(dir, "nom.json"), JSON.stringify(nom));
-  const out = cli("init", "nom.json", "cfg.json");
-  ok(/12,0 × 8,0 m/.test(out), "init: Maße");
-  ok(/PVGIS fehlt/.test(out), "init: PVGIS-Liste");
-  ok(fails("build", "cfg.json", "x.html"), "build ohne PVGIS bricht ab");
-  ok(fails("pvgis", "cfg.json", "35", "0", "1,2,3"), "pvgis mit 3 Werten bricht ab");
-  ok(fails("pvgis", "cfg.json", "35", "0", "a,2,3,4,5,6,7,8,9,10,11,12"), "pvgis mit Text bricht ab");
-  cli("pvgis", "cfg.json", "35", "0", PVG.join(","));
-  cli("pvgis", "cfg.json", "35", "180", PVG.map(v => v / 2).join(","));
-  const b = cli("build", "cfg.json", "plan.html");
-  ok(/VORSCHLAG/.test(b) && fs.existsSync(path.join(dir, "plan.html")), "build erzeugt Seite");
-  const html = fs.readFileSync(path.join(dir, "plan.html"), "utf8");
-  ok(/<title>PV-Auslegung Teststraße 7<\/title>/.test(html), "Titel aus Adresse");
-  ok(!/__DATA__|__ENGINE__|__TITLE__/.test(html), "alle Platzhalter ersetzt");
-  // Adresse mit HTML-Zeichen
-  nom[0].display_name = "1, <script>alert(1)</script>Weg, Ort";
-  fs.writeFileSync(path.join(dir, "nom2.json"), JSON.stringify(nom));
-  cli("init", "nom2.json", "cfg2.json");
-  const c2 = JSON.parse(fs.readFileSync(path.join(dir, "cfg2.json"), "utf8")); c2.pvgis = JSON.parse(fs.readFileSync(path.join(dir, "cfg.json"), "utf8")).pvgis;
-  fs.writeFileSync(path.join(dir, "cfg2.json"), JSON.stringify(c2));
-  cli("build", "cfg2.json", "p2.html");
-  const h2 = fs.readFileSync(path.join(dir, "p2.html"), "utf8");
-  ok(!h2.includes("<script>alert(1)"), "Adresse wird HTML-sicher eingesetzt");
-  // kein Gebäudeumriss
-  fs.writeFileSync(path.join(dir, "nom3.json"), JSON.stringify([{ osm_type: "way", osm_id: 2, lat: "52", lon: "10", category: "highway", type: "residential", display_name: "Weg" }]));
-  ok(/kein Gebäudeumriss/.test(cli("init", "nom3.json", "cfg3.json")), "init ohne Umriss warnt");
-  ok(fails("faces", "cfg3.json"), "faces ohne Umriss bricht ab");
-  ok(fails("init", "leer.json", "x.json") , "init ohne Datei bricht ab");
-  fs.writeFileSync(path.join(dir, "leer.json"), "[]"); ok(fails("init", "leer.json", "x.json"), "init mit leerem Treffer bricht ab");
-  // rect-Befehl als Ersatz
-  cli("rect", "cfg3.json", "11", "9", "0");
-  ok(/11,0 × 9,0 m/.test(cli("faces", "cfg3.json")), "rect setzt Rechteck");
-  // falsche best-Angabe nach Dachwechsel
-  const c4 = JSON.parse(fs.readFileSync(path.join(dir, "cfg.json"), "utf8")); c4.best = { counts: [5], cap: 0 };
-  fs.writeFileSync(path.join(dir, "cfg4.json"), JSON.stringify(c4));
-  ok(/passt nicht/.test(cli("build", "cfg4.json", "p4.html")), "best mit falscher Länge wird verworfen");
-  fs.rmSync(dir, { recursive: true, force: true });
 }
 
 console.log(`\n${pass} bestanden, ${fail} fehlgeschlagen`);

@@ -65,6 +65,8 @@ button.ghost{font:inherit;font-size:.85rem;background:transparent;color:var(--in
 .notes{margin:0;padding-left:18px;color:var(--muted);font-size:.88rem;max-width:90ch}
 .notes li{margin-bottom:6px}
 button:focus-visible,input:focus-visible{outline:2px solid var(--sun);outline-offset:1px}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:10px}
+.newbox{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.9rem}
 .addr{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
 .addr input{flex:1 1 260px;font:inherit;font-size:1.02rem;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:9px 12px;min-width:0}
 details summary{cursor:pointer;font-weight:600}
@@ -90,7 +92,9 @@ const changed=()=>sel().map(a=>a.id).sort().join()!==lastIds().slice().sort().jo
 const when=t=>new Date(t).toLocaleString("de-DE",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
 
 $("app").innerHTML=`<div class="wrap">
-<header><div class="eyebrow">PV-Planer · Luftbild</div><h1 id="title"></h1>
+<header><div class="head"><div><div class="eyebrow">PV-Planer · Luftbild</div><h1 id="title"></h1></div>
+  <div class="newbox"><button class="ghost" id="newBtn" type="button">Neue Planung</button>
+  <span id="newAsk" hidden>Aktuelle Planung verwerfen? <button class="ghost" id="newYes" type="button">Ja, neu beginnen</button> <button class="ghost" id="newNo" type="button">Abbrechen</button></span></div></div>
   <form class="addr" id="addrForm" autocomplete="off"><input id="addr" type="text" placeholder="Straße Hausnummer, PLZ Ort" aria-label="Adresse"><button class="primary" id="plan" type="submit">Planen</button></form>
   <div class="msg" id="addrMsg"></div></header>
 <div class="steps" id="steps"></div>
@@ -110,15 +114,16 @@ $("app").innerHTML=`<div class="wrap">
 </div>`;
 $("addr").value=D.request&&D.request.type==="adresse"&&pending()?D.request.address:(D.address||"");
 
+let fresh=false;   // "Neue Planung": Ansicht geleert, alte Daten bleiben bis zum Senden gespeichert
 function render(){
-  const s=sel(),an=s.filter(a=>a.analysed),req=D.request,pend=pending(),has=!!D.image;
+  const s=fresh?[]:sel(),an=s.filter(a=>a.analysed),req=fresh?null:D.request,pend=!fresh&&pending(),has=!fresh&&!!D.image;
   const stage=!has?0:pend&&req.type==="auswahl"?2:an.length&&!changed()?3:1;
-  $("title").textContent=D.title||D.address||"Neue Planung";
+  $("title").textContent=fresh?"Neue Planung":D.title||D.address||"Neue Planung";$("newBtn").hidden=!D.image||fresh;
   $("steps").innerHTML=[["Adresse",0],["Flächen auswählen",1],["Hindernisse erkennen",2],["Module auslegen",3]].map(([t,n])=>`<div class="step ${stage===n?"now":stage>n?"done":""}"><b>${stage>n?"✓":n+1}</b>${t}</div>`).join("");
   const b=$("banner");b.className="banner"+(stage===3?" ok":"");
   b.textContent=pend&&req.type==="adresse"?`In Arbeit seit ${when(req.at)}: Claude sucht Gebäude, Luftbild und mögliche Dachflächen für „${req.address}“. Die Seite lädt sich danach selbst neu.`+(Date.now()-new Date(req.at)>3e5?" Dauert es länger als 5 Minuten, die Zeile unter „Falls Senden nicht funktioniert“ im Chat einfügen.":"")
     :pend?`In Arbeit seit ${when(req.at)}: Claude erkennt auf ${req.ids.join(", ")} die Hindernisse und legt die Module aus. Die Seite lädt sich danach selbst neu.`+(Date.now()-new Date(req.at)>3e5?" Dauert es länger als 5 Minuten, die Zeile unter „Falls Senden nicht funktioniert“ im Chat einfügen.":"")
-    :D.status?D.status
+    :D.status&&!fresh?D.status
     :stage===0?"Adresse eingeben und „Planen“ drücken. Claude sucht dann das Gebäude und alle möglichen Dachflächen im Luftbild."
     :stage===1&&!an.length?"Flächen im Luftbild oder in der Liste anklicken, dann „Auswahl senden“."
     :stage===1?"Auswahl geändert. Erneut senden, damit die neuen Flächen analysiert werden."
@@ -175,6 +180,7 @@ async function submit(request,msgEl,btn){
   const art=window.claude?await window.claude.use("artifact"):null;
   if(!art){msgEl.className="msg err";msgEl.textContent="Senden geht in dieser Ansicht nicht. Bitte die Zeile unter „Falls Senden nicht funktioniert“ in den Chat kopieren.";btn.disabled=false;return}
   const data=JSON.parse(JSON.stringify(D));data.request=Object.assign(request,{at:new Date().toISOString()});data.status=null;
+  if(request.type==="adresse"){Object.assign(data,{address:request.address,title:request.address,image:null,areas:[],excluded:[],notes:[],processed:null,geo:null})}
   try{await art.publish(pageSource(data));msgEl.textContent="Gesendet. Die Seite lädt neu."}
   catch(e){const c=e&&e.code;msgEl.className="msg err";btn.disabled=false;
     msgEl.textContent=c==="conflict"?"Die Seite wurde gerade aktualisiert und lädt neu. Danach bitte erneut senden."
@@ -184,6 +190,9 @@ async function submit(request,msgEl,btn){
 $("addrForm").addEventListener("submit",e=>{e.preventDefault();const a=$("addr").value.trim();
   if(a.length<5){$("addrMsg").className="msg err";$("addrMsg").textContent="Bitte Straße, Hausnummer und Ort eingeben.";return}
   submit({type:"adresse",address:a},$("addrMsg"),$("plan"))});
+$("newBtn").addEventListener("click",()=>{$("newAsk").hidden=false;$("newBtn").hidden=true;$("newYes").focus()});
+$("newNo").addEventListener("click",()=>{$("newAsk").hidden=true;render()});
+$("newYes").addEventListener("click",()=>{fresh=true;$("newAsk").hidden=true;$("addr").value="";$("addrMsg").textContent="";render();$("addr").focus()});
 $("send").addEventListener("click",()=>{const ids=sel().map(a=>a.id);if(ids.length)submit({type:"auswahl",ids},$("sendMsg"),$("send"))});
 render();
 })();

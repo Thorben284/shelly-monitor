@@ -1,17 +1,14 @@
 # PV-Planer
 
-PV-Auslegung für eine Adresse: Gebäudeumriss aus OpenStreetMap, Erträge aus PVGIS, stündliche Simulation mit Speicher, Optimierung nach Kapitalwert, Planungsseite als HTML.
-
-Ablauf und Fragen: `.claude/skills/pv-planer/SKILL.md`.
+Planer mit Luftbild: Adresse → mögliche Dachflächen des Grundstücks → Auswahl → Hinderniserkennung und Modulauslegung.
+Die Seite (`planer.html`) sendet Anfragen, indem sie sich selbst neu veröffentlicht; Claude beantwortet sie und aktualisiert die Seite.
+Ablauf: `.claude/skills/pv-planer/SKILL.md`.
 
 ```
-node plan.js init  nom.json cfg.json        # Nominatim-Antwort (mit polygon_geojson=1) → Konfiguration
-node plan.js rect  cfg.json 12 9 90         # Rechteck statt OSM-Umriss (Länge, Breite, Längsachse ° ab Nord)
-node plan.js faces cfg.json                 # Dachflächen und fehlende PVGIS-Abfragen
-node plan.js pvgis cfg.json 35 -6 25.2,...  # 12 PVGIS-Monatswerte (E_m, kWh/kWp) eintragen
-node plan.js build cfg.json plan.html       # optimieren, Seite erzeugen
+node tools/aerial.js overlay bild.png a.json ov.png      # Umrisse/Flächen auf das Luftbild zeichnen (Kontrolle)
+node tools/aerial.js grid bild.png x0 y0 x1 y1 out.png 3 # vergrößerter Ausschnitt mit Pixelraster
+node tools/areas.js roof.json seite.html                 # Planerseite bauen (Kandidaten, Belegung)
 ```
 
-Tests: `node test.js` (Rechenkern, CLI, Kalibrierung) und `node test-ui.js plan.html` (Seite, benötigt Playwright).
-
-Keine Abhängigkeiten außer Node ≥ 18.
+`engine.js`: Rechenkern (Belegung freier Umrisse, Hindernisse, PVGIS-Profile). Tests: `node test.js`.
+Beispiel: `beispiele/lueneburg-auf-der-hoehe-56.json`. Benötigt Node ≥ 18 und Playwright (Luftbild-Werkzeuge).
