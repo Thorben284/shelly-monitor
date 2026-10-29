@@ -116,8 +116,8 @@ function render(){
   $("title").textContent=D.title||D.address||"Neue Planung";
   $("steps").innerHTML=[["Adresse",0],["Flächen auswählen",1],["Hindernisse erkennen",2],["Module auslegen",3]].map(([t,n])=>`<div class="step ${stage===n?"now":stage>n?"done":""}"><b>${stage>n?"✓":n+1}</b>${t}</div>`).join("");
   const b=$("banner");b.className="banner"+(stage===3?" ok":"");
-  b.textContent=pend&&req.type==="adresse"?`In Arbeit seit ${when(req.at)}: Claude sucht Gebäude, Luftbild und mögliche Dachflächen für „${req.address}“. Die Seite lädt sich danach selbst neu.`
-    :pend?`In Arbeit seit ${when(req.at)}: Claude erkennt auf ${req.ids.join(", ")} die Hindernisse und legt die Module aus. Die Seite lädt sich danach selbst neu.`
+  b.textContent=pend&&req.type==="adresse"?`In Arbeit seit ${when(req.at)}: Claude sucht Gebäude, Luftbild und mögliche Dachflächen für „${req.address}“. Die Seite lädt sich danach selbst neu.`+(Date.now()-new Date(req.at)>3e5?" Dauert es länger als 5 Minuten, die Zeile unter „Falls Senden nicht funktioniert“ im Chat einfügen.":"")
+    :pend?`In Arbeit seit ${when(req.at)}: Claude erkennt auf ${req.ids.join(", ")} die Hindernisse und legt die Module aus. Die Seite lädt sich danach selbst neu.`+(Date.now()-new Date(req.at)>3e5?" Dauert es länger als 5 Minuten, die Zeile unter „Falls Senden nicht funktioniert“ im Chat einfügen.":"")
     :D.status?D.status
     :stage===0?"Adresse eingeben und „Planen“ drücken. Claude sucht dann das Gebäude und alle möglichen Dachflächen im Luftbild."
     :stage===1&&!an.length?"Flächen im Luftbild oder in der Liste anklicken, dann „Auswahl senden“."

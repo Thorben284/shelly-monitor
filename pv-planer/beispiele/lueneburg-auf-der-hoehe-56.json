@@ -73,7 +73,12 @@
     ]
    ],
    "note": "oberste Ebene laut Schattenanalyse",
-   "selected": false
+   "selected": true,
+   "mountings": [
+    "ow",
+    "sued"
+   ],
+   "edge": 0.8
   },
   {
    "id": "D2",
@@ -244,11 +249,58 @@
      38.4
     ]
    ],
-   "note": "ca. 10,7 × 10,1 m, wirft Schatten; Baum ragt über die Ostecke",
-   "selected": false
+   "note": "ca. 10,7 × 10,1 m; Ostecke vom Baum verschattet (ausgespart)",
+   "selected": true,
+   "mountings": [
+    "eben"
+   ],
+   "edge": 0.3
   }
  ],
- "excluded": [],
+ "excluded": [
+  {
+   "name": "Technikfläche",
+   "poly": [
+    [
+     0.3,
+     0.3
+    ],
+    [
+     17,
+     0.3
+    ],
+    [
+     17,
+     8.4
+    ],
+    [
+     0.3,
+     8.4
+    ]
+   ]
+  },
+  {
+   "name": "Baumschatten",
+   "poly": [
+    [
+     36.1,
+     33.5
+    ],
+    [
+     42,
+     36.6
+    ],
+    [
+     39.3,
+     41.6
+    ],
+    [
+     33.5,
+     38.5
+    ]
+   ]
+  }
+ ],
  "obstacles": [
   {
    "type": "lichtkuppel",
@@ -371,10 +423,22 @@
   "5|-28": 866.3
  },
  "notes": [
-  "Flächen aus dem Luftbild (Bing Maps, ca. 9 cm je Pixel) und dem OpenStreetMap-Umriss ermittelt; Lagegenauigkeit etwa ±0,5 m, Aufnahmedatum unbekannt.",
-  "Höhenstufen des Bürogebäudes aus den Schattenlängen: Technikfläche und D1 oberste Ebene, D2 eine Ebene tiefer, D3 am tiefsten; D4 vermutlich tiefer als D1.",
-  "Nebengebäude K1, Fläche K2 und Carport K3 sind in OpenStreetMap nicht als Gebäude erfasst und aus dem Bild nachgezeichnet. Grundstücksgrenzen sind nicht bekannt.",
-  "Nach dem Senden erkennt Claude auf den gewählten Flächen Hindernisse (Lüfter, Lichtkuppeln, Ausstiege, Bäume) und legt die Module aus: Flachdach Ost-West 10° und Süd 15° zum Vergleich, Carport flach."
+  "Belegt: D1 (oberes Flachdach) und K3 (Carport Südost). Hindernisse aus dem Luftbild (ca. 9 cm je Pixel): auf D1 Lichtkuppel, drei Lüfter und Dachausstieg mit Abstandszonen; Technikfläche ausgespart. Auf K3 der Schattenbereich des Baums an der Südostecke ausgespart.",
+  "Randabstand D1 0,8 m zu Attika und Kanten, K3 0,3 m. Abstand zur Technikfläche 0,8 m; deren Geräte (ca. 1–1,5 m hoch) können angrenzende Module nachmittags verschatten.",
+  "D1 Ost-West 10°: Modulpaare Rücken an Rücken, 0,35 m Gang je Paar. Süd 15°: Reihenabstand 2,2 m. Carport: Module flach (5°) auf dem Dach.",
+  "Statik prüfen: Flachdach mit Ballast typ. 10–25 kg/m², Carport (Kiesdach) besonders kritisch. Wartungswege und Brandschutzabstände sind noch nicht eingeplant.",
+  "Modul 450 Wp, 1,762 × 1,134 m (Annahme). Ertrag aus PVGIS 5.3, 14 % Systemverluste, ohne Verschattung durch Nachbarbebauung. Lagegenauigkeit etwa ±0,5 m – Aufmaß vor Ort."
  ],
- "request": null
+ "request": {
+  "type": "auswahl",
+  "ids": [
+   "D1",
+   "K3"
+  ],
+  "at": "2026-10-29T19:25:58.370Z"
+ },
+ "processed": {
+  "type": "auswahl",
+  "at": "2026-10-29T19:31:02.512Z"
+ }
 }
