@@ -76,6 +76,7 @@ const MOD = { wp: 450, l: 1.762, b: 1.134 };
   const l = E.layoutFace(Object.assign({ orient: "l" }, f), MOD);
   ok(l.count === 5 * 4, `quer 10×5,5: ${l.count}`);
   ok(E.layoutFace(f, MOD).count === 20, "automatisch nimmt Maximum");
+  ok(E.layoutFace({ eave: 2 * 1.762 + .02 + .6, top: 2 * 1.762 + .02 + .6, slope: 1.134 + .6, edge: .3, orient: "l" }, MOD).count === 2, "exakt passende Breite (Rundung)");
   const t = E.layoutFace({ eave: 10, top: 0, slope: 5, edge: .3 }, MOD);
   const perRow = {}; t.pos.forEach(q => perRow[q.y] = (perRow[q.y] || 0) + 1); const rn = Object.keys(perRow).sort((a, b) => a - b).map(k => perRow[k]);
   ok(t.count > 0 && rn.every((n, i) => i === 0 || n <= rn[i - 1]), "Dreieck: Reihen nach oben kürzer");

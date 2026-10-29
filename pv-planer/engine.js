@@ -198,7 +198,7 @@
           iv = iv.flatMap(([u, v]) => [[u, Math.min(v, a)], [Math.max(u, b), v]].filter(([p, q]) => q - p >= w));
         }
         for (const [u, v] of iv) {
-          const n = Math.floor((v - u + g) / (w + g)), x0 = u + (v - u - (n * w + (n - 1) * g)) / 2;
+          const n = Math.floor((v - u + g) / (w + g) + 1e-9), x0 = u + (v - u - (n * w + (n - 1) * g)) / 2;
           for (let k = 0; k < n; k++) pos.push({ x: +(x0 + k * (w + g)).toFixed(3), y: +y.toFixed(3) });
         }
         y += pitch;
@@ -312,6 +312,6 @@
     return out;
   }
 
-  const API = { OBST, resolveObstacles, PEAK, MONTH, MDAYS, pvProfile, loadProfile, simulate, economics, fitRate, cost, layoutFace, footprint, deriveFaces, compassName, toAspect, evaluate, optimize, BATS };
+  const API = { poaHourly, OBST, resolveObstacles, PEAK, MONTH, MDAYS, pvProfile, loadProfile, simulate, economics, fitRate, cost, layoutFace, footprint, deriveFaces, compassName, toAspect, evaluate, optimize, BATS };
   if (typeof module !== "undefined" && module.exports) module.exports = API; else G.PVE = API;
 })(typeof window !== "undefined" ? window : globalThis);

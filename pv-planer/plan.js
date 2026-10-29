@@ -125,6 +125,7 @@ if (cmd === "init") {
   };
   const tpl = fs.readFileSync(path.join(__dirname, "template.html"), "utf8");
   const html = tpl.replace("/*__ENGINE__*/", () => fs.readFileSync(path.join(__dirname, "engine.js"), "utf8"))
+    .replace("/*__VIEW__*/", () => fs.readFileSync(path.join(__dirname, "view.js"), "utf8"))
     .replace("/*__DATA__*/null", () => JSON.stringify(data).replace(/</g, "\\u003c"))
     .replace(/__TITLE__/g, () => esc(shortAddr(c.address)));
   fs.writeFileSync(a2, html);
