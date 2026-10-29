@@ -12,3 +12,5 @@ node tools/areas.js roof.json seite.html                 # Planerseite bauen (Ka
 
 `engine.js`: Rechenkern (Belegung freier Umrisse, Hindernisse, PVGIS-Profile). Tests: `node test.js`.
 Beispiel: `beispiele/lueneburg-auf-der-hoehe-54.json`. Benötigt Node ≥ 18 und Playwright (Luftbild-Werkzeuge).
+
+`tools/kataster.js` liest amtliche Referenzdaten des LGLN (Niedersachsen, CC BY 4.0): Gebäudeumrisse aus dem ALKIS-WFS und Dachflächen (Neigung, Ausrichtung, Höhen) aus dem 3D-Gebäudemodell LoD2. Damit werden die Flächen aus dem Luftbild gegengeprüft bzw. direkt übernommen.

@@ -251,5 +251,24 @@ const ECON = { pvFix: 2500, pvKwp: 1000, batFix: 2000, batKwh: 450, price: 32, i
   ok(E.optimize([{ profile: pr, max: 0 }], L, P).length === 0, "keine belegbare Fläche → leer");
 }
 
+console.log("Kataster (ALKIS, LoD2)");
+{
+  const K = require("./tools/kataster.js");
+  const [la, lo] = K.utmToLL(592464.88, 5899756.48);
+  near(la, 53.2390261, 2e-6, "UTM → Breite"); near(lo, 10.3855050, 2e-6, "UTM → Länge");
+  const gml = '<GebaeudeBauwerk gml:id="x"><oid>DENIALtest0001</oid><gml:posList>53.1 10.1 53.1 10.2 53.2 10.2 53.1 10.1</gml:posList><name>Kita</name></GebaeudeBauwerk>';
+  const A = K.alkis(gml);
+  ok(A.buildings.length === 1 && A.buildings[0].ll[1][0] === 10.2 && A.buildings[0].ll[1][1] === 53.1, "ALKIS: lat/lon getauscht gelesen");
+  // Pultdach 10 × 5 m, 3 m Anstieg nach Westen (Fall nach Osten), Wand und Boden
+  const r = (p) => p.concat([p[0]]).map(q => q.map(v => v.toFixed(3)).join(" ")).join(" ");   // wie im Dump: 3 Nachkommastellen, Ringe aneinandergeklebt
+  const txt = "DENIAL0000testAA" + r([[500000, 5900000, 40], [500005, 5900000, 43], [500005, 5900010, 43], [500000, 5900010, 40]])
+    + r([[500000, 5900000, 37], [500005, 5900000, 37], [500005, 5900000, 43], [500000, 5900000, 40]])
+    + r([[500000, 5900000, 37], [500000, 5900010, 37], [500005, 5900010, 37], [500005, 5900000, 37]]) + "DENIAL0000testBB";
+  const L = K.lod2(txt, "DENIAL0000testAA");
+  ok(L.roofs.length === 1, "LoD2: nur die Dachfläche bleibt");
+  near(L.roofs[0].tilt, 31, .1, "LoD2: Neigung"); near(L.roofs[0].az, 270, 1, "LoD2: Ausrichtung (Gefälle nach Westen)");
+  near(L.roofs[0].plan, 50, .1, "LoD2: Grundfläche"); near(L.ground, 37, 0, "LoD2: Geländehöhe");
+}
+
 console.log(`\n${pass} bestanden, ${fail} fehlgeschlagen`);
 process.exit(fail ? 1 : 0);

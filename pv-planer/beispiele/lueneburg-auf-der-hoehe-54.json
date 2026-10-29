@@ -1,6 +1,6 @@
 {
  "address": "Auf der Höhe 54, 21339 Lüneburg",
- "title": "Auf der Höhe 54, Lüneburg",
+ "title": "Auf der Höhe 54, Lüneburg (Kindergarten)",
  "geo": {
   "lat": 53.2389921,
   "lon": 10.3857518,
@@ -8,10 +8,10 @@
  },
  "frame": {
   "origin": [
-   10.3855077,
-   53.2390258
+   10.3855049823993,
+   53.2390261103571
   ],
-  "bearing": 67.7
+  "bearing": 58.4
  },
  "aerial": {
   "file": "luftbild-54.png",
@@ -32,145 +32,155 @@
  "areas": [
   {
    "id": "H1O",
-   "name": "Hauptdach Ost",
-   "kind": "Satteldach",
-   "building": "Haus",
-   "note": "Ziegel, lange Dachseite nach ONO, ca. 40° (Street View Süd/West); 3 Dachfenster",
-   "poly": [
-    [
-     3.37,
-     -0.16
-    ],
-    [
-     11.18,
-     -0.12
-    ],
-    [
-     14.31,
-     18.04
-    ],
-    [
-     6.47,
-     19.14
-    ]
-   ],
+   "name": "Pultdach Ost",
+   "kind": "Pultdach",
+   "building": "Haupthaus",
    "selected": false,
    "slope": {
-    "tilt": 40,
-    "fall": 55
-   }
+    "tilt": 28.6,
+    "fall": 57
+   },
+   "poly": [
+    [
+     3.56,
+     20.11
+    ],
+    [
+     3.56,
+     20.21
+    ],
+    [
+     10.79,
+     20.2
+    ],
+    [
+     10.75,
+     11.21
+    ],
+    [
+     10.74,
+     9.07
+    ],
+    [
+     10.72,
+     1.82
+    ],
+    [
+     7.35,
+     1.8
+    ],
+    [
+     3.51,
+     1.78
+    ]
+   ],
+   "note": "Ziegel; amtliches 3D-Modell: 28,6° nach ONO, Traufe 6,0 m, hohe Kante 10,0 m, 152 m² Dachfläche; Street View ≈30°; 3 Dachfenster im Luftbild"
   },
   {
    "id": "H1W",
    "name": "Pultdach West",
    "kind": "Pultdach",
-   "building": "Haus",
-   "note": "Ziegel, niedrigeres Pultdach unter einem Fensterband, nach WSW; Neigung geschätzt 35° (unsicher); 2 Dachfenster",
-   "poly": [
-    [
-     0.01,
-     -0.2
-    ],
-    [
-     3.37,
-     -0.16
-    ],
-    [
-     6.47,
-     19.14
-    ],
-    [
-     3.14,
-     19.59
-    ]
-   ],
+   "building": "Haupthaus",
    "selected": false,
    "slope": {
-    "tilt": 35,
-    "fall": 235
-   }
+    "tilt": 16,
+    "fall": 237
+   },
+   "poly": [
+    [
+     0.03,
+     7.77
+    ],
+    [
+     0.05,
+     14.24
+    ],
+    [
+     0.07,
+     20.1
+    ],
+    [
+     3.56,
+     20.11
+    ],
+    [
+     3.51,
+     1.78
+    ],
+    [
+     3.51,
+     0
+    ],
+    [
+     0,
+     0
+    ]
+   ],
+   "note": "Ziegel, unter dem Fensterband; 3D-Modell: 16° nach WSW, Traufe 6,7 m, 74 m² Dachfläche; Dachfenster im Luftbild"
+  },
+  {
+   "id": "H1E",
+   "name": "Erker West",
+   "kind": "Pultdach",
+   "building": "Haupthaus",
+   "selected": false,
+   "slope": {
+    "tilt": 39.4,
+    "fall": 237
+   },
+   "poly": [
+    [
+     -1.85,
+     14.25
+    ],
+    [
+     0.05,
+     14.24
+    ],
+    [
+     0.03,
+     7.77
+    ],
+    [
+     -1.87,
+     7.77
+    ]
+   ],
+   "note": "klein; 3D-Modell: 39° nach WSW, 16 m² Dachfläche"
   },
   {
    "id": "H2",
    "name": "Anbau Süd",
    "kind": "Flachdach",
    "building": "Anbau",
-   "note": "eingeschossiger Klinker-Anbau mit Attika (Street View Süd); dunkles Band an der Nordwestseite ist Schatten",
+   "selected": false,
    "poly": [
     [
-     -4.8,
-     20.6
+     -8.25,
+     19.71
     ],
     [
-     2.67,
-     19.21
+     0.07,
+     19.74
     ],
     [
-     14.05,
-     18.31
+     0.07,
+     20.1
     ],
     [
-     14.83,
-     25.83
+     10.79,
+     20.2
     ],
     [
-     -3.26,
-     28.62
+     10.81,
+     28.42
+    ],
+    [
+     -8.23,
+     28.41
     ]
    ],
-   "selected": false
-  },
-  {
-   "id": "W1",
-   "name": "Vorbau West",
-   "kind": "Flachdach",
-   "building": "Vorbau",
-   "note": "heller Flachdachbau, ca. 4 × 6,5 m (Luftbild, Street View West); Höhe unklar",
-   "poly": [
-    [
-     -4.62,
-     9.08
-    ],
-    [
-     -0.59,
-     8.91
-    ],
-    [
-     -1.13,
-     15.64
-    ],
-    [
-     -3.95,
-     15.1
-    ]
-   ],
-   "selected": false
-  },
-  {
-   "id": "S1",
-   "name": "Schuppen Nord",
-   "kind": "Dach",
-   "building": "Schuppen",
-   "note": "blaugrau, ca. 3 × 4,5 m; nur im Luftbild sichtbar, Zugehörigkeit unsicher",
-   "poly": [
-    [
-     13.7,
-     -4.75
-    ],
-    [
-     16.49,
-     -4.47
-    ],
-    [
-     16.05,
-     -0.81
-    ],
-    [
-     13.23,
-     -1.01
-    ]
-   ],
-   "selected": false
+   "note": "Flachdach mit Attika, eingeschossig (Street View); Umriss aus Liegenschaftskataster (2019), im 3D-Modell (Grundriss 2018) noch nicht enthalten"
   }
  ],
  "excluded": [],
@@ -183,11 +193,12 @@
  },
  "processed": {
   "type": "adresse",
-  "at": "2026-10-29T19:58:40.000Z"
+  "at": "2026-10-29T20:20:00.000Z"
  },
  "notes": [
-  "OpenStreetMap kennt für Nr. 54 nur einen Adresspunkt; Flächen aus dem Luftbild (Bing Maps, Zoom 21, ca. 4,5 cm je Pixel) nachgezeichnet. Dachform aus Google Street View (Juni 2022, Blick von Süden und Westen): Hauptdach mit langer Dachseite nach Ostnordost (ca. 40°); westlich darunter ein niedrigeres Pultdach mit Fensterband, Neigung geschätzt 35°. Davor eingeschossiger Klinker-Anbau mit Flachdach und Attika (H2).",
-  "Die dunklen Flächen nordwestlich des Hauptdachs und am Anbau sind Schatten (Sonne aus Südost), keine Dächer. Der weiße Bau jenseits des Weges im Osten gehört nicht zu Nr. 54 und ist nicht mehr aufgeführt. Schuppen S1 nur im Luftbild sichtbar.",
+  "Geometrie aus amtlichen Daten des LGLN (CC BY 4.0): Gebäudeumriss aus dem Liegenschaftskataster (ALKIS, Stand 2019), Dachflächen, Neigungen und Höhen aus dem 3D-Gebäudemodell LoD2 (Stand 2024, Grundriss 2018). Abgeglichen mit Luftbild (Bing Maps) und Google Street View (Juni 2022, Blick von Süden, Südosten, Westen): Neigung Ostdach im Bild ≈30° (Modell 28,6°).",
+  "Dachumrisse liegen auf den Außenwänden; Dachüberstände sind nicht enthalten (Belegung damit auf der sicheren Seite).",
+  "Nicht als Fläche aufgeführt: helle Fläche westlich und Schuppen im Norden (weder im Kataster noch im 3D-Modell, vermutlich Spielgeräte/Gartenhaus), schmaler Streifen an der Ostseite (1,6 m breit), kleine Dachteile an der Nordseite (unter 6 m²). Dunkle Flächen nordwestlich sind Schatten.",
   "Nach dem Senden erkennt Claude auf den gewählten Flächen Hindernisse (u. a. Dachfenster) und legt die Module aus. Verschattung wird nicht berücksichtigt."
  ]
 }
