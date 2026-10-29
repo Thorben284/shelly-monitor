@@ -35,6 +35,7 @@ function load(file) {
     const o = c.faceOverrides[f.id] || {};
     Object.assign(f, o.shape || {});
     if (o.orient) f.orient = o.orient;
+    if (o.obstacles) f.obstacles = o.obstacles;
     f.layout = E.layoutFace(f, c.module);
     f.reduce = o.reduce || 0;
     f.exclude = !!o.exclude;
@@ -51,6 +52,7 @@ function printFaces(c) {
   console.log(`Dach: ${c.roof.type}, ${c.roof.tilt}°, First ${c.roof.ridge === "short" ? "quer" : "längs"}`);
   for (const f of c.faces) {
     console.log(`${f.id} ${f.name.padEnd(9)} Azimut ${String(f.aspect).padStart(4)}° Neigung ${f.tilt}°  Traufe ${fmt(f.eave, 2)} m, oben ${fmt(f.top, 2)} m, Sparren ${fmt(f.slope, 2)} m → ${f.layout.count} Module (${f.layout.orient})${f.reduce ? `, −${f.reduce}` : ""}${f.exclude ? " AUSGESCHLOSSEN" : ""}`);
+    f.layout.obstacles.forEach((o, i) => console.log(`     ${i + 1}. ${o.label} ${fmt(o.w, 2)}×${fmt(o.h, 2)} m bei x=${fmt(o.x, 2)} m, y=${fmt(o.y, 2)} m, Abstand ${fmt(o.c, 2)} m`));
   }
   const need = [...new Map(c.faces.map(f => [key(f.tilt, f.aspect), f])).values()].filter(f => !c.pvgis[key(f.tilt, f.aspect)]);
   if (need.length) { console.log("\nPVGIS fehlt für:"); need.forEach(f => console.log(`  ${key(f.tilt, f.aspect)}  ${pvgisUrl(c, f)}`)); }

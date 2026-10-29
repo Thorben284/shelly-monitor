@@ -77,14 +77,41 @@ const MOD = { wp: 450, l: 1.762, b: 1.134 };
   ok(l.count === 5 * 4, `quer 10×5,5: ${l.count}`);
   ok(E.layoutFace(f, MOD).count === 20, "automatisch nimmt Maximum");
   const t = E.layoutFace({ eave: 10, top: 0, slope: 5, edge: .3 }, MOD);
-  ok(t.count > 0 && t.rows.every((r, i, a) => i === 0 || r.n <= a[i - 1].n), "Dreieck: Reihen nach oben kürzer");
+  const perRow = {}; t.pos.forEach(q => perRow[q.y] = (perRow[q.y] || 0) + 1); const rn = Object.keys(perRow).sort((a, b) => a - b).map(k => perRow[k]);
+  ok(t.count > 0 && rn.every((n, i) => i === 0 || n <= rn[i - 1]), "Dreieck: Reihen nach oben kürzer");
+  // Dreieck: kein Modul ragt über die Gratlinie
+  ok(t.pos.every(q => { const W = 10 * (1 - (q.y + t.h) / 5), xl = (10 - W) / 2; return q.x >= xl + .3 - 1e-6 && q.x + t.w <= 10 - xl - .3 + 1e-6; }), "Dreieck: Module innerhalb der Grate");
   ok(E.layoutFace({ eave: 1, top: 1, slope: 1, edge: .3 }, MOD).count === 0, "zu kleine Fläche: 0 Module");
   ok(E.layoutFace({ eave: 0, top: 0, slope: 0, edge: .3 }, MOD).count === 0, "Nullfläche");
   ok(E.layoutFace({ eave: -5, top: -5, slope: 3, edge: .3 }, MOD).count === 0, "negative Maße");
   const fl = E.layoutFace({ flat: true, eave: 12, slope: 8, edge: 1, coverage: .8, mounting: "x" }, MOD);
-  ok(fl.count === Math.floor(10 * 6 * .8 / (1.762 * 1.134)), `Flachdach Belegung: ${fl.count}`);
-  // keine Reihe ragt über die Fläche
-  for (const r of p.rows) ok(r.y + p.h <= 5.5 - .3 + 1e-9, "Reihe innerhalb Sparrenlänge");
+  const flRef = 10 * 6 * .8 / (1.762 * 1.134);
+  ok(fl.count >= flRef * .75 && fl.count <= flRef * 1.05, `Flachdach Belegung: ${fl.count} (Belegungsgrad ergibt ${flRef.toFixed(1)})`);
+  // alle Module innerhalb der Fläche, keine Überlappung
+  const inside = (L, F) => L.pos.every(q => q.x >= F.edge - 1e-6 && q.x + L.w <= F.eave - F.edge + 1e-6 && q.y >= F.edge - 1e-6 && q.y + L.h <= F.slope - F.edge + 1e-6);
+  ok(inside(p, f) && inside(l, f), "Module innerhalb der Randabstände");
+  const overlap = L => L.pos.some((a, i) => L.pos.some((b, j) => i < j && a.x < b.x + L.w - 1e-6 && b.x < a.x + L.w - 1e-6 && a.y < b.y + L.h - 1e-6 && b.y < a.y + L.h - 1e-6));
+  ok(!overlap(p) && !overlap(l) && !overlap(fl), "keine überlappenden Module");
+
+  /* Hindernisse */
+  const hit = (L) => L.pos.some(q => L.obstacles.some(o => q.x < o.x + o.w / 2 + o.c - 1e-6 && q.x + L.w > o.x - o.w / 2 - o.c + 1e-6 && q.y < o.y + o.h / 2 + o.c - 1e-6 && q.y + L.h > o.y - o.h / 2 - o.c + 1e-6));
+  const types = Object.keys(E.OBST);
+  for (const ty of types) for (const [x, y] of [["links", "unten"], ["mitte", "mitte"], ["rechts", "oben"], [3.3, 2.1]]) {
+    for (const orient of ["p", "l"]) {
+      const L = E.layoutFace(Object.assign({ orient, obstacles: [{ type: ty, x, y }] }, f), MOD);
+      ok(!hit(L), `${ty} ${x}/${y} ${orient}: kein Modul im Sperrbereich`);
+      ok(L.count <= (orient === "p" ? p.count : l.count), `${ty} ${x}/${y} ${orient}: nicht mehr Module als ohne`);
+    }
+  }
+  const many = E.layoutFace(Object.assign({ obstacles: [{ type: "dachfenster", x: 2, y: 2 }, { type: "dachfenster", x: 6, y: 2 }, { type: "schornstein", x: 8.5, y: 4.8 }, { type: "entlueftung", x: 4, y: 4 }, { type: "antenne", x: "links", y: "oben" }] }, f), MOD);
+  ok(!hit(many) && many.count < 20 && many.count > 0, `mehrere Hindernisse: ${many.count} Module`);
+  const big = E.layoutFace(Object.assign({ obstacles: [{ type: "gaube", x: 5, y: 2.75, w: 10, h: 6 }] }, f), MOD);
+  ok(big.count === 0, "Hindernis über ganze Fläche → 0 Module");
+  const own = E.resolveObstacles({ eave: 10, slope: 5, obstacles: [{ type: "dachfenster", w: 1.14, h: 1.18, c: .1, x: "halb links", y: "unten" }] })[0];
+  ok(own.w === 1.14 && own.h === 1.18 && own.c === .1 && Math.abs(own.x - 3.5) < 1e-9 && Math.abs(own.y - 1) < 1e-9, "eigene Maße und Lageangaben");
+  ok(E.resolveObstacles({ eave: 10, slope: 5, obstacles: [{ type: "unbekannt" }] })[0].label === "Hindernis", "unbekannter Typ → Hindernis");
+  const flo = E.layoutFace({ eave: 12, top: 12, slope: 8, edge: 1, flat: true, coverage: .8, mounting: "x", obstacles: [{ type: "ausstieg", x: 6, y: 4 }] }, MOD);
+  ok(!hit(flo) && flo.count < fl.count, "Flachdach mit Dachausstieg");
 }
 
 /* ---------- PV-Profil ---------- */

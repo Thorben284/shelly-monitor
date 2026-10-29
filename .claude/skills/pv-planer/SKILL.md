@@ -28,9 +28,12 @@ Jede Frage nennt die gefundenen Gebäudedaten (z. B. "19,5 × 10,6 m, Längsachs
 1. **Dachform**: Satteldach First längs (Standard) · Satteldach First quer · Walmdach · Flachdach / Pultdach.
 2. **Neigung**: ca. 30° · ca. 38° · ca. 45° · weiß nicht (dann 35° ansetzen und sagen).
 3. **Stromverbrauch Haushalt**: 1–2 Personen ≈ 2.500 · 3 Personen ≈ 3.500 · 4+ Personen ≈ 4.500 kWh (Other = genauer Wert).
-4. **Zusätzlich** (multiSelect): Wärmepumpe · E-Auto · Dachfenster/Gauben/Kamin auf der Sonnenseite · Verschattung (Bäume, Nachbarhaus).
+4. **Hindernisse auf den Dachflächen** (multiSelect): Dachfenster · Schornstein · Strangentlüftung/Antenne · Gaube/Dachausstieg. (Wärmepumpe/E-Auto über "Other" oder in Runde 2.)
 
-Nur wenn nötig eine zweite Runde: WP-Verbrauch (sonst ≈ 3.500 kWh/a ansetzen), E-Auto km/a (× 0,18 kWh/km) und ob tagsüber zu Hause (`evMode: "tag"`), Anzahl/Lage der Dachfenster (→ `reduce`), Pultdach-Richtung, Flachdach Süd oder Ost-West.
+Zweite Runde nur wenn nötig, als **eine Freitextfrage** mit Beispiel, damit es schnell geht:
+"Wo sitzen die Hindernisse? Je Hindernis: Art, Dachseite, Lage von links (links/halb links/mitte/halb rechts/rechts oder Meter ab linker Traufecke) und Höhe (unten/mitte/oben oder Meter ab Traufe), Größe falls bekannt. Beispiel: 2 Dachfenster Süd, unten, 4 m und 7 m von links; Schornstein Süd oben rechts."
+Dazu bei Bedarf: WP-Verbrauch (sonst ≈ 3.500 kWh/a), E-Auto km/a (× 0,18 kWh/km) und ob tagsüber zu Hause (`evMode: "tag"`), Pultdach-Richtung, Flachdach Süd oder Ost-West.
+"Links" heißt immer: Blick von außen/unten auf die jeweilige Dachfläche.
 Nicht nach Preisen fragen; Standardwerte nehmen, auf der Seite änderbar.
 
 ## 3. Konfiguration
@@ -38,15 +41,21 @@ In `cfg.json` setzen (alles optional, Rest sind Standardwerte aus `plan.js`):
 ```json
 "roof": {"type": "sattel|walm|pult|flach", "tilt": 35, "ridge": "long|short", "edge": 0.3, "overhang": 0, "pultDir": "sued|andere", "mounting": "ow|sued"},
 "consumption": {"household": 4000, "heatpump": 0, "ev": 0, "evMode": "abends|tag"},
-"faceOverrides": {"F1": {"reduce": 4, "exclude": false, "orient": "p|l", "shape": {"eave": 9.5, "top": 9.5, "slope": 5.8}}},
+"faceOverrides": {"F1": {"obstacles": [
+    {"type": "dachfenster", "x": 4, "y": "unten"},
+    {"type": "schornstein", "x": "rechts", "y": "oben", "w": 0.5, "h": 0.8, "c": 0.5},
+    {"type": "entlueftung", "x": "halb rechts", "y": "mitte"}],
+  "reduce": 0, "exclude": false, "orient": "p|l", "shape": {"eave": 9.5, "top": 9.5, "slope": 5.8}}},
 "module": {"wp": 450, "l": 1.762, "b": 1.134, "kg": 21.5, "ukKg": 3},
 "econ": {"price": 32, "pvKwp": 1000, "pvFix": 2500, "batKwh": 450, "batFix": 2000, "fit10": 7.70, "fit40": 6.67, ...},
 "feedCap": true,
 "notes": ["freier Hinweistext für die Seite"],
 "best": {"counts": [20, 0], "cap": 5}
 ```
+Hindernis-Typen mit Standardmaß / Abstand (Annahmen): `dachfenster` 0,78×1,40 / 0,30 · `schornstein` 0,60×0,60 / 0,50 · `entlueftung` 0,20×0,20 / 0,30 · `antenne` 0,30×0,30 / 0,50 · `gaube` 2,0×2,0 / 0,30 (Maße erfragen) · `ausstieg` 0,60×0,80 / 0,30 · `sonstiges` 0,50×0,50 / 0,30.
+`x`/`y` = Mitte des Hindernisses (Meter oder Lagewort), `w` quer, `h` entlang Sparren, `c` Abstand. Nach `faces` die gelisteten Lagen kurz plausibilisieren.
 `best` nur setzen, wenn der Nutzer eine bestimmte Variante festlegt; sonst wählt die Optimierung.
-Bei Verschattung: Fläche über `reduce` verkleinern oder Hinweis in `notes`; PVGIS kennt nur den Geländehorizont.
+Verschattung (Bäume, Nachbarhaus, Schornsteinschatten) wird nicht berechnet: nur über `exclude`/`reduce` oder Hinweis in `notes`. Keine Zeit in genauere Ertragsprognosen stecken.
 
 ## 4. PVGIS
 `node pv-planer/plan.js faces cfg.json` listet die fehlenden PVGIS-URLs. Jede per Firecrawl abrufen (parallel), die 12 `E_m`-Werte eintragen:
@@ -73,7 +82,7 @@ NODE_PATH=$(npm root -g) node pv-planer/test-ui.js plan.html   # Seite im Browse
 ```
 
 ## Grenzen, immer offen benennen
-- Maße aus dem OSM-Umriss ohne Dachüberstand, Dachfenster und Gauben; Aufmaß vor Ort nötig.
+- Maße aus dem OSM-Umriss ohne Dachüberstand; Hindernislagen aus dem Gespräch. Aufmaß vor Ort nötig.
 - Stundenwerte modelliert (PVGIS-Monatssummen, synthetisches Wetter, vereinfachtes Lastprofil). Gegen HTW-Referenzen geprüft (±1 Punkt), mit Wärmepumpe eher zu hoch.
 - Vergütungssätze Stand 08/2026 aus Ratgeberseiten, nicht amtlich bestätigt; EEG-Novelle 2027 offen.
 - Statik nicht nachgewiesen.

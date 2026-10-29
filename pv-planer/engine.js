@@ -164,22 +164,52 @@
   }
 
   /* ---------- Belegung ---------- */
+  /* Hindernisse: Standardmaße (m) und Mindestabstand c zu Modulen. Annahmen, je Hindernis überschreibbar. */
+  const OBST = {
+    dachfenster: { label: "Dachfenster", w: .78, h: 1.40, c: .30 },
+    schornstein: { label: "Schornstein", w: .60, h: .60, c: .50 },
+    entlueftung: { label: "Strangentlüftung", w: .20, h: .20, c: .30 },
+    antenne: { label: "Antenne/Sat", w: .30, h: .30, c: .50 },
+    gaube: { label: "Gaube", w: 2.0, h: 2.0, c: .30 },
+    ausstieg: { label: "Dachausstieg", w: .60, h: .80, c: .30 },
+    sonstiges: { label: "Hindernis", w: .50, h: .50, c: .30 }
+  };
+  const POSX = { links: .2, "halb links": .35, mitte: .5, "halb rechts": .65, rechts: .8 };
+  const POSY = { unten: .2, mitte: .5, oben: .8 };
+  /* x: Mitte des Hindernisses ab linker Traufecke (Blick von außen auf die Dachfläche), y: Mitte ab Traufe entlang der Sparren */
+  function resolveObstacles(f) {
+    return (f.obstacles || []).map(o => {
+      const d = OBST[o.type] || OBST.sonstiges;
+      const pos = (v, map, len) => typeof v === "number" ? v : (map[String(v || "mitte").toLowerCase()] ?? .5) * len;
+      return { type: o.type || "sonstiges", label: o.label || d.label, w: o.w ?? d.w, h: o.h ?? d.h, c: o.c ?? d.c,
+        x: pos(o.x, POSX, f.eave), y: pos(o.y, POSY, f.slope) };
+    });
+  }
   function layoutFace(f, mod) {
-    if (f.flat) {
-      const A = Math.max(0, f.eave - 2 * f.edge) * Math.max(0, f.slope - 2 * f.edge);
-      return { flat: true, count: Math.floor(A * f.coverage / (mod.l * mod.b)), rows: [], orient: f.mounting };
-    }
-    const g = .02;
-    const fit = (w, h) => {
-      const rows = []; let y = f.edge;
+    const g = .02, obs = resolveObstacles(f), top = Number.isFinite(f.top) ? f.top : f.eave;
+    const fit = (w, h, pitch) => {
+      const pos = []; let y = f.edge;
       while (y + h <= f.slope - f.edge + 1e-9) {
-        const W = f.eave - (f.eave - f.top) * ((y + h) / f.slope);
-        rows.push({ y, n: Math.max(0, Math.floor((W - 2 * f.edge + g) / (w + g))) });
-        y += h + g;
+        const W = f.eave - (f.eave - top) * ((y + h) / f.slope), xl = (f.eave - W) / 2 + f.edge, xr = f.eave - xl;
+        let iv = xr > xl ? [[xl, xr]] : [];
+        for (const o of obs) {
+          if (y + h <= o.y - o.h / 2 - o.c || y >= o.y + o.h / 2 + o.c) continue;
+          const a = o.x - o.w / 2 - o.c, b = o.x + o.w / 2 + o.c;
+          iv = iv.flatMap(([u, v]) => [[u, Math.min(v, a)], [Math.max(u, b), v]].filter(([p, q]) => q - p >= w));
+        }
+        for (const [u, v] of iv) {
+          const n = Math.floor((v - u + g) / (w + g)), x0 = u + (v - u - (n * w + (n - 1) * g)) / 2;
+          for (let k = 0; k < n; k++) pos.push({ x: +(x0 + k * (w + g)).toFixed(3), y: +y.toFixed(3) });
+        }
+        y += pitch;
       }
-      return { rows, w, h, count: rows.reduce((a, r) => a + r.n, 0) };
+      return { pos, w, h, count: pos.length, obstacles: obs };
     };
-    const p = fit(mod.b, mod.l), q = fit(mod.l, mod.b);
+    if (f.flat) {   // quer liegende Reihen, Reihenabstand so, dass der Belegungsgrad erreicht wird
+      const r = fit(mod.l, mod.b, Math.max(mod.b + g, mod.l * mod.b / (f.coverage * (mod.l + g))));
+      r.orient = f.mounting; r.flat = true; return r;
+    }
+    const p = fit(mod.b, mod.l, mod.l + g), q = fit(mod.l, mod.b, mod.b + g);
     p.orient = "hochkant"; q.orient = "quer";
     if (f.orient === "p") return p; if (f.orient === "l") return q;
     return p.count >= q.count ? p : q;
@@ -282,6 +312,6 @@
     return out;
   }
 
-  const API = { PEAK, MONTH, MDAYS, pvProfile, loadProfile, simulate, economics, fitRate, cost, layoutFace, footprint, deriveFaces, compassName, toAspect, evaluate, optimize, BATS };
+  const API = { OBST, resolveObstacles, PEAK, MONTH, MDAYS, pvProfile, loadProfile, simulate, economics, fitRate, cost, layoutFace, footprint, deriveFaces, compassName, toAspect, evaluate, optimize, BATS };
   if (typeof module !== "undefined" && module.exports) module.exports = API; else G.PVE = API;
 })(typeof window !== "undefined" ? window : globalThis);

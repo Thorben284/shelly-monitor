@@ -269,38 +269,25 @@ function siteSvg(counts){
   const sb=5*s;o+=`<line x1="12" y1="${VH-10}" x2="${12+sb}" y2="${VH-10}" stroke="var(--ink)" stroke-width="2"/><text x="${12+sb+6}" y="${VH-6}">5 m</text>`;
   return o+"</svg>";
 }
-/* Flachdach: Module quer in Reihen, Reihenabstand aus dem Belegungsgrad */
-function flatMods(f,count,x0,y0,s){
-  const uw=f.eave-2*f.edge,uh=f.slope-2*f.edge,ml=D.module.l,mb=D.module.b,g=.02;
-  const cols=Math.max(1,Math.floor((uw+g)/(ml+g))),rows=Math.max(1,Math.ceil(f.layout.count/cols)),pitch=uh/rows;
-  let o="";for(let k=0;k<count;k++){const r=Math.floor(k/cols),c=k%cols;
-    o+=`<rect x="${(x0+(f.edge+c*(ml+g))*s).toFixed(1)}" y="${(y0+(f.edge+r*pitch+(pitch-Math.min(mb,pitch))/2)*s).toFixed(1)}" width="${(ml*s).toFixed(1)}" height="${(Math.min(mb,pitch)*s).toFixed(1)}" fill="var(--module)" stroke="var(--module-line)" stroke-width=".8"/>`}
-  return o;
-}
+/* Dachfläche maßstäblich: Traufe unten, Module und Hindernisse aus der Belegung (x ab linker Traufecke, y ab Traufe) */
 function roofSvg(f,count){
   const VW=320,maxW=280,maxH=170,y0=20;
-  if(f.flat){
-    const s=Math.min(maxW/f.eave,maxH/f.slope),w=f.eave*s,h=f.slope*s,x0=(VW-w)/2;
-    return `<svg viewBox="0 0 ${VW} ${(y0+h+30).toFixed(0)}" role="img" aria-label="Flachdachfeld"><rect x="${x0}" y="${y0}" width="${w}" height="${h}" fill="var(--roof)" stroke="var(--roof-line)"/>
-      <rect x="${x0+f.edge*s}" y="${y0+f.edge*s}" width="${Math.max(0,w-2*f.edge*s)}" height="${Math.max(0,h-2*f.edge*s)}" fill="none" stroke="var(--roof-line)" stroke-dasharray="3 3"/>
-      ${flatMods(f,count,x0,y0,s)}
-      <text x="${VW/2}" y="${y0+h+16}" text-anchor="middle">${fmt(f.eave,1)} × ${fmt(f.slope,1)} m · ${f.mounting}</text></svg>`;
-  }
   const s=Math.min(maxW/f.eave,maxH/f.slope),w=f.eave*s,h=f.slope*s,x0=(VW-w)/2,tw=f.top*s,yb=y0+h;
-  const lay=f.layout,g=.02*s,mw=lay.w*s,mh=lay.h*s;
-  let mods="",k=0;
-  for(const r of lay.rows){
-    const n=Math.min(r.n,count-k);if(n<=0)break;
-    const rw=n*mw+(n-1)*g,xs=VW/2-rw/2,y=yb-r.y*s-mh;
-    for(let c=0;c<n;c++)mods+=`<rect x="${(xs+c*(mw+g)).toFixed(1)}" y="${y.toFixed(1)}" width="${mw.toFixed(1)}" height="${mh.toFixed(1)}" fill="var(--module)" stroke="var(--module-line)" stroke-width=".8"/>`;
-    k+=n;
-  }
+  const lay=f.layout,mw=lay.w*s,mh=lay.h*s,X=x=>x0+x*s,Y=y=>yb-y*s;
+  let mods="";
+  lay.pos.slice(0,count).forEach(p=>{mods+=`<rect x="${X(p.x).toFixed(1)}" y="${(Y(p.y)-mh).toFixed(1)}" width="${mw.toFixed(1)}" height="${mh.toFixed(1)}" fill="var(--module)" stroke="var(--module-line)" stroke-width=".8"/>`});
+  let obs="";
+  (lay.obstacles||[]).forEach((o,i)=>{
+    obs+=`<rect x="${X(o.x-o.w/2-o.c).toFixed(1)}" y="${Y(o.y+o.h/2+o.c).toFixed(1)}" width="${((o.w+2*o.c)*s).toFixed(1)}" height="${((o.h+2*o.c)*s).toFixed(1)}" fill="none" stroke="var(--warn)" stroke-dasharray="3 2" stroke-width=".9"/>
+      <rect x="${X(o.x-o.w/2).toFixed(1)}" y="${Y(o.y+o.h/2).toFixed(1)}" width="${(o.w*s).toFixed(1)}" height="${(o.h*s).toFixed(1)}" fill="var(--warn)"><title>${o.label}</title></rect>
+      <text x="${X(o.x+o.w/2+o.c).toFixed(1)}" y="${(Y(o.y+o.h/2+o.c)-2).toFixed(1)}" style="fill:var(--warn);font-weight:600;font-size:10px">${i+1}</text>`});
+  const shape=f.flat?`<rect x="${x0}" y="${y0}" width="${w}" height="${h}" fill="var(--roof)" stroke="var(--roof-line)" stroke-width="1.2"/>`
+    :`<polygon points="${x0},${yb} ${x0+w},${yb} ${VW/2+tw/2},${y0} ${VW/2-tw/2},${y0}" fill="var(--roof)" stroke="var(--roof-line)" stroke-width="1.2"/>`;
   return `<svg viewBox="0 0 ${VW} ${(yb+34).toFixed(0)}" role="img" aria-label="Belegung ${f.id}: ${count} Module">
-    <polygon points="${x0},${yb} ${x0+w},${yb} ${VW/2+tw/2},${y0} ${VW/2-tw/2},${y0}" fill="var(--roof)" stroke="var(--roof-line)" stroke-width="1.2"/>
-    ${mods}
-    <text x="${VW/2}" y="${y0-6}" text-anchor="middle">${f.top>0?"First":"Firstpunkt"}</text>
-    <text x="${VW/2}" y="${yb+14}" text-anchor="middle">Traufe ${fmt(f.eave,2)} m · Sparren ${fmt(f.slope,2)} m</text>
-    <text x="${VW/2}" y="${yb+28}" text-anchor="middle">${f.tilt}° · Azimut ${f.aspect}° (${f.name})</text></svg>`;
+    ${shape}${mods}${obs}
+    <text x="${VW/2}" y="${y0-6}" text-anchor="middle">${f.flat?"Flachdach":(f.top>0?"First":"Firstpunkt")}</text>
+    <text x="${VW/2}" y="${yb+14}" text-anchor="middle">${f.flat?`${fmt(f.eave,1)} × ${fmt(f.slope,1)} m`:`Traufe ${fmt(f.eave,2)} m · Sparren ${fmt(f.slope,2)} m`}</text>
+    <text x="${VW/2}" y="${yb+28}" text-anchor="middle">${f.flat?f.mounting+" · ":f.tilt+"° · "}Azimut ${f.aspect}° (${f.name})</text></svg>`;
 }
 function monthSvg(m){
   const VW=560,VH=240,Lp=44,R=8,T=12,B=26,cw=(VW-Lp-R)/12;
@@ -358,7 +345,7 @@ function render(){
 
   $("site").innerHTML=siteSvg(sel.counts);
   $("siteMeta").innerHTML=`${ROOF[D.roof.type]||D.roof.type}${D.roof.type!=="flach"?`, ${D.roof.tilt}°`:""} · Gebäude ca. <b>${fmt(D.fp.L,1)} × ${fmt(D.fp.W,1)} m</b> (${fmt(D.fp.area)} m² Grundfläche) · Längsachse ${fmt(D.fp.bearing)}° · First gestrichelt`;
-  $("roofs").innerHTML=D.faces.map((f,i)=>`<div>${roofSvg(f,sel.counts[i])}<div class="meta"><b>${f.id} ${f.name}</b>: ${sel.counts[i]} von ${f.max} Modulen${f.flat?"":` (${f.layout.orient})`} · <b>${fmt(sel.counts[i]*D.module.wp/1000,2)} kWp</b> · PVGIS ${fmt(f.pvgisYear)} kWh/kWp</div></div>`).join("");
+  $("roofs").innerHTML=D.faces.map((f,i)=>`<div>${roofSvg(f,sel.counts[i])}<div class="meta"><b>${f.id} ${f.name}</b>: ${sel.counts[i]} von ${f.max} Modulen${f.flat?"":` (${f.layout.orient})`} · <b>${fmt(sel.counts[i]*D.module.wp/1000,2)} kWp</b> · PVGIS ${fmt(f.pvgisYear)} kWh/kWp${(f.layout.obstacles||[]).length?`<br>Hindernisse: `+f.layout.obstacles.map((o,j)=>`<span style="color:var(--warn);font-weight:600">${j+1}</span> ${o.label} ${fmt(o.w,2)} × ${fmt(o.h,2)} m, Abstand ${fmt(o.c,2)} m`).join(" · "):""}</div></div>`).join("");
 
   $("monthChart").innerHTML=monthSvg(s.monthly);
   const row=(a,b,c="")=>`<tr${c}><td>${a}</td><td class="n">${b}</td></tr>`;
@@ -389,7 +376,8 @@ function recompute(){vars=E.optimize(D.faces,L,P);renderVars();render()}
 $("created").textContent=new Date(D.created).toLocaleDateString("de-DE");
 $("sub").textContent=D.address;
 $("todo").innerHTML=[
-  "Aufmaß vor Ort: Dachmaße, Neigung, Dachfenster, Gauben, Kamine, Antennen und Verschattung prüfen. Die Maße stammen aus dem OpenStreetMap-Umriss, ohne Dachüberstand.",
+  "Aufmaß vor Ort: Dachmaße, Neigung sowie Lage und Maße von Dachfenstern, Schornsteinen, Strangentlüftungen, Antennen und Gauben prüfen. Die Gebäudemaße stammen aus dem OpenStreetMap-Umriss, ohne Dachüberstand; Hindernislagen sind Angaben aus dem Gespräch.",
+  "Schornsteine: Abstand und Verschattung mit dem Bezirksschornsteinfeger abstimmen; Abgas darf Module nicht beaufschlagen. Strangentlüftungen ggf. über Lüftungsziegel verlegen lassen, um Fläche zu gewinnen.",
   "Statik: Tragfähigkeit von Sparren, Lattung und Befestigung für die Zusatzlast nachweisen lassen; Zustand der Eindeckung prüfen (Erneuerung vor PV-Montage einplanen).",
   "Randabstände und Haken-Abstände nach Montagesystem sowie Wind- und Schneelastzone (DIN EN 1991-1-3/-4) festlegen.",
   "Netzbetreiber: Anmeldung vor Inbetriebnahme; Zählerschrank auf Eignung prüfen lassen (oft Umbau nötig).",
@@ -405,6 +393,7 @@ $("basis").innerHTML=[
   "<b>Speicher</b>: 95 % Wirkungsgrad je Richtung, Leistung 0,5 C (mind. 2,5 kW), kein Tausch innerhalb der Laufzeit. E-Auto: nicht aus dem Hausspeicher geladen.",
   `<b>Kosten</b>: PV ${fmt(D.econ.pvFix)} € + ${fmt(D.econ.pvKwp)} €/kWp, Speicher ${fmt(D.econ.batFix)} € + ${fmt(D.econ.batKwh)} €/kWh (Annahme aus Marktspannen 2026; Ratgeberseiten nennen rund 950–1.500 €/kWp und 315–900 €/kWh). 0 % MwSt.`,
   `<b>Vergütung</b>: ${fmt(D.econ.fit10,2)} ct/kWh bis 10 kWp (Inbetriebnahme ab 1.8.2026, Teileinspeisung), 10–40 kWp ${fmt(D.econ.fit40,2)} ct (aus der Degression abgeleitet). 20 Jahre fest, danach keine Vergütung angesetzt. Aktuelle Sätze bei der <a href="https://www.bundesnetzagentur.de/DE/Fachthemen/ElektrizitaetundGas/ErneuerbareEnergien/EEG_Foerderung/start.html" target="_blank" rel="noopener">Bundesnetzagentur</a> prüfen.`,
+  "<b>Hindernisse</b>: Module, die in ein Hindernis samt Abstandszone (gestrichelt) fallen, entfallen; die Reihe wird links und rechts davon neu belegt. Standardmaße und Abstände: Dachfenster 0,78 × 1,40 m / 0,30 m, Schornstein 0,60 × 0,60 m / 0,50 m, Strangentlüftung 0,20 × 0,20 m / 0,30 m, Antenne 0,30 × 0,30 m / 0,50 m (Annahmen, nach Aufmaß und Montagesystem anpassen). Verschattung durch Hindernisse ist nicht berechnet.",
   "<b>Optimierung</b>: Alle Kombinationen der Dachflächen, jeweils voll belegt und zusätzlich auf 10 kWp begrenzt (beste Flächen zuerst), mit Speichergrößen 0–20 kWh; Auswahl nach höchstem Kapitalwert. Ohne Steuern, Finanzierung und Förderprogramme.",
   ...D.notes.map(n=>`<b>Hinweis</b>: ${n}`)
 ].map(t=>`<li>${t}</li>`).join("");
