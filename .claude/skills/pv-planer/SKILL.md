@@ -64,7 +64,7 @@ In `cfg.json` setzen (alles optional, Rest sind Standardwerte aus `plan.js`):
 Hindernis-Typen mit Standardmaß / Abstand (Annahmen): `dachfenster` 0,78×1,40 / 0,30 · `schornstein` 0,60×0,60 / 0,50 · `entlueftung` 0,20×0,20 / 0,30 · `antenne` 0,30×0,30 / 0,50 · `gaube` 2,0×2,0 / 0,30 (Maße erfragen) · `ausstieg` 0,60×0,80 / 0,30 · `sonstiges` 0,50×0,50 / 0,30.
 `x`/`y` = Mitte des Hindernisses (Meter oder Lagewort), `w` quer, `h` entlang Sparren, `c` Abstand. Nach `faces` die gelisteten Lagen kurz plausibilisieren.
 `best` nur setzen, wenn der Nutzer eine bestimmte Variante festlegt; sonst wählt die Optimierung.
-Verschattung (Bäume, Nachbarhaus, Schornsteinschatten) wird nicht berechnet: nur über `exclude`/`reduce` oder Hinweis in `notes`. Keine Zeit in genauere Ertragsprognosen stecken.
+Verschattung (Bäume, Nachbarhaus, Schornsteinschatten) wird nicht berechnet und auch nicht ausgespart (Wunsch des Nutzers); nur auf ausdrücklichen Wunsch nur über `exclude`/`reduce` oder Hinweis in `notes`. Keine Zeit in genauere Ertragsprognosen stecken.
 
 ## 4. PVGIS
 `node pv-planer/plan.js faces cfg.json` listet die fehlenden PVGIS-URLs. Jede per Firecrawl abrufen (parallel), die 12 `E_m`-Werte eintragen:

@@ -249,7 +249,7 @@
      38.4
     ]
    ],
-   "note": "ca. 10,7 × 10,1 m; Ostecke vom Baum verschattet (ausgespart)",
+   "note": "ca. 10,7 × 10,1 m",
    "selected": true,
    "mountings": [
     "eben"
@@ -276,27 +276,6 @@
     [
      0.3,
      8.4
-    ]
-   ]
-  },
-  {
-   "name": "Baumschatten",
-   "poly": [
-    [
-     36.1,
-     33.5
-    ],
-    [
-     42,
-     36.6
-    ],
-    [
-     39.3,
-     41.6
-    ],
-    [
-     33.5,
-     38.5
     ]
    ]
   }
@@ -423,11 +402,12 @@
   "5|-28": 866.3
  },
  "notes": [
-  "Belegt: D1 (oberes Flachdach) und K3 (Carport Südost). Hindernisse aus dem Luftbild (ca. 9 cm je Pixel): auf D1 Lichtkuppel, drei Lüfter und Dachausstieg mit Abstandszonen; Technikfläche ausgespart. Auf K3 der Schattenbereich des Baums an der Südostecke ausgespart.",
-  "Randabstand D1 0,8 m zu Attika und Kanten, K3 0,3 m. Abstand zur Technikfläche 0,8 m; deren Geräte (ca. 1–1,5 m hoch) können angrenzende Module nachmittags verschatten.",
+  "Belegt: D1 (oberes Flachdach) und K3 (Carport Südost). Hindernisse aus dem Luftbild (ca. 9 cm je Pixel): auf D1 Lichtkuppel, drei Lüfter und Dachausstieg mit Abstandszonen; Technikfläche ausgespart.",
+  "Randabstand D1 0,8 m zu Attika und Kanten, K3 0,3 m. Abstand zur Technikfläche 0,8 m.",
   "D1 Ost-West 10°: Modulpaare Rücken an Rücken, 0,35 m Gang je Paar. Süd 15°: Reihenabstand 2,2 m. Carport: Module flach (5°) auf dem Dach.",
   "Statik prüfen: Flachdach mit Ballast typ. 10–25 kg/m², Carport (Kiesdach) besonders kritisch. Wartungswege und Brandschutzabstände sind noch nicht eingeplant.",
-  "Modul 450 Wp, 1,762 × 1,134 m (Annahme). Ertrag aus PVGIS 5.3, 14 % Systemverluste, ohne Verschattung durch Nachbarbebauung. Lagegenauigkeit etwa ±0,5 m – Aufmaß vor Ort."
+  "Modul 450 Wp, 1,762 × 1,134 m (Annahme). Ertrag aus PVGIS 5.3, 14 % Systemverluste, ohne Verschattung durch Nachbarbebauung. Lagegenauigkeit etwa ±0,5 m – Aufmaß vor Ort.",
+  "Verschattung (Bäume, Technikaufbauten, Nachbargebäude) ist auf Wunsch nicht berücksichtigt."
  ],
  "request": {
   "type": "auswahl",
@@ -439,6 +419,6 @@
  },
  "processed": {
   "type": "auswahl",
-  "at": "2026-10-29T19:31:02.512Z"
+  "at": "2026-10-29T19:32:02.887Z"
  }
 }
