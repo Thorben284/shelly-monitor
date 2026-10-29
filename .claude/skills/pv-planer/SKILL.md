@@ -75,6 +75,16 @@ Antwort an den Nutzer, knapp: Anlagengröße, Module je Fläche, Speicher, Ertra
 Wunsch in `cfg.json` übertragen (Dachform, Neigung, `reduce`, `exclude`, Verbrauch, Preise, `best`), ab Schritt 4 wiederholen (PVGIS nur für neue Neigung/Ausrichtung), neu veröffentlichen.
 Modulzahl, Speicher, Verbrauch und Preise kann der Nutzer auch direkt auf der Seite ändern; die Seite rechnet live.
 
+## Modulauslegung mit Luftbild (Flachdach, mehrere Dachabschnitte, Carport)
+Wenn nur die Modulauslegung gefragt ist oder das Dach komplex ist:
+1. Nominatim (wie oben) → Lage und OSM-Umriss.
+2. Luftbild: Firecrawl-Screenshot von `https://www.bing.com/maps?cp=<lat>~<lon>&lvl=20&style=a`, `waitFor: 6000`, Viewport 1400×1100; PNG per `curl` von der zurückgegebenen storage.googleapis.com-URL laden (eigener Ordner). Kartenmitte = Pixel (700, 590).
+3. Georeferenz prüfen: `node pv-planer/tools/aerial.js overlay bild.png a.json ov.png` (OSM-Umriss einzeichnen, ansehen). Für Details: `tools/aerial.js grid bild.png x0 y0 x1 y1 out.png 3`.
+4. Gebäudesystem u/v (u = Längsachse ab OSM-Ecke, Meter) anlegen; Dachabschnitte, nicht nutzbare Flächen und Hindernisse (Lüfter, Lichtkuppeln, Ausstiege …) in u/v eintragen; zur Kontrolle wieder auf das Luftbild legen. Carports u. ä. fehlen oft in OSM: aus dem Bild nachzeichnen.
+5. PVGIS je Montage holen (Süd 15°, Ost-West 10° beide Richtungen, flach 5°), als Jahreswert in `pvgis` eintragen.
+6. `node pv-planer/tools/areas.js roof.json layout.html` → Seite mit Luftbild, Belegung, Flächen an/aus und Aufständerungsvergleich. Beispiel: `pv-planer/beispiele/lueneburg-auf-der-hoehe-56.json`.
+Luftbilder nicht ins Repo legen (Bildrechte).
+
 ## Tests nach jeder Änderung am Code
 ```
 node pv-planer/test.js                                   # Rechenkern + CLI

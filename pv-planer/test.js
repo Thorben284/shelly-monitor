@@ -115,6 +115,30 @@ const MOD = { wp: 450, l: 1.762, b: 1.134 };
   ok(!hit(flo) && flo.count < fl.count, "Flachdach mit Dachausstieg");
 }
 
+/* ---------- Belegung freier Umrisse ---------- */
+{
+  const base = { edge: .5, w: 1.762, h: 1.095, pitches: [1.115] };
+  const sq = Object.assign({ poly: [[0, 0], [10, 0], [10, 6], [0, 6]] }, base);
+  ok(E.layoutArea(sq).count === 20, `Rechteck 10×6: ${E.layoutArea(sq).count}`);
+  const Ls = Object.assign({}, base, { poly: [[0, 0], [10, 0], [10, 3], [4, 3], [4, 6], [0, 6]] });
+  const L = E.layoutArea(Ls);
+  const insideP = (R, P, e) => R.pos.every(q => [[q.x, q.y], [q.x + R.w, q.y], [q.x + R.w, q.y + R.h], [q.x, q.y + R.h]].every(c => E.inPoly(c[0], c[1], P)));
+  ok(L.count > 0 && insideP(L, Ls.poly), `L-Form: alle Module im Umriss (${L.count})`);
+  const ob = Object.assign({}, sq, { obstacles: [{ x: 5, y: 3, w: .4, h: .4, c: .3 }, { x: 2, y: 1.5, w: 1.2, h: 1.2, c: .5 }] });
+  const O = E.layoutArea(ob);
+  ok(O.count < 20 && O.pos.every(q => ob.obstacles.every(o => q.x + O.w <= o.x - o.w / 2 - o.c + 1e-9 || q.x >= o.x + o.w / 2 + o.c - 1e-9 || q.y + O.h <= o.y - o.h / 2 - o.c + 1e-9 || q.y >= o.y + o.h / 2 + o.c - 1e-9)), `Hindernisse frei (${O.count})`);
+  const hole = Object.assign({}, sq, { holes: [[[0, 0], [5, 0], [5, 3], [0, 3]]], holeGap: .3 });
+  const Hh = E.layoutArea(hole);
+  ok(Hh.pos.every(q => q.x >= 5.3 - 1e-9 || q.y >= 3.3 - 1e-9), `Aussparung frei (${Hh.count})`);
+  const xs = new Set(L.pos.map(q => (q.x - L.pos[0].x) / (L.w + .02))); ok([...xs].every(v => Math.abs(v - Math.round(v)) < 1e-6), "Spalten fluchten");
+  const tri = Object.assign({}, base, { poly: [[0, 0], [12, 0], [6, 8]] });
+  const T = E.layoutArea(tri); ok(T.count > 0 && insideP(T, tri.poly), `Dreieck (${T.count})`);
+  ok(E.layoutArea(Object.assign({}, base, { poly: [[0, 0], [1, 0], [1, 1], [0, 1]] })).count === 0, "zu kleine Fläche: 0");
+  const ow = Object.assign({}, base, { poly: [[0, 0], [10, 0], [10, 6], [0, 6]], pitches: [1.167, 1.467] });
+  const W = E.layoutArea(ow), ys = [...new Set(W.pos.map(q => q.y))].sort((a, b) => a - b);
+  ok(ys.length > 1 && ys.slice(1).every((y, i) => { const d = y - ys[i]; return Math.abs(d - 1.167) < 1e-6 || Math.abs(d - 1.467) < 1e-6; }), "Ost-West: Reihenabstände wechseln");
+}
+
 /* ---------- PV-Profil ---------- */
 const PVG = [25.2, 41.7, 82.7, 122.5, 133.8, 132, 126.1, 114.2, 93.7, 63.8, 31, 20];
 {

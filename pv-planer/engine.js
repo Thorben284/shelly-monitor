@@ -215,6 +215,69 @@
     return p.count >= q.count ? p : q;
   }
 
+  /* ---------- Belegung freier Umrisse (Flachdach, Carport, L-Formen) ----------
+     Lokale Koordinaten in Metern: x entlang der Modulreihen, y quer dazu. Ein Modul belegt w × h (Grundriss).
+     Module müssen ganz im Umriss liegen, mind. `edge` vom Rand, und dürfen Hindernis-Sperrzonen und Aussparungen nicht berühren. */
+  function inPoly(x, y, P) {
+    let c = false;
+    for (let i = 0, j = P.length - 1; i < P.length; j = i++) {
+      const [xi, yi] = P[i], [xj, yj] = P[j];
+      if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c;
+    }
+    return c;
+  }
+  function ptSeg(px, py, ax, ay, bx, by) {
+    const dx = bx - ax, dy = by - ay, L = dx * dx + dy * dy, t = L ? clamp(((px - ax) * dx + (py - ay) * dy) / L, 0, 1) : 0;
+    return Math.hypot(px - ax - t * dx, py - ay - t * dy);
+  }
+  function segX(a, b, c, d) {
+    const o = (p, q, r) => Math.sign((q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]));
+    return o(a, b, c) * o(a, b, d) < 0 && o(c, d, a) * o(c, d, b) < 0;
+  }
+  function rectSegDist(x0, y0, x1, y1, a, b) {
+    const inR = p => p[0] > x0 && p[0] < x1 && p[1] > y0 && p[1] < y1;
+    if (inR(a) || inR(b)) return 0;
+    const C = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
+    for (let i = 0; i < 4; i++) if (segX(a, b, C[i], C[(i + 1) % 4])) return 0;
+    let d = Infinity;
+    for (const p of C) d = Math.min(d, ptSeg(p[0], p[1], a[0], a[1], b[0], b[1]));
+    for (const p of [a, b]) d = Math.min(d, Math.hypot(Math.max(x0 - p[0], 0, p[0] - x1), Math.max(y0 - p[1], 0, p[1] - y1)));
+    return d;
+  }
+  function rectClear(x0, y0, x1, y1, P, edge) {   // ganz innerhalb P, Abstand ≥ edge zu allen Kanten
+    for (const [x, y] of [[x0, y0], [x1, y0], [x1, y1], [x0, y1]]) if (!inPoly(x, y, P)) return false;
+    for (let i = 0; i < P.length; i++) if (rectSegDist(x0, y0, x1, y1, P[i], P[(i + 1) % P.length]) < edge - 1e-9) return false;
+    return true;
+  }
+  function rectOutside(x0, y0, x1, y1, H, gap) {   // berührt die Aussparung H nicht (Abstand ≥ gap)
+    for (const [x, y] of [[x0, y0], [x1, y0], [x1, y1], [x0, y1]]) if (inPoly(x, y, H)) return false;
+    if (H.some(p => p[0] > x0 && p[0] < x1 && p[1] > y0 && p[1] < y1)) return false;
+    for (let i = 0; i < H.length; i++) if (rectSegDist(x0, y0, x1, y1, H[i], H[(i + 1) % H.length]) < gap - 1e-9) return false;
+    return true;
+  }
+  /* A: {poly, edge, w, h, pitches:[...], obstacles:[{x,y,w,h,c}], holes:[poly], holeGap} */
+  function layoutArea(A) {
+    const P = A.poly, g = .02, zones = (A.obstacles || []).map(o => [o.x - o.w / 2 - o.c, o.y - o.h / 2 - o.c, o.x + o.w / 2 + o.c, o.y + o.h / 2 + o.c]);
+    const xs = P.map(p => p[0]), ys = P.map(p => p[1]), X0 = Math.min(...xs), X1 = Math.max(...xs), Y0 = Math.min(...ys), Y1 = Math.max(...ys);
+    const ok = (x, y) => rectClear(x, y, x + A.w, y + A.h, P, A.edge)
+      && zones.every(z => x + A.w <= z[0] || x >= z[2] || y + A.h <= z[1] || y >= z[3])
+      && (A.holes || []).every(H => rectOutside(x, y, x + A.w, y + A.h, H, A.holeGap ?? A.edge));
+    /* Festes Raster (fluchtende Spalten und Reihen); Rasterversatz in x und y wird durchprobiert, das Raster mit den meisten Modulen gewinnt */
+    let best = [];
+    const period = A.pitches.reduce((a, b) => a + b, 0), cw = A.w + g;
+    for (let oy = 0; oy < period - 1e-9; oy += Math.max(.1, period / 12)) {
+      for (let ox = 0; ox < cw - 1e-9; ox += .1) {
+        const pos = []; let y = Y0 + A.edge + oy, k = 0;
+        while (y + A.h <= Y1 - A.edge + 1e-9) {
+          for (let x = X0 + A.edge + ox; x + A.w <= X1 - A.edge + 1e-9; x += cw) if (ok(x, y)) pos.push({ x: +x.toFixed(3), y: +y.toFixed(3), r: k });
+          y += A.pitches[k % A.pitches.length]; k++;
+        }
+        if (pos.length > best.length) best = pos;
+      }
+    }
+    return { pos: best, w: A.w, h: A.h, count: best.length };
+  }
+
   /* ---------- Gebäudeumriss ---------- */
   function footprint(coords) {
     const n = coords.length - (coords[0][0] === coords[coords.length - 1][0] && coords[0][1] === coords[coords.length - 1][1] ? 1 : 0);
@@ -312,6 +375,6 @@
     return out;
   }
 
-  const API = { poaHourly, OBST, resolveObstacles, PEAK, MONTH, MDAYS, pvProfile, loadProfile, simulate, economics, fitRate, cost, layoutFace, footprint, deriveFaces, compassName, toAspect, evaluate, optimize, BATS };
+  const API = { layoutArea, inPoly, poaHourly, OBST, resolveObstacles, PEAK, MONTH, MDAYS, pvProfile, loadProfile, simulate, economics, fitRate, cost, layoutFace, footprint, deriveFaces, compassName, toAspect, evaluate, optimize, BATS };
   if (typeof module !== "undefined" && module.exports) module.exports = API; else G.PVE = API;
 })(typeof window !== "undefined" ? window : globalThis);

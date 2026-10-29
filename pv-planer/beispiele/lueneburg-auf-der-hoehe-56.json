@@ -1,0 +1,335 @@
+{
+ "frame": {
+  "origin": [
+   10.3848434,
+   53.238778
+  ],
+  "bearing": 62
+ },
+ "areas": [
+  {
+   "id": "D1",
+   "name": "Dach Mitte",
+   "building": "Wohnhaus",
+   "poly": [
+    [
+     17,
+     0.3
+    ],
+    [
+     25,
+     0.3
+    ],
+    [
+     25,
+     11.4
+    ],
+    [
+     10.4,
+     11.4
+    ],
+    [
+     10.4,
+     14.5
+    ],
+    [
+     0.4,
+     14.5
+    ],
+    [
+     0.4,
+     8.4
+    ],
+    [
+     17,
+     8.4
+    ]
+   ],
+   "mountings": [
+    "ow",
+    "sued"
+   ],
+   "edge": 0.8
+  },
+  {
+   "id": "D2",
+   "name": "Dach Ost",
+   "building": "Wohnhaus",
+   "poly": [
+    [
+     25,
+     0.3
+    ],
+    [
+     28.7,
+     0.3
+    ],
+    [
+     28.7,
+     13.6
+    ],
+    [
+     25,
+     13.6
+    ]
+   ],
+   "mountings": [
+    "ow",
+    "sued"
+   ],
+   "edge": 0.8
+  },
+  {
+   "id": "D3",
+   "name": "Dach Ost-Rand",
+   "building": "Wohnhaus",
+   "poly": [
+    [
+     28.9,
+     0.3
+    ],
+    [
+     32.6,
+     0.3
+    ],
+    [
+     33.5,
+     13.6
+    ],
+    [
+     28.9,
+     13.6
+    ]
+   ],
+   "mountings": [
+    "ow",
+    "sued"
+   ],
+   "edge": 0.8
+  },
+  {
+   "id": "D4",
+   "name": "Südflügel",
+   "building": "Wohnhaus",
+   "poly": [
+    [
+     10.4,
+     11.4
+    ],
+    [
+     25,
+     11.4
+    ],
+    [
+     25,
+     13.6
+    ],
+    [
+     13.8,
+     13.6
+    ],
+    [
+     13.8,
+     24.4
+    ],
+    [
+     0.6,
+     24.2
+    ],
+    [
+     0.4,
+     14.5
+    ],
+    [
+     10.4,
+     14.5
+    ]
+   ],
+   "mountings": [
+    "ow",
+    "sued"
+   ],
+   "edge": 0.8
+  },
+  {
+   "id": "C1",
+   "name": "Carport",
+   "building": "Carport",
+   "poly": [
+    [
+     18.7,
+     18.4
+    ],
+    [
+     23.2,
+     18.3
+    ],
+    [
+     24.1,
+     34.6
+    ],
+    [
+     19.4,
+     34.8
+    ]
+   ],
+   "mountings": [
+    "eben"
+   ],
+   "edge": 0.2
+  }
+ ],
+ "excluded": [
+  {
+   "name": "Technikfläche",
+   "poly": [
+    [
+     0.3,
+     0.3
+    ],
+    [
+     17,
+     0.3
+    ],
+    [
+     17,
+     8.4
+    ],
+    [
+     0.3,
+     8.4
+    ]
+   ]
+  }
+ ],
+ "obstacles": [
+  {
+   "type": "lichtkuppel",
+   "u": 17.3,
+   "v": 5.5
+  },
+  {
+   "type": "entlueftung",
+   "u": 19.1,
+   "v": 3.5
+  },
+  {
+   "type": "entlueftung",
+   "u": 20.2,
+   "v": 3.8
+  },
+  {
+   "type": "entlueftung",
+   "u": 20.7,
+   "v": 4.1
+  },
+  {
+   "type": "entlueftung",
+   "u": 25.4,
+   "v": 7.3
+  },
+  {
+   "type": "ausstieg",
+   "u": 22.8,
+   "v": 10.9
+  },
+  {
+   "type": "entlueftung",
+   "u": 28.4,
+   "v": 2.2
+  },
+  {
+   "type": "entlueftung",
+   "u": 31.8,
+   "v": 2.1
+  },
+  {
+   "type": "entlueftung",
+   "u": 32,
+   "v": 5.8
+  },
+  {
+   "type": "entlueftung",
+   "u": 28.6,
+   "v": 10
+  },
+  {
+   "type": "entlueftung",
+   "u": 32.3,
+   "v": 9.7
+  },
+  {
+   "type": "entlueftung",
+   "u": 27.3,
+   "v": 12
+  },
+  {
+   "type": "entlueftung",
+   "u": 10.4,
+   "v": 17.4
+  },
+  {
+   "type": "entlueftung",
+   "u": 3.7,
+   "v": 16.9
+  },
+  {
+   "type": "entlueftung",
+   "u": 10.3,
+   "v": 22.5
+  },
+  {
+   "type": "entlueftung",
+   "u": 3.5,
+   "v": 21.6
+  },
+  {
+   "type": "entlueftung",
+   "u": 15.3,
+   "v": 12.7
+  },
+  {
+   "type": "entlueftung",
+   "u": 14.4,
+   "v": 14.9
+  }
+ ],
+ "address": "Auf der Höhe 56, 21339 Lüneburg",
+ "title": "Auf der Höhe 56, Lüneburg",
+ "geo": {
+  "lat": 53.2387507,
+  "lon": 10.3850379,
+  "osm": "way/734727383"
+ },
+ "aerial": {
+  "file": "bing1.png",
+  "lat": 53.2387507,
+  "lon": 10.3850379,
+  "zoom": 20,
+  "cx": 700,
+  "cy": 590,
+  "crop": [
+   480,
+   330,
+   1010,
+   840
+  ],
+  "scale": 2,
+  "source": "Bing Maps (Maxar)"
+ },
+ "pvgis": {
+  "15|-28": 923.1,
+  "10|-118": 791.1,
+  "10|62": 860.4,
+  "5|-28": 866.3
+ },
+ "notes": [
+  "Dachflächen, Technikfläche und 18 Hindernisse (Lüfter, Lichtkuppel, Dachausstieg) aus dem Luftbild (Bing Maps, ca. 9 cm je Pixel) und dem OpenStreetMap-Umriss ermittelt. Lagegenauigkeit etwa ±0,5 m; Aufnahmedatum unbekannt.",
+  "Randabstand 0,8 m zu Attika und Dachkanten (Windsog-Randbereich, Absturzsicherung), Carport 0,2 m. Endgültige Rand- und Eckbereiche nach Windlastgutachten des Montagesystems (DIN EN 1991-1-4).",
+  "Abstände um Hindernisse: Lüfter 0,3 m, Lichtkuppel und Dachausstieg 0,5 m. Wartungswege, Feuerwehrzugang und Abstand zu Brandwänden (meist 1,25 m) sind noch nicht eingeplant und verringern die Belegung.",
+  "Ost-West 10°: Modulpaare Rücken an Rücken, 0,35 m Gang je Paar; höhere Leistung, geringere Windlast und Ballast. Süd 15°: Reihenabstand 2,2 m gegen Verschattung im Winter; höherer Ertrag je Modul, weniger Module.",
+  "Technikfläche (Lüftungsgeräte) ausgeschlossen. Höhenunterschiede zwischen den Dachabschnitten und Schatten der Technikaufbauten sind nicht berechnet; Module nahe der Technikfläche im Aufmaß prüfen.",
+  "Statik: Flachdach mit Ballast typisch 10–25 kg/m² Zusatzlast; Tragfähigkeit und Dachabdichtung prüfen lassen. Carport: leichte Dächer haben oft keine Reserve, Nachweis zwingend.",
+  "Modul: 450 Wp, 1,762 × 1,134 m (Annahme). Ertrag aus PVGIS 5.3 (EU), 14 % Systemverluste, ohne Verschattung durch Nachbargebäude und Bäume."
+ ]
+}
