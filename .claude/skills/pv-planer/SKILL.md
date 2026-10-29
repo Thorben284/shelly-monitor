@@ -18,12 +18,14 @@ Die Seite speichert Anfragen, indem sie sich selbst neu veröffentlicht. Das Wec
 Bei einem Publish-Konflikt die gespeicherte Version auswerten (sie enthält oft eine neue Anfrage) und darauf aufbauen.
 
 ## Fortschritt melden (Pflicht)
-Die Seite zeigt einen Prozentbalken mit Schritten und geschätzter Restzeit (Schätzung: Adresse 20 Min., Auswahl 10 Min.). Echten Fortschritt meldest du, indem du nach jedem abgeschlossenen Schritt `progress = {type, step, at: jetzt}` in roof.json setzt (step = Nummer des Schritts, der jetzt beginnt), mit areas.js baust und veröffentlichst:
-- adresse: 1 Adresse und Kataster, 2 3D-Gebäudemodell, 3 Luftbild, 4 Street View, 5 Gegenprüfung, 6 Planer aufbauen
+Die Seite zeigt einen Prozentbalken mit Schritten und geschätzter Restzeit (Schätzung: Adresse 15 Min., Auswahl 10 Min.). Echten Fortschritt meldest du, indem du nach jedem abgeschlossenen Schritt `progress = {type, step, at: jetzt}` in roof.json setzt (step = Nummer des Schritts, der jetzt beginnt), mit areas.js baust und veröffentlichst:
+- adresse: 1 Adresse und Kataster, 2 3D-Modell, Luftbild, Street View, 3 Hindernisse und Erträge, 4 Belegung und Gegenprüfung, 5 Planer aufbauen
 - auswahl: 1 Hindernisse erkennen, 2 Ertragsdaten (PVGIS), 3 Module auslegen, 4 Gegenprüfung
 Erste Meldung (step 1) sofort nach dem Lesen der Anfrage. Beim Abschluss `processed` setzen; `progress` kann bleiben.
 
 ## request.type = "adresse"
+**Tempo (Wunsch des Nutzers): Schon bei der Adresse ALLE Flächen fertig rechnen** (Hindernisse, PVGIS, `mountings`), damit die Auswahl im Planer sofort die Belegung zeigt und keine zweite Runde nötig ist. Unabhängige Abrufe immer gleichzeitig in einem Schritt starten (ALKIS, STAC, Luftbild, Street View; alle PVGIS-Abfragen). PVGIS mit `outputformat=basic` (kurze Antwort, Jahreswert in der Zeile `Year`, 2. Spalte).
+
 Rangfolge der Quellen: **amtliche Daten vor Bildauswertung.** Luftbilder (Bing) sind keine echten Orthofotos (Dächer leicht versetzt), Linien im Dach sind mehrdeutig (First, Traufkante, Fensterband).
 
 1. Nominatim per Firecrawl (`formats: ["rawHtml"]`, `maxAge: 0`): `https://nominatim.openstreetmap.org/search?q=<Adresse>&format=jsonv2&limit=1`.
@@ -47,6 +49,7 @@ Rangfolge der Quellen: **amtliche Daten vor Bildauswertung.** Luftbilder (Bing) 
 9. `node pv-planer/tools/areas.js roof.json <veröffentlichte Datei>` und veröffentlichen.
 
 ## request.type = "auswahl"
+Nur noch nötig für Flächen ohne Berechnung (z. B. nachträglich ergänzt) oder Korrekturen.
 1. Für `request.ids`: Hindernisse auf diesen Flächen aus dem Luftbild erfassen (`obstacles`: type lichtkuppel/entlueftung/ausstieg/schornstein/antenne/sonstiges, u, v; optional w, h, c). Nicht nutzbare Teilflächen (Technik) als `excluded`.
 2. `selected` = genau die ids; `mountings` + `edge` setzen: Flachdach `["ow","sued"]`, edge 0,8; Carport `["eben"]`, edge 0,3. Geneigte Dachseiten: `["dach_quer","dach_hoch"]`, edge 0,3; Neigung aus LoD2 (sonst Street View) in `notes` nennen.
 3. PVGIS je Montage per Firecrawl (`PVcalc`, loss 14, usehorizon 1), Jahreswert `E_y` in `pvgis["<Neigung>|<Azimut>"]` (Schlüssel, die areas.js als fehlend meldet).

@@ -95,10 +95,10 @@ const cen=P=>{const xs=P.map(p=>p[0]),ys=P.map(p=>p[1]),x0=Math.min(...xs),x1=Ma
 const sel=()=>D.areas.filter(a=>a.selected);
 /* Anfrage offen, solange Claude sie noch nicht beantwortet hat */
 const pending=()=>!!D.request&&(!D.processed||D.processed.at<D.request.at);
-const lastIds=()=>D.request&&D.request.type==="auswahl"?D.request.ids:D.areas.filter(a=>a.analysed&&a.selected).map(a=>a.id);
-const changed=()=>sel().map(a=>a.id).sort().join()!==lastIds().slice().sort().join();
+/* Flächen mit vorab berechneter Belegung zeigen sie sofort; senden nur nötig für Flächen ohne Berechnung */
+const changed=()=>sel().some(a=>!a.analysed);
 /* Fortschritt: echte Schritte meldet Claude über D.progress {step, at}; dazwischen Schätzung nach üblicher Dauer */
-const PHASES={adresse:{min:20,steps:["Adresse und Kataster","3D-Gebäudemodell","Luftbild","Street View","Gegenprüfung","Planer aufbauen"]},
+const PHASES={adresse:{min:15,steps:["Adresse und Kataster","3D-Modell, Luftbild, Street View","Hindernisse und Erträge","Belegung und Gegenprüfung","Planer aufbauen"]},
   auswahl:{min:10,steps:["Hindernisse erkennen","Ertragsdaten (PVGIS)","Module auslegen","Gegenprüfung"]}};
 function progress(req){
   const P=PHASES[req.type],t0=new Date(req.at).getTime(),el=(Date.now()-t0)/6e4,n=P.steps.length;
@@ -149,9 +149,9 @@ function render(){
   if(pend)b.innerHTML=progHTML(req);
   else b.textContent=D.status&&!fresh?D.status
     :stage===0?"Adresse eingeben und „Planen“ drücken. Claude sucht dann das Gebäude und alle möglichen Dachflächen."
-    :stage===1&&!an.length?"Flächen im Luftbild oder in der Liste anklicken, dann „Auswahl senden“."
-    :stage===1?"Auswahl geändert. Erneut senden, damit die neuen Flächen analysiert werden."
-    :`Belegung für ${an.map(a=>a.id).join(", ")}. Weitere Flächen anwählen und erneut senden, um sie hinzuzunehmen.`;
+    :stage===1&&!an.length?(D.areas.every(a=>a.analysed)?"Flächen im Luftbild oder in der Liste anklicken — die Belegung erscheint sofort.":"Flächen im Luftbild oder in der Liste anklicken, dann „Auswahl senden“.")
+    :stage===1?"Für einige gewählte Flächen fehlt noch die Berechnung. „Auswahl senden“, dann rechnet Claude sie nach."
+    :`Belegung für ${an.map(a=>a.id).join(", ")}. Flächen an- und abwählen — die Summe aktualisiert sich sofort.`;
   $("main").hidden=!has;$("notesCard").hidden=!has;
   $("plan").disabled=pend&&req.type==="adresse";
   // Kennzahlen nur für belegte Flächen
@@ -178,10 +178,11 @@ function render(){
       <div><span class="t">${a.id} ${esc(a.name)}</span><span class="sub">${esc(a.kind)} · ca. ${fmt(a.area)} m²${a.note?" · "+esc(a.note):""}</span>
       ${v&&ks.length>1?`<div class="seg" data-i="${i}">${ks.map(k=>`<button type="button" data-k="${k}" aria-pressed="${k===a.mounting}">${esc(a.variants[k].label)}: ${a.variants[k].count}</button>`).join("")}</div>`:""}
       ${v&&a.obstacles.length?`<span class="sub">${a.obstacles.length} Hindernisse erkannt</span>`:""}
+      ${!a.selected&&a.analysed&&Object.keys(a.variants).length?`<span class="sub">${Object.values(a.variants).map(v=>v.count).sort((x,y)=>y-x)[0]} Module möglich</span>`:""}
       ${a.selected&&!a.analysed?`<span class="sub" style="color:var(--sun)">${pend&&req.type==="auswahl"&&req.ids.includes(a.id)?"wird analysiert":"noch nicht analysiert"}</span>`:""}</div>
       <div class="n">${v?`${v.count} Module<small>${fmt(v.count*D.module.wp/1000,1)} kWp · ${fmt(v.spec)} kWh/kWp</small>`:""}</div></div>`}).join("");
   $("send").disabled=!s.length||!changed()||pend;
-  $("send").textContent=!s.length?"Erst Flächen auswählen":pend&&req.type==="auswahl"?"Wird bearbeitet …":changed()?"Auswahl senden":"Auswahl ist ausgewertet";
+  $("send").textContent=!s.length?"Erst Flächen auswählen":pend&&req.type==="auswahl"?"Wird bearbeitet …":changed()?"Auswahl senden":"Belegung wird angezeigt";
   $("notes").innerHTML=D.notes.map(t=>`<li>${t}</li>`).join("");
 }
 function toggle(i){D.areas[i].selected=!D.areas[i].selected;render()}

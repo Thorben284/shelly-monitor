@@ -77,7 +77,7 @@ async function main(cfgFile, out) {
       variants[mk] = { label: m.label, tilt: m.tilt, aspects: m.comp.map(toAsp), count: L.count, spec: Math.round(yieldOf(m)), mods };
     }
     return { id: a.id, name: a.name, building: a.building, kind: a.kind || "", note: a.note || "", area: Math.round(area), edge: a.edge,
-      analysed: !!a.mountings, mounting: a.mountings ? a.mountings[0] : null, selected: !!a.selected,
+      analysed: !!a.mountings, mounting: a.mountings ? a.mountings.reduce((b, k) => variants[k].count > variants[b].count ? k : b) : null, selected: !!a.selected,   // Vorgabe: Variante mit den meisten Modulen
       outline: a.poly.map(px), obstacles: obs.map(o => ({ label: o.label, poly: [[o.u - o.w / 2, o.v - o.h / 2], [o.u + o.w / 2, o.v - o.h / 2], [o.u + o.w / 2, o.v + o.h / 2], [o.u - o.w / 2, o.v + o.h / 2]].map(px),
         zone: [[o.u - o.w / 2 - o.c, o.v - o.h / 2 - o.c], [o.u + o.w / 2 + o.c, o.v - o.h / 2 - o.c], [o.u + o.w / 2 + o.c, o.v + o.h / 2 + o.c], [o.u - o.w / 2 - o.c, o.v + o.h / 2 + o.c]].map(px) })),
       variants };
