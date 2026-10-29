@@ -5,6 +5,15 @@ description: PV-Anlage für eine Adresse auslegen. Aktivieren, wenn der Nutzer e
 
 # PV-Planer
 
+## Anfragen aus dem Luftbild-Planer (Artifact weckt die Sitzung)
+Der Planer (`pv-planer/planer.html`, gebaut mit `tools/areas.js`, veröffentlicht mit `capabilities: {artifact: {}}`) speichert Anfragen, indem er sich selbst neu veröffentlicht. Beim Wecken:
+1. Artifact mit `action: "read"` lesen, JSON aus `<script id="pv-data">` → `request`.
+2. `request.type === "adresse"`: Nominatim + Luftbild + Georeferenz (siehe unten), ALLE möglichen Dachflächen des Grundstücks als Kandidaten erfassen (ohne `mountings`), `address`/`title` setzen.
+   `request.type === "auswahl"`: für `request.ids` Hindernisse erfassen, `mountings`/`edge` setzen, `selected` übernehmen, PVGIS je Montage holen.
+3. `request` unverändert übernehmen, `processed = {type, at: <jetzt ISO>}` setzen (sonst zeigt die Seite weiter "in Arbeit"), bei Problemen `status` mit Klartext.
+4. `node pv-planer/tools/areas.js roof.json seite.html` und unter DERSELBEN URL veröffentlichen (bei Konflikt neu lesen).
+Konfiguration je Adresse im Scratchpad halten; Beispiel `pv-planer/beispiele/lueneburg-auf-der-hoehe-56.json`.
+
 Ablauf: Adresse → Gebäudeumriss (OpenStreetMap) → wenige Fragen → PVGIS-Erträge → Optimierung → Planungsseite als Artifact → Änderungen auf Zuruf.
 Werkzeuge: `pv-planer/plan.js` (CLI), `pv-planer/engine.js` (Rechenkern, auch in der Seite), `pv-planer/template.html`.
 Arbeitsordner je Adresse: `<scratchpad>/pv/<kurzname>/` mit `nom.json`, `cfg.json`, `plan.html`.

@@ -22,10 +22,12 @@ const D2R = Math.PI / 180;
 async function main(cfgFile, out) {
   const R = JSON.parse(fs.readFileSync(cfgFile, "utf8")), dir = path.dirname(path.resolve(cfgFile));
   const M = Object.assign({ wp: 450, l: 1.762, b: 1.134 }, R.module || {});
-  const br = R.frame.bearing, eu = [Math.sin(br * D2R), Math.cos(br * D2R)], ev = [Math.sin((br + 90) * D2R), Math.cos((br + 90) * D2R)];
-  const kx = Math.cos(R.frame.origin[1] * D2R) * 111320, ky = 110540;
-  const ll = ([u, v]) => [R.frame.origin[0] + (u * eu[0] + v * ev[0]) / kx, R.frame.origin[1] + (u * eu[1] + v * ev[1]) / ky];
-  const AE = R.aerial, [cx0, cy0, cx1, cy1] = AE.crop, S = AE.scale || 2;
+  R.areas = R.areas || []; R.obstacles = R.obstacles || []; R.pvgis = R.pvgis || {};
+  const F = R.frame || { origin: [0, 0], bearing: 0 }, br = F.bearing;
+  const eu = [Math.sin(br * D2R), Math.cos(br * D2R)], ev = [Math.sin((br + 90) * D2R), Math.cos((br + 90) * D2R)];
+  const kx = Math.cos(F.origin[1] * D2R) * 111320, ky = 110540;
+  const ll = ([u, v]) => [F.origin[0] + (u * eu[0] + v * ev[0]) / kx, F.origin[1] + (u * eu[1] + v * ev[1]) / ky];
+  const AE = R.aerial, [cx0, cy0, cx1, cy1] = AE ? AE.crop : [0, 0, 0, 0], S = AE ? AE.scale || 2 : 1;
   const px = uv => { const [lo, la] = ll(uv), p = A.toPx(AE, la, lo); return [+((p[0] - cx0) * S).toFixed(1), +((p[1] - cy0) * S).toFixed(1)]; };
   const toAsp = c => E.toAspect(c);
   const obst = R.obstacles.map(o => Object.assign({}, OB[o.type] || OB.sonstiges, o));
@@ -63,27 +65,31 @@ async function main(cfgFile, out) {
       variants };
   });
 
-  // Luftbildausschnitt als JPEG
+  // Luftbildausschnitt als JPEG (ohne Luftbild: leerer Planer mit Adresseingabe)
+  const jpg = AE ? await cropJpeg(path.resolve(dir, AE.file), AE.crop, S) : null;
+  const data = {
+    address: R.address || "", title: R.title || R.address || "", created: new Date().toISOString().slice(0, 10), stamp: Date.now(), module: M,
+    image: AE ? { src: jpg, w: (cx1 - cx0) * S, h: (cy1 - cy0) * S, mpp: A.mpp(AE) / S, source: AE.source } : null,
+    excluded: (R.excluded || []).map(e => ({ name: e.name, poly: e.poly.map(px) })),
+    areas, notes: R.notes || [], geo: R.geo || null, request: R.request || null, processed: R.processed || null, status: R.status || null
+  };
+  const tpl = fs.readFileSync(path.join(__dirname, "..", "planer.html"), "utf8");
+  const esc = s => String(s).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+  fs.writeFileSync(out, tpl.replace(/__TITLE__/g, esc(R.title || R.address || "")).replace("/*__DATA__*/null", () => JSON.stringify(data).replace(/</g, "\\u003c")));
+  for (const a of areas) console.log(a.selected ? "[x]" : "[ ]", a.id.padEnd(3), a.name.padEnd(22), `${a.area} m²`.padStart(7), Object.entries(a.variants).map(([k, v]) => `${k}: ${v.count} Mod. (${v.spec} kWh/kWp)`).join(" | "), `Hindernisse ${a.obstacles.length}`);
+  console.log(out, Math.round(fs.statSync(out).size / 1024) + " KB");
+}
+
+async function cropJpeg(file, c, S) {
   const b = await chromium.launch(), p = await b.newPage();
-  const src = "data:image/png;base64," + fs.readFileSync(path.resolve(dir, AE.file)).toString("base64");
+  const src = "data:image/png;base64," + fs.readFileSync(file).toString("base64");
   const jpg = await p.evaluate(async ([src, c, S]) => {
     const im = new Image(); im.src = src; await im.decode();
     const cv = document.createElement("canvas"); cv.width = (c[2] - c[0]) * S; cv.height = (c[3] - c[1]) * S;
     const g = cv.getContext("2d"); g.imageSmoothingQuality = "high"; g.drawImage(im, c[0], c[1], c[2] - c[0], c[3] - c[1], 0, 0, cv.width, cv.height);
     return cv.toDataURL("image/jpeg", .82);
-  }, [src, AE.crop, S]);
+  }, [src, c, S]);
   await b.close();
-
-  const data = {
-    address: R.address, title: R.title || R.address, created: new Date().toISOString().slice(0, 10), stamp: Date.now(), module: M,
-    image: { src: jpg, w: (cx1 - cx0) * S, h: (cy1 - cy0) * S, mpp: A.mpp(AE) / S, source: AE.source },
-    excluded: (R.excluded || []).map(e => ({ name: e.name, poly: e.poly.map(px) })),
-    areas, notes: R.notes || [], geo: R.geo, request: R.request || null
-  };
-  const tpl = fs.readFileSync(path.join(__dirname, "..", "planer.html"), "utf8");
-  const esc = s => String(s).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
-  fs.writeFileSync(out, tpl.replace(/__TITLE__/g, esc(R.title || R.address)).replace("/*__DATA__*/null", () => JSON.stringify(data).replace(/</g, "\\u003c")));
-  for (const a of areas) console.log(a.selected ? "[x]" : "[ ]", a.id.padEnd(3), a.name.padEnd(22), `${a.area} m²`.padStart(7), Object.entries(a.variants).map(([k, v]) => `${k}: ${v.count} Mod. (${v.spec} kWh/kWp)`).join(" | "), `Hindernisse ${a.obstacles.length}`);
-  console.log(out, Math.round(fs.statSync(out).size / 1024) + " KB");
+  return jpg;
 }
 main(process.argv[2], process.argv[3]).catch(e => { console.error(e.message || e); process.exit(1); });
