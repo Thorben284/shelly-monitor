@@ -97,7 +97,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--sun);outline-of
 (function(){
 const D=/*__DATA__*/null,$=id=>document.getElementById(id);
 const fmt=(x,d=0)=>Number.isFinite(x)?x.toLocaleString("de-DE",{minimumFractionDigits:d,maximumFractionDigits:d}):"–";
-const KEY="pv-layout-"+D.address;
+const KEY="pv-layout-"+D.address+"-"+D.stamp;
 let st={};try{st=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){}
 D.areas.forEach(a=>{const s=st[a.id];if(s){a.on=!!s.on;if(a.variants[s.m])a.mounting=s.m}});
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(Object.fromEntries(D.areas.map(a=>[a.id,{on:a.on,m:a.mounting}]))))}catch(e){}};
@@ -132,7 +132,7 @@ function render(){
     `<tr class="sum"><td></td><td>Gesamt</td><td class="n">${fmt(n)}</td><td class="n">${fmt(kwp,1)}</td><td class="n">${kwp?fmt(kwh/kwp):"–"}</td></tr></tbody>`;
   const multi=D.areas.filter(a=>Object.keys(a.variants).length>1);
   $("mounts").innerHTML=multi.length?`<h3>Aufständerung</h3>`+[...new Set(multi.map(a=>a.building))].map(b=>{const as=multi.filter(a=>a.building===b),ks=Object.keys(as[0].variants);
-    return `<div style="margin-bottom:8px"><div style="font-size:.85rem;color:var(--muted);margin-bottom:4px">${b}</div><div class="seg" data-b="${b}">${ks.map(k=>`<button type="button" data-k="${k}" aria-pressed="${as.every(a=>a.mounting===k)}">${as[0].variants[k].label}: ${as.reduce((s,a)=>s+a.variants[k].count,0)} Module</button>`).join("")}</div></div>`}).join(""):"";
+    return `<div style="margin-bottom:8px"><div style="font-size:.85rem;color:var(--muted);margin-bottom:4px">${b}</div><div class="seg" data-b="${b}">${ks.map(k=>`<button type="button" data-k="${k}" aria-pressed="${as.every(a=>a.mounting===k)}">${as[0].variants[k].label}: ${as.filter(a=>a.on).reduce((s,a)=>s+a.variants[k].count,0)} Module</button>`).join("")}</div></div>`}).join(""):"";
   renderMap();save();
 }
 $("tab").addEventListener("change",e=>{const i=e.target.dataset.i;if(i==null)return;D.areas[+i].on=e.target.checked;render()});
