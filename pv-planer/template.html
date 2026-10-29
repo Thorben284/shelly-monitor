@@ -1,0 +1,412 @@
+<title>PV-Auslegung __TITLE__</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: Stellschrauben links (sticky), Vorschlag rechts; einspaltig auf dem Handy */
+:root{
+  --bg:#eef1f3; --surface:#ffffff; --ink:#16202a; --muted:#596673; --line:#d3dae0;
+  --sun:#c97f00; --sun-soft:#fbe7bf; --blue:#2c5a86; --module:#1f3550; --module-line:#7e9cbc;
+  --roof:#d8c6b4; --roof-line:#a38b74; --good:#2a7a4b; --warn:#b4531a; --warn-soft:#f8e1d2; --good-soft:#d9efe2; --sel:#fff6e0;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",Roboto,Arial,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10151b; --surface:#18212a; --ink:#e4eaf0; --muted:#98a6b3; --line:#2b3642;
+  --sun:#f0a92a; --sun-soft:#3a2b0f; --blue:#78a8d8; --module:#20354d; --module-line:#6f93b8;
+  --roof:#4a3d33; --roof-line:#7a6554; --good:#5cc08a; --warn:#e88d55; --warn-soft:#3b2416; --good-soft:#163024; --sel:#2a2414; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10151b; --surface:#18212a; --ink:#e4eaf0; --muted:#98a6b3; --line:#2b3642;
+  --sun:#f0a92a; --sun-soft:#3a2b0f; --blue:#78a8d8; --module:#20354d; --module-line:#6f93b8;
+  --roof:#4a3d33; --roof-line:#7a6554; --good:#5cc08a; --warn:#e88d55; --warn-soft:#3b2416; --good-soft:#163024; --sel:#2a2414; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45}
+.wrap{max-width:1260px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 48px}
+header{margin-bottom:18px}
+.eyebrow{font-size:.76rem;text-transform:uppercase;letter-spacing:.09em;color:var(--sun);font-weight:600}
+h1{font-family:var(--f-display);font-weight:800;font-size:1.9rem;letter-spacing:-.01em;margin:2px 0 4px;text-wrap:balance}
+header p{margin:0;color:var(--muted);max-width:75ch}
+h2{font-family:var(--f-display);font-weight:600;font-size:1.05rem;margin:0 0 12px;text-wrap:balance}
+.grid{display:grid;grid-template-columns:minmax(0,330px) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:920px){.grid{grid-template-columns:minmax(0,1fr)}}
+aside{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+@media (max-width:920px){aside{position:static;max-height:none}}
+fieldset{border:0;border-top:1px solid var(--line);margin:0;padding:14px 0 6px}
+fieldset:first-of-type{border-top:0;padding-top:0}
+legend{font-family:var(--f-display);font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:0 0 8px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{display:flex;flex-direction:column;gap:3px;font-size:.84rem;color:var(--muted);margin-bottom:10px;min-width:0}
+input,select{font:inherit;font-size:.95rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;width:100%;box-sizing:border-box;font-variant-numeric:tabular-nums}
+input:focus-visible,select:focus-visible,button:focus-visible,tr:focus-visible{outline:2px solid var(--sun);outline-offset:1px}
+.check{flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-size:.9rem}
+.check input{width:auto}
+.faceIn{display:grid;grid-template-columns:1fr 84px;gap:8px;align-items:center;margin-bottom:8px;font-size:.88rem}
+.faceIn b{font-weight:600}
+.faceIn span{color:var(--muted);font-size:.8rem;display:block}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 12px}
+button{font:inherit;font-size:.86rem;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px 10px;cursor:pointer}
+button.primary{background:var(--sun);border-color:var(--sun);color:#1b1404;font-weight:600}
+button:hover{border-color:var(--sun)}
+.hint{font-size:.78rem;color:var(--muted);margin:-4px 0 10px}
+main{display:flex;flex-direction:column;gap:20px;min-width:0}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+@media (max-width:560px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi .k{font-size:.74rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.kpi .v{font-family:var(--f-display);font-weight:800;font-size:1.6rem;font-variant-numeric:tabular-nums;line-height:1.15}
+.kpi .v small{font-family:var(--f-body);font-weight:400;font-size:.85rem;color:var(--muted);margin-left:3px}
+.kpi .s{font-size:.82rem;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
+@media (max-width:780px){.two{grid-template-columns:minmax(0,1fr)}}
+svg{display:block;width:100%;height:auto}
+svg text{font-family:var(--f-mono);font-size:11px;fill:var(--muted)}
+.roofs{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}
+.roofs svg{max-width:420px;margin:0 auto}
+.site svg{max-width:460px;margin:0 auto}
+.meta{font-size:.84rem;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums}
+.meta b{color:var(--ink);font-weight:600}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:.9rem}
+td,th{padding:6px 5px;border-bottom:1px solid var(--line);text-align:left}
+td.n,th.n{text-align:right;white-space:nowrap}
+th{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+tr.sum td{font-weight:600;border-bottom:0}
+#vars tbody tr{cursor:pointer}
+#vars tbody tr:hover{background:var(--bg)}
+#vars tbody tr.on{background:var(--sel)}
+.tag{display:inline-block;font-size:.72rem;font-weight:600;padding:1px 7px;border-radius:999px;background:var(--sun-soft);color:var(--sun);margin-left:4px;white-space:nowrap}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.82rem;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.chip{display:inline-block;font-size:.76rem;font-weight:600;padding:1px 8px;border-radius:999px;margin-top:4px;align-self:flex-start}
+.chip.good{background:var(--good-soft);color:var(--good)}
+.chip.warn{background:var(--warn-soft);color:var(--warn)}
+.notes{margin:0;padding-left:18px;color:var(--muted);font-size:.88rem;max-width:85ch}
+.notes li{margin-bottom:6px}
+a{color:var(--blue)}
+.warnbox{background:var(--warn-soft);color:var(--warn);border-radius:6px;padding:8px 10px;font-size:.86rem;margin-top:8px}
+.tech{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px 20px}
+.tech div{font-size:.88rem;color:var(--muted)}
+.tech b{display:block;font-family:var(--f-display);font-size:1.15rem;color:var(--ink);font-variant-numeric:tabular-nums}
+#changed{font-size:.8rem;color:var(--warn);font-weight:600}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">PV-Auslegung · Vorschlag vom <span id="created"></span></div>
+  <h1 id="addr">__TITLE__</h1>
+  <p id="sub"></p>
+</header>
+
+<div class="grid">
+<aside>
+<form id="f" autocomplete="off">
+  <fieldset>
+    <legend>Module je Dachfläche</legend>
+    <div id="faceInputs"></div>
+  </fieldset>
+  <fieldset>
+    <legend>Speicher</legend>
+    <label>Nutzbare Kapazität (kWh)<input id="cap" type="number" step="0.5" min="0"></label>
+    <div class="btns"><button type="button" class="primary" id="opt">Optimum berechnen</button><button type="button" id="restore">Vorschlag wiederherstellen</button></div>
+    <div id="changed" hidden>Eigene Auswahl, nicht der Vorschlag</div>
+  </fieldset>
+  <fieldset>
+    <legend>Verbrauch (kWh/a)</legend>
+    <div class="row">
+      <label>Haushalt<input id="household" type="number" step="100" min="0"></label>
+      <label>Wärmepumpe<input id="heatpump" type="number" step="100" min="0"></label>
+      <label>E-Auto<input id="ev" type="number" step="100" min="0"></label>
+      <label>Laden<select id="evMode"><option value="abends">abends</option><option value="tag">tagsüber mit PV</option></select></label>
+    </div>
+  </fieldset>
+  <fieldset>
+    <legend>Kosten &amp; Erlöse</legend>
+    <div class="row">
+      <label>Strompreis (ct/kWh)<input id="price" type="number" step="0.5" min="0"></label>
+      <label>Preissteigerung (%/a)<input id="inc" type="number" step="0.5"></label>
+      <label>PV je kWp (€)<input id="pvKwp" type="number" step="50" min="0"></label>
+      <label>PV Grundkosten (€)<input id="pvFix" type="number" step="100" min="0"></label>
+      <label>Speicher je kWh (€)<input id="batKwh" type="number" step="25" min="0"></label>
+      <label>Speicher Grundk. (€)<input id="batFix" type="number" step="100" min="0"></label>
+      <label>Vergütung ≤10 kWp (ct)<input id="fit10" type="number" step="0.01" min="0"></label>
+      <label>Vergütung 10–40 (ct)<input id="fit40" type="number" step="0.01" min="0"></label>
+      <label>Betriebskosten (%/a)<input id="opexPct" type="number" step="0.1" min="0"></label>
+      <label>Kalkulationszins (%)<input id="disc" type="number" step="0.5" min="0"></label>
+      <label>Degradation (%/a)<input id="deg" type="number" step="0.1" min="0"></label>
+      <label>Laufzeit (Jahre)<input id="years" type="number" step="1" min="5" max="30"></label>
+    </div>
+    <label class="check"><input id="feedCap" type="checkbox"> Einspeisung auf 60 % kWp begrenzt</label>
+  </fieldset>
+</form>
+</aside>
+
+<main>
+  <section class="kpis" aria-label="Kennzahlen">
+    <div class="kpi"><span class="k">Anlagenleistung</span><span class="v" id="kKwp">–</span><span class="s" id="kMod">–</span></div>
+    <div class="kpi"><span class="k">Jahresertrag</span><span class="v" id="kYield">–</span><span class="s" id="kSpec">–</span></div>
+    <div class="kpi"><span class="k">Investition</span><span class="v" id="kInv">–</span><span class="s" id="kInvS">–</span></div>
+    <div class="kpi"><span class="k">Autarkie</span><span class="v" id="kAut">–</span><span class="s" id="kEv">–</span></div>
+    <div class="kpi"><span class="k">Amortisation</span><span class="v" id="kPay">–</span><span class="s" id="kIrr">–</span></div>
+    <div class="kpi"><span class="k">Kapitalwert</span><span class="v" id="kNpv">–</span><span class="s" id="kNpvS">–</span><span class="chip" id="kChip" hidden></span></div>
+  </section>
+
+  <div class="two">
+    <section class="card site">
+      <h2>Lageplan</h2>
+      <div id="site"></div>
+      <div class="meta" id="siteMeta"></div>
+    </section>
+    <section class="card">
+      <h2>Varianten nach Kapitalwert</h2>
+      <div class="tw"><table id="vars"></table></div>
+      <p class="hint" style="margin-top:8px">Zeile anklicken, um die Variante zu übernehmen. Speicher höchstens 1,5 kWh je kWp (Empfehlung HTW Berlin).</p>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>Dachbelegung</h2>
+    <div class="roofs" id="roofs"></div>
+  </section>
+
+  <div class="two">
+    <section class="card">
+      <h2>Monatsbilanz</h2>
+      <div id="monthChart"></div>
+      <div class="legend"><span><i style="background:var(--sun)"></i>PV-Ertrag</span><span><i style="background:var(--blue)"></i>Verbrauch</span><span><i style="background:var(--good)"></i>davon aus PV gedeckt</span></div>
+    </section>
+    <section class="card">
+      <h2>Energiefluss pro Jahr</h2>
+      <table id="flow"></table>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>Kumulierter Kapitalrückfluss</h2>
+    <div id="cashChart"></div>
+    <table id="econ" style="margin-top:12px"></table>
+  </section>
+
+  <section class="card">
+    <h2>Technik &amp; Lasten</h2>
+    <div class="tech" id="tech"></div>
+    <div id="warn"></div>
+  </section>
+
+  <section class="card">
+    <h2>Vor der Umsetzung klären</h2>
+    <ul class="notes" id="todo"></ul>
+  </section>
+
+  <section class="card">
+    <h2>Datengrundlage und Annahmen</h2>
+    <ul class="notes" id="basis"></ul>
+  </section>
+</main>
+</div>
+</div>
+
+<script>
+/*__ENGINE__*/
+</script>
+<script>
+(function(){
+const D=/*__DATA__*/null;
+const E=window.PVE, $=id=>document.getElementById(id);
+const fmt=(x,d=0)=>Number.isFinite(x)?x.toLocaleString("de-DE",{minimumFractionDigits:d,maximumFractionDigits:d}):"–";
+const ROOF={sattel:"Satteldach",walm:"Walmdach",pult:"Pultdach",flach:"Flachdach"};
+D.faces.forEach(f=>{f.profile=Float64Array.from(f.profile,v=>v/1000)});
+const P={module:D.module,econ:Object.assign({},D.econ),feedCap:D.feedCap};
+const C=Object.assign({},D.consumption);
+let sel={counts:D.best.counts.slice(),cap:D.best.cap},L=E.loadProfile(C),vars=[];
+
+/* ---------- Formular ---------- */
+const ECON=["price","inc","pvKwp","pvFix","batKwh","batFix","fit10","fit40","opexPct","disc","deg","years"];
+$("faceInputs").innerHTML=D.faces.map((f,i)=>`<div class="faceIn"><div><b>${f.id} ${f.name}</b><span>${f.flat?f.mounting:`${f.tilt}°`}, Azimut ${f.aspect}° · max. ${f.max}</span></div><input id="cnt${i}" type="number" min="0" max="${f.max}" step="1" aria-label="Module ${f.id}"></div>`).join("");
+function fillForm(){
+  D.faces.forEach((f,i)=>{$("cnt"+i).value=sel.counts[i]});
+  $("cap").value=sel.cap;
+  ["household","heatpump","ev"].forEach(k=>$(k).value=C[k]||0); $("evMode").value=C.evMode||"abends";
+  ECON.forEach(k=>$(k).value=P.econ[k]); $("feedCap").checked=!!P.feedCap;
+}
+const num=id=>{const x=parseFloat($(id).value);return Number.isFinite(x)?x:0};
+function readForm(){
+  sel.counts=D.faces.map((f,i)=>Math.max(0,Math.min(f.max,Math.round(num("cnt"+i)))));
+  sel.cap=Math.max(0,num("cap"));
+  const nc={household:num("household"),heatpump:num("heatpump"),ev:num("ev"),evMode:$("evMode").value};
+  const loadChanged=JSON.stringify(nc)!==JSON.stringify({household:C.household,heatpump:C.heatpump||0,ev:C.ev||0,evMode:C.evMode||"abends"});
+  Object.assign(C,nc); if(loadChanged) L=E.loadProfile(C);
+  ECON.forEach(k=>P.econ[k]=num(k)); P.econ.years=Math.max(5,Math.min(30,Math.round(P.econ.years)||20));
+  P.feedCap=$("feedCap").checked;
+}
+
+/* ---------- Diagramme ---------- */
+function niceMax(x){if(x<=0)return 1;const e=Math.pow(10,Math.floor(Math.log10(x)));const f=x/e;return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*e}
+function siteSvg(counts){
+  const fp=D.fp,pts=fp.pts,D2R=Math.PI/180;
+  let cx=0,cy=0;pts.forEach(p=>{cx+=p[0];cy+=p[1]});cx/=pts.length;cy/=pts.length;
+  const u=[Math.sin(fp.bearing*D2R),Math.cos(fp.bearing*D2R)],v=[u[1],-u[0]];
+  const arrows=D.faces.map((f,i)=>{const d=[Math.sin(f.compass*D2R),Math.cos(f.compass*D2R)];
+    const ext=Math.abs(d[0]*u[0]+d[1]*u[1])*fp.L/2+Math.abs(d[0]*v[0]+d[1]*v[1])*fp.W/2;
+    return {f,on:counts[i]>0,a:[cx+d[0]*ext*.25,cy+d[1]*ext*.25],b:[cx+d[0]*(ext+3),cy+d[1]*(ext+3)],t:[cx+d[0]*(ext+5.2),cy+d[1]*(ext+5.2)]}});
+  let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;
+  const all=pts.concat(arrows.map(a=>a.t));all.forEach(p=>{x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1])});
+  const pad=4;x0-=pad+4;x1+=pad+4;y0-=pad;y1+=pad;
+  const VW=380,s=Math.min((VW-20)/(x1-x0),300/(y1-y0)),VH=(y1-y0)*s+30;
+  const X=x=>10+(x-x0)*s,Y=y=>10+(y1-y)*s;
+  let o=`<svg viewBox="0 0 ${VW} ${VH.toFixed(0)}" role="img" aria-label="Lageplan mit Dachflächen">`;
+  o+=`<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--sun)"/></marker><marker id="ahm" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker></defs>`;
+  o+=`<polygon points="${pts.map(p=>X(p[0]).toFixed(1)+","+Y(p[1]).toFixed(1)).join(" ")}" fill="var(--roof)" stroke="var(--roof-line)" stroke-width="1.5"/>`;
+  if(D.roof.type==="sattel"||D.roof.type==="walm"){
+    const r=D.roof.ridge==="short"&&D.roof.type==="sattel"?v:u,len=D.roof.type==="walm"?Math.max(0,fp.L-fp.W)/2:(D.roof.ridge==="short"?fp.W:fp.L)/2;
+    o+=`<line x1="${X(cx-r[0]*len)}" y1="${Y(cy-r[1]*len)}" x2="${X(cx+r[0]*len)}" y2="${Y(cy+r[1]*len)}" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="6 3"/>`;
+  }
+  arrows.forEach(A=>{o+=`<line x1="${X(A.a[0])}" y1="${Y(A.a[1])}" x2="${X(A.b[0])}" y2="${Y(A.b[1])}" stroke="${A.on?"var(--sun)":"var(--muted)"}" stroke-width="2" marker-end="url(#${A.on?"ah":"ahm"})"/>
+    <text x="${X(A.t[0])}" y="${Y(A.t[1])+4}" text-anchor="middle" style="fill:${A.on?"var(--ink)":"var(--muted)"};font-weight:600">${A.f.id}</text>`});
+  const nx=VW-24,ny=14;
+  o+=`<path d="M${nx} ${ny}l7 20l-7-6l-7 6z" fill="var(--ink)"/><text x="${nx}" y="${ny+34}" text-anchor="middle" style="fill:var(--ink);font-weight:600">N</text>`;
+  const sb=5*s;o+=`<line x1="12" y1="${VH-10}" x2="${12+sb}" y2="${VH-10}" stroke="var(--ink)" stroke-width="2"/><text x="${12+sb+6}" y="${VH-6}">5 m</text>`;
+  return o+"</svg>";
+}
+function roofSvg(f,count){
+  const VW=320,maxW=280,maxH=170,y0=20;
+  if(f.flat){
+    const s=Math.min(maxW/f.eave,maxH/f.slope),w=f.eave*s,h=f.slope*s,x0=(VW-w)/2;
+    return `<svg viewBox="0 0 ${VW} ${(y0+h+30).toFixed(0)}" role="img" aria-label="Flachdachfeld"><rect x="${x0}" y="${y0}" width="${w}" height="${h}" fill="var(--roof)" stroke="var(--roof-line)"/>
+      <rect x="${x0+f.edge*s}" y="${y0+f.edge*s}" width="${Math.max(0,w-2*f.edge*s)}" height="${Math.max(0,h-2*f.edge*s)}" fill="var(--module)" opacity="${count>0?.85:.15}"/>
+      <text x="${VW/2}" y="${y0+h/2+4}" text-anchor="middle" style="fill:#fff">${count} Module</text>
+      <text x="${VW/2}" y="${y0+h+16}" text-anchor="middle">${fmt(f.eave,1)} × ${fmt(f.slope,1)} m · ${f.mounting}</text></svg>`;
+  }
+  const s=Math.min(maxW/f.eave,maxH/f.slope),w=f.eave*s,h=f.slope*s,x0=(VW-w)/2,tw=f.top*s,yb=y0+h;
+  const lay=f.layout,g=.02*s,mw=lay.w*s,mh=lay.h*s;
+  let mods="",k=0;
+  for(const r of lay.rows){
+    const n=Math.min(r.n,count-k);if(n<=0)break;
+    const rw=n*mw+(n-1)*g,xs=VW/2-rw/2,y=yb-r.y*s-mh;
+    for(let c=0;c<n;c++)mods+=`<rect x="${(xs+c*(mw+g)).toFixed(1)}" y="${y.toFixed(1)}" width="${mw.toFixed(1)}" height="${mh.toFixed(1)}" fill="var(--module)" stroke="var(--module-line)" stroke-width=".8"/>`;
+    k+=n;
+  }
+  return `<svg viewBox="0 0 ${VW} ${(yb+34).toFixed(0)}" role="img" aria-label="Belegung ${f.id}: ${count} Module">
+    <polygon points="${x0},${yb} ${x0+w},${yb} ${VW/2+tw/2},${y0} ${VW/2-tw/2},${y0}" fill="var(--roof)" stroke="var(--roof-line)" stroke-width="1.2"/>
+    ${mods}
+    <text x="${VW/2}" y="${y0-6}" text-anchor="middle">${f.top>0?"First":"Firstpunkt"}</text>
+    <text x="${VW/2}" y="${yb+14}" text-anchor="middle">Traufe ${fmt(f.eave,2)} m · Sparren ${fmt(f.slope,2)} m</text>
+    <text x="${VW/2}" y="${yb+28}" text-anchor="middle">${f.tilt}° · Azimut ${f.aspect}° (${f.name})</text></svg>`;
+}
+function monthSvg(m){
+  const VW=560,VH=240,Lp=44,R=8,T=12,B=26,cw=(VW-Lp-R)/12;
+  const max=niceMax(Math.max(...m.pv,...m.load)),y=v=>T+(VH-T-B)*(1-v/max);
+  let s=`<svg viewBox="0 0 ${VW} ${VH}" role="img" aria-label="Monatsbilanz">`;
+  for(let t=0;t<=4;t++){const v=max*t/4,yy=y(v);s+=`<line x1="${Lp}" x2="${VW-R}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${Lp-6}" y="${yy+4}" text-anchor="end">${fmt(v)}</text>`}
+  const ms="JFMAMJJASOND";
+  for(let i=0;i<12;i++){const x=Lp+i*cw,bw=cw*.36,x2=x+cw*.12+bw+2;
+    s+=`<rect x="${x+cw*.12}" y="${y(m.pv[i])}" width="${bw}" height="${y(0)-y(m.pv[i])}" fill="var(--sun)" rx="1.5"><title>${fmt(m.pv[i])} kWh PV</title></rect>`;
+    s+=`<rect x="${x2}" y="${y(m.load[i])}" width="${bw}" height="${y(0)-y(m.load[i])}" fill="var(--blue)" rx="1.5"><title>${fmt(m.load[i])} kWh Verbrauch</title></rect>`;
+    s+=`<rect x="${x2}" y="${y(m.self[i])}" width="${bw}" height="${y(0)-y(m.self[i])}" fill="var(--good)" rx="1.5"><title>${fmt(m.self[i])} kWh aus PV</title></rect>`;
+    s+=`<text x="${x+cw/2}" y="${VH-8}" text-anchor="middle">${ms[i]}</text>`}
+  return s+`<text x="${Lp}" y="${T-2}" style="font-size:10px">kWh</text></svg>`;
+}
+function cashSvg(cum,payback){
+  const VW=720,VH=230,Lp=62,R=10,T=14,B=26,N=cum.length-1;
+  let lo=Math.min(0,...cum),hi=Math.max(0,...cum);
+  const span=niceMax(Math.max(hi-lo,1)/4);lo=Math.floor(lo/span)*span;hi=Math.ceil(hi/span)*span;if(hi===lo)hi=lo+span;
+  const x=i=>Lp+(VW-Lp-R)*i/N,y=v=>T+(VH-T-B)*(hi-v)/(hi-lo);
+  let s=`<svg viewBox="0 0 ${VW} ${VH}" role="img" aria-label="Kumulierter Kapitalrückfluss">`;
+  for(let v=lo;v<=hi+1e-6;v+=span)s+=`<line x1="${Lp}" x2="${VW-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" ${Math.abs(v)<1e-6?'stroke-width="1.8"':''}/><text x="${Lp-6}" y="${y(v)+4}" text-anchor="end">${fmt(v/1000)} T€</text>`;
+  const step=N>20?5:N>10?2:1;for(let i=0;i<=N;i+=step)s+=`<text x="${x(i)}" y="${VH-8}" text-anchor="middle">${i}</text>`;
+  const bw=Math.max(2,(VW-Lp-R)/N*.6);
+  for(let i=1;i<=N;i++){const v=cum[i];s+=`<rect x="${x(i)-bw/2}" y="${Math.min(y(0),y(v))}" width="${bw}" height="${Math.abs(y(v)-y(0))}" fill="${v>=0?"var(--good)":"var(--warn)"}" opacity=".85"><title>Jahr ${i}: ${fmt(v)} €</title></rect>`}
+  if(payback&&payback<=N)s+=`<line x1="${x(payback)}" x2="${x(payback)}" y1="${T}" y2="${VH-B}" stroke="var(--ink)" stroke-dasharray="4 3"/><text x="${x(payback)+5}" y="${T+8}" style="fill:var(--ink)">Amortisation ${fmt(payback,1)} J.</text>`;
+  return s+`<text x="${VW-R}" y="${VH-B-4}" text-anchor="end" style="font-size:10px">Jahr</text></svg>`;
+}
+
+/* ---------- Ausgabe ---------- */
+const same=(a,b)=>a.cap===b.cap&&a.counts.every((c,i)=>c===b.counts[i]);
+function renderVars(){
+  const best=vars[0];let list=vars.slice(0,6);
+  const nb=vars.find(v=>v.cap===0);if(nb&&!list.includes(nb))list.push(nb);
+  $("vars").innerHTML=`<thead><tr><th>Module</th><th class="n">kWp</th><th class="n">Speicher</th><th class="n">Autarkie</th><th class="n">IRR</th><th class="n">Kapitalwert</th></tr></thead><tbody>`+
+    list.map((v,i)=>`<tr tabindex="0" data-i="${vars.indexOf(v)}" class="${same(v,sel)?"on":""}"><td>${v.counts.map((c,j)=>c?`${D.faces[j].id}:${c}`:"").filter(Boolean).join(" ")}${v===best?'<span class="tag">Optimum</span>':""}</td><td class="n">${fmt(v.kwp,1)}</td><td class="n">${v.cap?fmt(v.cap,1)+" kWh":"ohne"}</td><td class="n">${fmt(v.sim.autarky*100)} %</td><td class="n">${fmt(v.eco.irr*100,1)} %</td><td class="n">${fmt(v.eco.npv)} €</td></tr>`).join("")+"</tbody>";
+}
+function render(){
+  const r=E.evaluate(D.faces,sel.counts,sel.cap,L,P),s=r.sim,e=r.eco,mods=sel.counts.reduce((a,c)=>a+c,0);
+  $("changed").hidden=same(sel,D.best);
+  [...document.querySelectorAll("#vars tbody tr")].forEach(tr=>tr.classList.toggle("on",same(vars[+tr.dataset.i],sel)));
+  $("kKwp").innerHTML=`${fmt(r.kwp,2)}<small>kWp</small>`;
+  $("kMod").textContent=`${mods} Module à ${D.module.wp} Wp`;
+  $("kYield").innerHTML=`${fmt(s.pv)}<small>kWh/a</small>`;
+  $("kSpec").textContent=`${fmt(r.kwp>0?s.pv/r.kwp:0)} kWh/kWp${s.curt>1?` · ${fmt(s.curt)} kWh abgeregelt`:""}`;
+  $("kInv").innerHTML=`${fmt(e.invest)}<small>€</small>`;
+  $("kInvS").textContent=r.cap>0?`inkl. Speicher ${fmt(r.cap,1)} kWh`:"ohne Speicher";
+  $("kAut").innerHTML=`${fmt(s.autarky*100)}<small>%</small>`;
+  $("kEv").textContent=`Eigenverbrauchsquote ${fmt(s.evQuote*100)} %`;
+  if(e.payback!==null){$("kPay").innerHTML=`${fmt(e.payback,1)}<small>Jahre</small>`}else{$("kPay").innerHTML=`> ${P.econ.years}<small>Jahre</small>`}
+  $("kIrr").textContent=Number.isFinite(e.irr)?`Rendite (IRR) ${fmt(e.irr*100,1)} %`:"Rendite negativ";
+  $("kNpv").innerHTML=`${fmt(e.npv)}<small>€</small>`;$("kNpvS").textContent=`bei ${fmt(P.econ.disc,1)} % Zins, ${P.econ.years} Jahre`;
+  const ch=$("kChip");ch.hidden=false;ch.className="chip "+(e.npv>=0?"good":"warn");ch.textContent=e.npv>=0?"wirtschaftlich":"nicht wirtschaftlich";
+
+  $("site").innerHTML=siteSvg(sel.counts);
+  $("siteMeta").innerHTML=`${ROOF[D.roof.type]||D.roof.type}${D.roof.type!=="flach"?`, ${D.roof.tilt}°`:""} · Gebäude ca. <b>${fmt(D.fp.L,1)} × ${fmt(D.fp.W,1)} m</b> (${fmt(D.fp.area)} m² Grundfläche) · Längsachse ${fmt(D.fp.bearing)}° · First gestrichelt`;
+  $("roofs").innerHTML=D.faces.map((f,i)=>`<div>${roofSvg(f,sel.counts[i])}<div class="meta"><b>${f.id} ${f.name}</b>: ${sel.counts[i]} von ${f.max} Modulen${f.flat?"":` (${f.layout.orient})`} · <b>${fmt(sel.counts[i]*D.module.wp/1000,2)} kWp</b> · PVGIS ${fmt(f.pvgisYear)} kWh/kWp</div></div>`).join("");
+
+  $("monthChart").innerHTML=monthSvg(s.monthly);
+  const row=(a,b,c="")=>`<tr${c}><td>${a}</td><td class="n">${b}</td></tr>`;
+  $("flow").innerHTML=`<tr><th>Größe</th><th class="n">kWh/a</th></tr>`+row("PV-Erzeugung",fmt(s.pv))+row("direkt verbraucht",fmt(s.direct))+
+    (s.evSolar>0?row("E-Auto mit PV geladen",fmt(s.evSolar)):"")+
+    (r.cap>0?row("in Speicher geladen",fmt(s.toBat))+row("aus Speicher genutzt",fmt(s.fromBat))+row("Vollzyklen",fmt(s.cycles)):"")+
+    row("Einspeisung",fmt(s.feed))+(s.curt>0.5?row("abgeregelt (60-%-Grenze)",fmt(s.curt)):"")+row("Netzbezug",fmt(s.grid))+row("Verbrauch gesamt",fmt(s.load),' class="sum"');
+  $("cashChart").innerHTML=cashSvg(e.cum,e.payback);
+  const er=(a,b)=>`<tr><td>${a}</td><td class="n">${b}</td></tr>`;
+  $("econ").innerHTML=er("Ersparnis Netzbezug, 1. Jahr",`${fmt(e.saving1)} €`)+er(`Einspeiseerlös, 1. Jahr (${fmt(e.fit,2)} ct/kWh)`,`${fmt(e.feed1)} €`)+
+    er("Betriebskosten pro Jahr",`− ${fmt(e.opex)} €`)+er("Überschuss im 1. Jahr",`${fmt(e.y1)} €`)+
+    er("Stromgestehungskosten (ohne Zins)",`${fmt(e.lcoe,1)} ct/kWh`)+er(`Kapitalstand nach ${P.econ.years} Jahren`,`${fmt(e.cum[e.cum.length-1])} €`);
+
+  const kgm2=D.module.kg/(D.module.l*D.module.b)+D.module.ukKg,area=mods*D.module.l*D.module.b;
+  $("tech").innerHTML=`<div><b>${fmt(r.kwp*.8,1)} – ${fmt(r.kwp,1)} kVA</b>Wechselrichter AC, Faustwert 80–100 % der DC-Leistung${D.faces.filter((f,i)=>sel.counts[i]>0).length>1?"; je Dachfläche ein eigener MPP-Tracker":""}</div>
+    <div><b>${fmt(area,1)} m²</b>Modulfläche</div>
+    <div><b>${fmt(kgm2,1)} kg/m² ≈ ${fmt(kgm2*.00981,2)} kN/m²</b>Eigenlast Module + Unterkonstruktion</div>
+    <div><b>${fmt(area*kgm2)} kg</b>Gesamtgewicht auf dem Dach</div>`;
+  const w=[];
+  if(r.kwp>30)w.push("Über 30 kWp: Die vereinfachte Regel für den Nullsteuersatz (§ 12 Abs. 3 UStG) greift nicht mehr automatisch; steuerlich beraten lassen.");
+  if(r.kwp>25)w.push("Über 25 kWp gelten zusätzliche Anforderungen des Netzbetreibers (z. B. Steuerbarkeit); früh anfragen.");
+  if(r.cap>1.5*r.kwp+1e-9)w.push("Speicher größer als 1,5 kWh je kWp: lohnt sich nach HTW Berlin in der Regel nicht.");
+  $("warn").innerHTML=w.map(t=>`<div class="warnbox">${t}</div>`).join("");
+}
+function recompute(){vars=E.optimize(D.faces,L,P);renderVars();render()}
+
+/* ---------- Texte ---------- */
+$("created").textContent=new Date(D.created).toLocaleDateString("de-DE");
+$("sub").textContent=D.address;
+$("todo").innerHTML=[
+  "Aufmaß vor Ort: Dachmaße, Neigung, Dachfenster, Gauben, Kamine, Antennen und Verschattung prüfen. Die Maße stammen aus dem OpenStreetMap-Umriss, ohne Dachüberstand.",
+  "Statik: Tragfähigkeit von Sparren, Lattung und Befestigung für die Zusatzlast nachweisen lassen; Zustand der Eindeckung prüfen (Erneuerung vor PV-Montage einplanen).",
+  "Randabstände und Haken-Abstände nach Montagesystem sowie Wind- und Schneelastzone (DIN EN 1991-1-3/-4) festlegen.",
+  "Netzbetreiber: Anmeldung vor Inbetriebnahme; Zählerschrank auf Eignung prüfen lassen (oft Umbau nötig).",
+  "Ab 7 kWp ist ein intelligentes Messsystem vorgesehen. Ohne Steuerbox ist die Einspeisung bei Neuanlagen auf 60 % der Modulleistung begrenzt; bei negativen Börsenpreisen gibt es keine Vergütung (Solarspitzengesetz 2025).",
+  "Eine EEG-Novelle 2027 soll die feste Einspeisevergütung für Neuanlagen abschaffen (Kabinettsentwurf Juli 2026, noch nicht in Kraft). Stichtag und Übergangsregeln vor Auftragsvergabe prüfen.",
+  "Registrierung im Marktstammdatenregister innerhalb eines Monats nach Inbetriebnahme.",
+  "Mindestens zwei bis drei Angebote einholen; die hier angesetzten Preise sind Marktspannen, keine Angebote."
+].map(t=>`<li>${t}</li>`).join("");
+$("basis").innerHTML=[
+  `<b>Ertrag</b>: PVGIS 5.3 der EU-Kommission (SARAH-3, 2005–2023, mit Geländehorizont, 14 % Systemverluste). Werte je Fläche: `+D.faces.map(f=>`<a href="${f.pvgisUrl.replace("&outputformat=json","")}" target="_blank" rel="noopener">${f.id}</a>`).join(", ")+". Nahverschattung (Bäume, Nachbarhäuser, Gauben) ist nicht enthalten.",
+  `<b>Gebäude</b>: Umriss aus <a href="https://www.openstreetmap.org/${D.geo.osm}" target="_blank" rel="noopener">OpenStreetMap</a>, Rechteck mit kleinster Fläche um den Umriss. <a href="https://www.google.com/maps/@${D.geo.lat},${D.geo.lon},40m/data=!3m1!1e3" target="_blank" rel="noopener">Luftbild zum Prüfen</a>.`,
+  "<b>Stundenwerte</b>: Die PVGIS-Monatssummen werden mit einem Sonnenstandsmodell auf Stunden verteilt (synthetisches Wetterjahr). Das Lastprofil ist vereinfacht (kein BDEW-H0). Eigenverbrauch und Autarkie sind Richtwerte und eher etwas zu hoch; gegenprüfen mit dem <a href=\"https://solar.htw-berlin.de/rechner/unabhaengigkeitsrechner/\" target=\"_blank\" rel=\"noopener\">HTW-Unabhängigkeitsrechner</a>.",
+  "<b>Speicher</b>: 95 % Wirkungsgrad je Richtung, Leistung 0,5 C (mind. 2,5 kW), kein Tausch innerhalb der Laufzeit. E-Auto: nicht aus dem Hausspeicher geladen.",
+  `<b>Kosten</b>: PV ${fmt(D.econ.pvFix)} € + ${fmt(D.econ.pvKwp)} €/kWp, Speicher ${fmt(D.econ.batFix)} € + ${fmt(D.econ.batKwh)} €/kWh (Annahme aus Marktspannen 2026; Ratgeberseiten nennen rund 950–1.500 €/kWp und 315–900 €/kWh). 0 % MwSt.`,
+  `<b>Vergütung</b>: ${fmt(D.econ.fit10,2)} ct/kWh bis 10 kWp (Inbetriebnahme ab 1.8.2026, Teileinspeisung), 10–40 kWp ${fmt(D.econ.fit40,2)} ct (aus der Degression abgeleitet). 20 Jahre fest, danach keine Vergütung angesetzt. Aktuelle Sätze bei der <a href="https://www.bundesnetzagentur.de/DE/Fachthemen/ElektrizitaetundGas/ErneuerbareEnergien/EEG_Foerderung/start.html" target="_blank" rel="noopener">Bundesnetzagentur</a> prüfen.`,
+  "<b>Optimierung</b>: Alle Kombinationen der Dachflächen, jeweils voll belegt und zusätzlich auf 10 kWp begrenzt (beste Flächen zuerst), mit Speichergrößen 0–20 kWh; Auswahl nach höchstem Kapitalwert. Ohne Steuern, Finanzierung und Förderprogramme.",
+  ...D.notes.map(n=>`<b>Hinweis</b>: ${n}`)
+].map(t=>`<li>${t}</li>`).join("");
+
+/* ---------- Ereignisse ---------- */
+fillForm();recompute();
+let t;
+$("f").addEventListener("input",ev=>{clearTimeout(t);const id=ev.target.id;t=setTimeout(()=>{readForm();if(id.startsWith("cnt")||id==="cap")render();else recompute()},150)});
+$("f").addEventListener("submit",ev=>ev.preventDefault());
+$("vars").addEventListener("click",ev=>{const tr=ev.target.closest("tr[data-i]");if(!tr)return;const v=vars[+tr.dataset.i];sel={counts:v.counts.slice(),cap:v.cap};fillForm();render()});
+$("vars").addEventListener("keydown",ev=>{if(ev.key==="Enter")ev.target.click()});
+$("opt").addEventListener("click",()=>{readForm();recompute();sel={counts:vars[0].counts.slice(),cap:vars[0].cap};fillForm();render()});
+$("restore").addEventListener("click",()=>{sel={counts:D.best.counts.slice(),cap:D.best.cap};Object.assign(C,D.consumption);L=E.loadProfile(C);P.econ=Object.assign({},D.econ);P.feedCap=D.feedCap;fillForm();recompute()});
+})();
+</script>
