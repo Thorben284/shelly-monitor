@@ -201,34 +201,8 @@
    "selected": false
   },
   {
-   "id": "K2",
-   "name": "Helle Fläche Ost",
-   "kind": "Flachdach?",
-   "building": "Nebenfläche",
-   "poly": [
-    [
-     18.7,
-     18.4
-    ],
-    [
-     23.2,
-     18.3
-    ],
-    [
-     24.1,
-     34.6
-    ],
-    [
-     19.4,
-     34.8
-    ]
-   ],
-   "note": "ca. 4,8 × 16 m; Dach oder befestigte Fläche, bitte prüfen",
-   "selected": false
-  },
-  {
    "id": "K3",
-   "name": "Carport Südost",
+   "name": "Carport",
    "kind": "Carport",
    "building": "Carport",
    "poly": [
@@ -249,7 +223,7 @@
      38.4
     ]
    ],
-   "note": "ca. 10,7 × 10,1 m",
+   "note": "Stahl-Carport mit roten Wänden (Street View, Juni 2022)",
    "selected": true,
    "mountings": [
     "eben"
@@ -407,7 +381,8 @@
   "D1 Ost-West 10°: Modulpaare Rücken an Rücken, 0,35 m Gang je Paar. Süd 15°: Reihenabstand 2,2 m. Carport: Module flach (5°) auf dem Dach.",
   "Statik prüfen: Flachdach mit Ballast typ. 10–25 kg/m², Carport (Kiesdach) besonders kritisch. Wartungswege und Brandschutzabstände sind noch nicht eingeplant.",
   "Modul 450 Wp, 1,762 × 1,134 m (Annahme). Ertrag aus PVGIS 5.3, 14 % Systemverluste, ohne Verschattung durch Nachbarbebauung. Lagegenauigkeit etwa ±0,5 m – Aufmaß vor Ort.",
-  "Verschattung (Bäume, Technikaufbauten, Nachbargebäude) ist auf Wunsch nicht berücksichtigt."
+  "Verschattung (Bäume, Technikaufbauten, Nachbargebäude) ist auf Wunsch nicht berücksichtigt.",
+  "Street View (Juni 2022): die helle Fläche östlich des Gebäudes ist gepflasterter Vorplatz, kein Dach; der Carport ist K3."
  ],
  "request": {
   "type": "auswahl",

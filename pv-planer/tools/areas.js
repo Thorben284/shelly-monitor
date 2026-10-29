@@ -40,8 +40,26 @@ async function main(cfgFile, out) {
     ow: { label: "Ost-West 10°", tilt: 10, axes: "vu", w: M.l, h: M.b * Math.cos(10 * D2R), pitches: [M.b * Math.cos(10 * D2R) + .05, M.b * Math.cos(10 * D2R) + .35], comp: [br, br + 180] },
     eben: { label: "flach 5°", tilt: 5, axes: "uv", w: M.l, h: M.b * Math.cos(5 * D2R), pitches: [M.b * Math.cos(5 * D2R) + .02], comp: [br + 90 * facingV] }
   };
-  const toLocal = (ax, [u, v]) => ax === "uv" ? [u, v] : [v, u];
-  const fromLocal = (ax, [x, y]) => ax === "uv" ? [x, y] : [y, x];
+  /* Geneigte Dachfläche (`slope: {tilt, fall}`, fall = Gefällerichtung ° ab Nord): Module dachparallel,
+     lokales x entlang der Traufe, y hangaufwärts in wahrer Länge (Grundriss / cos Neigung) */
+  const pitched = (a, orient) => {
+    const t = a.slope.tilt, f = a.slope.fall * D2R, d = [Math.sin(f), Math.cos(f)], r = [Math.cos(f), -Math.sin(f)], ct = Math.cos(t * D2R);
+    const [w, h] = orient === "hoch" ? [M.b, M.l] : [M.l, M.b];
+    return { label: `dachparallel ${t}°, ${orient}kant`, tilt: t, axes: "plane", plane: { d, r, ct }, w, h, pitches: [h + .02], comp: [a.slope.fall] };
+  };
+  const mountOf = (a, mk) => mk === "dach_hoch" ? pitched(a, "hoch") : mk === "dach_quer" ? pitched(a, "quer") : MOUNT[mk];
+  const toLocal = (m, [u, v]) => {
+    if (m.axes === "uv") return [u, v];
+    if (m.axes === "vu") return [v, u];
+    const { d, r, ct } = m.plane, e = u * eu[0] + v * ev[0], n = u * eu[1] + v * ev[1];
+    return [e * r[0] + n * r[1], -(e * d[0] + n * d[1]) / ct];
+  };
+  const fromLocal = (m, [x, y]) => {
+    if (m.axes === "uv") return [x, y];
+    if (m.axes === "vu") return [y, x];
+    const { d, r, ct } = m.plane, e = x * r[0] - y * ct * d[0], n = x * r[1] - y * ct * d[1];
+    return [e * eu[0] + n * eu[1], e * ev[0] + n * ev[1]];
+  };
   const yieldOf = m => { const ks = m.comp.map(c => `${m.tilt}|${toAsp(c)}`); const miss = ks.filter(k => !R.pvgis[k]); if (miss.length) throw new Error("PVGIS fehlt: " + miss.join(", ")); return ks.reduce((a, k) => a + R.pvgis[k], 0) / ks.length; };
 
   const areas = R.areas.map(a => {
@@ -49,13 +67,13 @@ async function main(cfgFile, out) {
     const obs = a.mountings ? obst.filter(o => inside(o, a.poly)) : [];
     const variants = {};
     for (const mk of a.mountings || []) {
-      const m = MOUNT[mk];
+      const m = mountOf(a, mk);
       const L = E.layoutArea({
-        poly: a.poly.map(p => toLocal(m.axes, p)), edge: a.edge, w: m.w, h: m.h, pitches: m.pitches,
-        obstacles: obs.map(o => { const [x, y] = toLocal(m.axes, [o.u, o.v]); return { x, y, w: m.axes === "uv" ? o.w : o.h, h: m.axes === "uv" ? o.h : o.w, c: o.c }; }),
-        holes: (R.excluded || []).map(e => e.poly.map(p => toLocal(m.axes, p))), holeGap: a.edge
+        poly: a.poly.map(p => toLocal(m, p)), edge: a.edge, w: m.w, h: m.h, pitches: m.pitches,
+        obstacles: obs.map(o => { const [x, y] = toLocal(m, [o.u, o.v]); return { x, y, w: m.axes === "vu" ? o.h : o.w, h: m.axes === "vu" ? o.w : o.h, c: o.c }; }),
+        holes: (R.excluded || []).map(e => e.poly.map(p => toLocal(m, p))), holeGap: a.edge
       });
-      const mods = L.pos.map(q => [[q.x, q.y], [q.x + L.w, q.y], [q.x + L.w, q.y + L.h], [q.x, q.y + L.h]].map(p => px(fromLocal(m.axes, p))));
+      const mods = L.pos.map(q => [[q.x, q.y], [q.x + L.w, q.y], [q.x + L.w, q.y + L.h], [q.x, q.y + L.h]].map(p => px(fromLocal(m, p))));
       variants[mk] = { label: m.label, tilt: m.tilt, aspects: m.comp.map(toAsp), count: L.count, spec: Math.round(yieldOf(m)), mods };
     }
     return { id: a.id, name: a.name, building: a.building, kind: a.kind || "", note: a.note || "", area: Math.round(area), edge: a.edge,

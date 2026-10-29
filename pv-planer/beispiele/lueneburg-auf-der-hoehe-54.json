@@ -31,11 +31,11 @@
  },
  "areas": [
   {
-   "id": "H1",
-   "name": "Hauptdach",
-   "kind": "Dach rot, Neigung unklar",
+   "id": "H1W",
+   "name": "Satteldach West",
+   "kind": "Satteldach, Ziegel, ca. 40°",
    "building": "Hauptgebäude",
-   "note": "ca. 11 × 20 m; Mittellinie sichtbar (First oder Fuge)",
+   "note": "Dachseite nach WSW",
    "selected": false,
    "poly": [
     [
@@ -43,29 +43,63 @@
      0
     ],
     [
-     11.2,
-     0
-    ],
-    [
-     14.7,
-     17.9
-    ],
-    [
      3.2,
-     19.9
+     -0.03
     ],
     [
-     0,
+     7.49,
+     19.18
+    ],
+    [
+     3.22,
+     19.92
+    ],
+    [
+     -0.03,
      16.1
     ]
-   ]
+   ],
+   "slope": {
+    "tilt": 40,
+    "fall": 235
+   }
+  },
+  {
+   "id": "H1O",
+   "name": "Satteldach Ost",
+   "kind": "Satteldach, Ziegel, ca. 40°",
+   "building": "Hauptgebäude",
+   "note": "Dachseite nach ONO",
+   "selected": false,
+   "poly": [
+    [
+     3.2,
+     -0.03
+    ],
+    [
+     11.21,
+     -0.01
+    ],
+    [
+     14.67,
+     17.91
+    ],
+    [
+     7.49,
+     19.18
+    ]
+   ],
+   "slope": {
+    "tilt": 40,
+    "fall": 55
+   }
   },
   {
    "id": "H2",
    "name": "Anbau Süd",
-   "kind": "Flachdach mit Attika",
+   "kind": "Flachdach",
    "building": "Hauptgebäude",
-   "note": "rotbraune Dachhaut",
+   "note": "eingeschossiger Anbau mit Flachdach (Street View)",
    "selected": false,
    "poly": [
     [
@@ -178,9 +212,8 @@
   "at": "2026-10-29T19:40:42.011Z"
  },
  "notes": [
-  "OpenStreetMap kennt für Nr. 54 nur einen Adresspunkt; die Flächen sind aus dem Luftbild (Bing Maps, ca. 9 cm je Pixel) nachgezeichnet, Lagegenauigkeit etwa ±0,5 m.",
-  "Die dunkle Fläche nordwestlich des Hauptdachs ist dessen Schatten, kein Dach.",
-  "Grundstücksgrenzen sind nicht bekannt; S2 liegt jenseits des Weges.",
-  "Nach dem Senden erkennt Claude auf den gewählten Flächen Hindernisse und legt die Module aus. Verschattung wird nicht berücksichtigt."
+  "OpenStreetMap kennt für Nr. 54 nur einen Adresspunkt; Flächen aus dem Luftbild (Bing Maps, ca. 9 cm je Pixel), Dachform aus Google Street View (Juni 2022): Hauptgebäude mit Ziegel-Satteldach (Neigung geschätzt 40°), davor ein eingeschossiger Flachdach-Anbau.",
+  "Die dunkle Fläche nordwestlich des Hauptdachs ist dessen Schatten, kein Dach. Grundstücksgrenzen sind nicht bekannt; S2 liegt jenseits des Weges.",
+  "Nach dem Senden erkennt Claude auf den gewählten Flächen Hindernisse (u. a. Dachfenster) und legt die Module aus. Verschattung wird nicht berücksichtigt."
  ]
 }

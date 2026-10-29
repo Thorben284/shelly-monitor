@@ -18,14 +18,15 @@ Bei einem Publish-Konflikt die gespeicherte Version auswerten (sie enthält oft 
 ## request.type = "adresse"
 1. Nominatim per Firecrawl (`formats: ["rawHtml"]`, `maxAge: 0`): `https://nominatim.openstreetmap.org/search?q=<Adresse>&format=jsonv2&limit=1&polygon_geojson=1`. Oft nur ein Adresspunkt.
 2. Luftbild: Firecrawl-Screenshot `https://www.bing.com/maps?cp=<lat>~<lon>&lvl=20&style=a`, `waitFor: 6000`, Viewport 1400×1100; PNG per `curl` aus der storage.googleapis.com-URL in einen eigenen Ordner im Scratchpad laden. Kartenmitte = Pixel (700, 590), Zoom 20 (≈9 cm/px).
-3. Mit `tools/aerial.js grid` Ausschnitte vergrößern; ALLE Dachflächen des Grundstücks erfassen (Haupt- und Anbauten, Carports, Garagen, Schuppen). Schatten sind keine Dächer (dunkle Flächen auf der Nordseite prüfen). Höhenstufen bei Bedarf aus Schattenlängen.
-4. Gebäudesystem: Ursprung = eine Gebäudeecke, `bearing` = Richtung einer Gebäudekante (° ab Nord); Pixel → lat/lon (`aerial.toLL`) → u/v in Metern. Mit `tools/aerial.js overlay` prüfen und nachbessern, bis jede Fläche auf dem Dach liegt.
-5. roof.json: `address`, `title`, `geo`, `frame`, `aerial` (file, lat, lon, zoom, cx, cy, crop, scale 2), `areas` (id, name, kind, building, note, poly in u/v, `selected: false`, ohne `mountings`), `excluded: []`, `obstacles: []`, `pvgis: {}`, `notes`, `request` übernehmen, `processed = {type, at: jetzt}`.
-6. `node pv-planer/tools/areas.js roof.json <veröffentlichte Datei>` und veröffentlichen.
+3. Street View zur Prüfung (Pflicht): Firecrawl-Screenshot `https://www.google.com/maps/@<lat>,<lon>,3a,75y,<Blickrichtung>h,95t/data=!3m4!1e1!3m2!1s!2e0` (Kamera auf der Straße, Blick zum Gebäude; `waitFor: 8000`, Viewport 1400×900). Klärt Dachform/Neigung (Sattel-, Pult-, Flachdach), Geschosse, Carports und ob eine helle Fläche Dach oder Pflaster ist. Kamerastandort steht in der zurückgegebenen URL; mit `aerial.toPx` im Luftbild verorten.
+4. Mit `tools/aerial.js grid` Ausschnitte vergrößern; ALLE Dachflächen des Grundstücks erfassen (Haupt- und Anbauten, Carports, Garagen, Schuppen). Schatten sind keine Dächer (dunkle Flächen auf der Nordseite prüfen). Höhenstufen bei Bedarf aus Schattenlängen.
+5. Gebäudesystem: Ursprung = eine Gebäudeecke, `bearing` = Richtung einer Gebäudekante (° ab Nord); Pixel → lat/lon (`aerial.toLL`) → u/v in Metern. Mit `tools/aerial.js overlay` prüfen und nachbessern, bis jede Fläche auf dem Dach liegt.
+6. roof.json: `address`, `title`, `geo`, `frame`, `aerial` (file, lat, lon, zoom, cx, cy, crop, scale 2), `areas` (id, name, kind, building, note, poly in u/v, `selected: false`, ohne `mountings`; geneigte Dachseiten einzeln mit `slope: {tilt, fall}`, fall = Gefällerichtung ° ab Nord), `excluded: []`, `obstacles: []`, `pvgis: {}`, `notes`, `request` übernehmen, `processed = {type, at: jetzt}`.
+7. `node pv-planer/tools/areas.js roof.json <veröffentlichte Datei>` und veröffentlichen.
 
 ## request.type = "auswahl"
 1. Für `request.ids`: Hindernisse auf diesen Flächen aus dem Luftbild erfassen (`obstacles`: type lichtkuppel/entlueftung/ausstieg/schornstein/antenne/sonstiges, u, v; optional w, h, c). Nicht nutzbare Teilflächen (Technik) als `excluded`.
-2. `selected` = genau die ids; `mountings` + `edge` setzen: Flachdach `["ow","sued"]`, edge 0,8; Carport `["eben"]`, edge 0,3. Geneigte Dächer: Neigung nicht aus dem Bild ablesbar, Annahme in `notes` nennen.
+2. `selected` = genau die ids; `mountings` + `edge` setzen: Flachdach `["ow","sued"]`, edge 0,8; Carport `["eben"]`, edge 0,3. Geneigte Dachseiten: `["dach_quer","dach_hoch"]`, edge 0,3; Neigung aus Street View schätzen und in `notes` nennen.
 3. PVGIS je Montage per Firecrawl (`PVcalc`, loss 14, usehorizon 1), Jahreswert `E_y` in `pvgis["<Neigung>|<Azimut>"]` (Schlüssel, die areas.js als fehlend meldet).
 4. `processed` setzen, bauen, veröffentlichen. Beispiele: `pv-planer/beispiele/`.
 
