@@ -11,4 +11,4 @@ node tools/areas.js roof.json seite.html                 # Planerseite bauen (Ka
 ```
 
 `engine.js`: Rechenkern (Belegung freier Umrisse, Hindernisse, PVGIS-Profile). Tests: `node test.js`.
-Beispiel: `beispiele/lueneburg-auf-der-hoehe-56.json`. Benötigt Node ≥ 18 und Playwright (Luftbild-Werkzeuge).
+Beispiel: `beispiele/lueneburg-auf-der-hoehe-54.json`. Benötigt Node ≥ 18 und Playwright (Luftbild-Werkzeuge).

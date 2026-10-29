@@ -209,10 +209,10 @@
  },
  "processed": {
   "type": "adresse",
-  "at": "2026-10-29T19:40:42.011Z"
+  "at": "2026-10-29T19:47:41.045Z"
  },
  "notes": [
-  "OpenStreetMap kennt für Nr. 54 nur einen Adresspunkt; Flächen aus dem Luftbild (Bing Maps, ca. 9 cm je Pixel), Dachform aus Google Street View (Juni 2022): Hauptgebäude mit Ziegel-Satteldach (Neigung geschätzt 40°), davor ein eingeschossiger Flachdach-Anbau.",
+  "OpenStreetMap kennt für Nr. 54 nur einen Adresspunkt; Flächen aus dem Luftbild (Bing Maps, ca. 9 cm je Pixel). Dachform aus Google Street View (Juni 2022, drei Blickrichtungen): zweigeschossiges Haus mit Ziegel-Satteldach, Giebel nach Südosten, Neigung geschätzt 40°; davor eingeschossiger Klinker-Anbau mit Flachdach und Attika (H2).",
   "Die dunkle Fläche nordwestlich des Hauptdachs ist dessen Schatten, kein Dach. Grundstücksgrenzen sind nicht bekannt; S2 liegt jenseits des Weges.",
   "Nach dem Senden erkennt Claude auf den gewählten Flächen Hindernisse (u. a. Dachfenster) und legt die Module aus. Verschattung wird nicht berücksichtigt."
  ]
