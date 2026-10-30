@@ -13,7 +13,7 @@
  },
  "processed": {
   "type": "adresse",
-  "at": "2026-10-30T08:00:46.000Z"
+  "at": "2026-10-30T08:10:20.000Z"
  },
  "progress": {
   "type": "adresse",
@@ -30,20 +30,20 @@
    "selected": false,
    "poly": [
     [
-     -1.03,
-     -0.76
+     0.06,
+     -0.63
     ],
     [
-     -8.82,
-     11.89
+     -5.53,
+     11.72
     ],
     [
-     -26.54,
-     12.79
+     -26.04,
+     12.76
     ],
     [
-     -32.03,
-     0.82
+     -31.52,
+     0.97
     ]
    ],
    "slope": {
@@ -65,20 +65,20 @@
    "selected": false,
    "poly": [
     [
-     -8.82,
-     11.89
+     -5.53,
+     11.72
     ],
     [
-     -0.04,
-     22.36
+     0.86,
+     22.13
     ],
     [
      -31.04,
-     23.93
+     23.75
     ],
     [
-     -26.54,
-     12.79
+     -26.04,
+     12.76
     ]
    ],
    "slope": {
@@ -100,16 +100,16 @@
    "selected": false,
    "poly": [
     [
-     -32.03,
-     0.82
+     -31.52,
+     0.97
     ],
     [
-     -26.54,
-     12.79
+     -26.04,
+     12.76
     ],
     [
      -31.04,
-     23.93
+     23.75
     ]
    ],
    "slope": {
@@ -132,19 +132,19 @@
    "poly": [
     [
      -32.1,
-     2.88
+     2.79
     ],
     [
-     -31.59,
+     -31.58,
      13.04
     ],
     [
-     -43.64,
-     13.65
+     -39.55,
+     13.45
     ],
     [
-     -43.43,
-     3.63
+     -43.88,
+     3.38
     ]
    ],
    "slope": {
@@ -166,25 +166,56 @@
    "selected": false,
    "poly": [
     [
-     -31.59,
+     -31.58,
      13.04
     ],
     [
-     -31.14,
-     21.96
+     -31.09,
+     22.72
     ],
     [
-     -43.37,
-     22.49
+     -43.09,
+     23.24
     ],
     [
-     -43.64,
-     13.65
+     -39.55,
+     13.45
     ]
    ],
    "slope": {
     "tilt": 30,
     "fall": 93
+   },
+   "mountings": [
+    "dach_quer",
+    "dach_hoch"
+   ],
+   "edge": 0.3
+  },
+  {
+   "id": "SS",
+   "name": "Südflügel Südwalm",
+   "kind": "Walmdach",
+   "building": "Südflügel",
+   "note": "Dreieck nach Süden; Neigung geschätzt 30°",
+   "selected": false,
+   "poly": [
+    [
+     -43.88,
+     3.38
+    ],
+    [
+     -39.55,
+     13.45
+    ],
+    [
+     -43.09,
+     23.24
+    ]
+   ],
+   "slope": {
+    "tilt": 30,
+    "fall": 183
    },
    "mountings": [
     "dach_quer",
@@ -201,20 +232,20 @@
    "selected": false,
    "poly": [
     [
-     11.57,
-     6.03
+     11.67,
+     4.95
     ],
     [
-     11.82,
-     12.72
+     12.04,
+     12.31
     ],
     [
-     -0.05,
-     13.32
+     0.97,
+     12.87
     ],
     [
-     -0.22,
-     6.45
+     0.6,
+     5.51
     ]
    ],
    "slope": {
@@ -236,20 +267,20 @@
    "selected": false,
    "poly": [
     [
-     11.82,
-     12.72
+     12.04,
+     12.31
     ],
     [
-     12.08,
-     19.69
+     12.42,
+     19.67
     ],
     [
-     0.01,
-     19.85
+     1.34,
+     20.23
     ],
     [
-     -0.05,
-     13.32
+     0.97,
+     12.87
     ]
    ],
    "slope": {
@@ -271,20 +302,20 @@
    "selected": false,
    "poly": [
     [
-     -6.41,
-     22.68
+     -0.55,
+     22.2
     ],
     [
-     -6.26,
-     25.71
+     -0.4,
+     25.24
     ],
     [
-     -25,
-     25.68
+     -21.15,
+     26.15
     ],
     [
-     -24.98,
-     22.64
+     -21.29,
+     23.25
     ]
    ],
    "mountings": [
@@ -296,41 +327,49 @@
  "obstacles": [
   {
    "type": "lichtkuppel",
-   "u": -16.1,
-   "v": 10.2,
-   "w": 4.2,
-   "h": 6.4,
-   "label": "Oberlicht"
+   "u": -16.25,
+   "v": 10.7,
+   "w": 5.6,
+   "h": 3.1,
+   "label": "Oberlicht (Westteil)"
+  },
+  {
+   "type": "lichtkuppel",
+   "u": -16.13,
+   "v": 12.98,
+   "w": 5.6,
+   "h": 1.4,
+   "label": "Oberlicht (Ostteil)"
   },
   {
    "type": "lichtkuppel",
    "u": -29.36,
-   "v": 9.71,
-   "w": 2.4,
-   "h": 4.6,
+   "v": 11.32,
+   "w": 2.8,
+   "h": 4.7,
    "label": "Oberlicht"
   },
   {
    "type": "lichtkuppel",
-   "u": -6.75,
-   "v": 17.78,
-   "w": 1,
-   "h": 1,
+   "u": -4.86,
+   "v": 16.88,
+   "w": 0.7,
+   "h": 0.7,
    "label": "Dachfenster"
   },
   {
    "type": "entlueftung",
-   "u": -35.16,
-   "v": 14.39
+   "u": -33.31,
+   "v": 15.59
   },
   {
    "type": "entlueftung",
-   "u": -35.09,
-   "v": 15.9
+   "u": -33.26,
+   "v": 16.57
   },
   {
    "type": "sonstiges",
-   "u": 9.47,
+   "u": 9.45,
    "v": 10.16,
    "w": 1,
    "h": 1.2,
@@ -338,72 +377,72 @@
   },
   {
    "type": "sonstiges",
-   "u": 9.42,
-   "v": 16.15,
+   "u": 9.49,
+   "v": 16.2,
    "w": 1,
    "h": 1.2,
    "label": "Dachfenster"
   },
   {
    "type": "sonstiges",
-   "u": 7.69,
-   "v": 11.86,
+   "u": 7.58,
+   "v": 11.82,
    "w": 1,
    "h": 1.2,
    "label": "Dachfenster"
   },
   {
    "type": "sonstiges",
-   "u": 7.54,
-   "v": 14.1,
+   "u": 7.61,
+   "v": 14.19,
    "w": 1,
    "h": 1.2,
    "label": "Dachfenster"
   },
   {
    "type": "sonstiges",
-   "u": 5.74,
-   "v": 10.17,
+   "u": 5.84,
+   "v": 9.9,
    "w": 1,
    "h": 1.2,
    "label": "Dachfenster"
   },
   {
    "type": "sonstiges",
-   "u": 5.86,
-   "v": 16.07,
+   "u": 5.83,
+   "v": 15.93,
    "w": 1,
    "h": 1.2,
    "label": "Dachfenster"
   },
   {
    "type": "sonstiges",
-   "u": 4.23,
-   "v": 11.95,
+   "u": 4.16,
+   "v": 11.9,
    "w": 1,
    "h": 1.2,
    "label": "Dachfenster"
   },
   {
    "type": "sonstiges",
-   "u": 4.17,
-   "v": 14.18,
+   "u": 4.15,
+   "v": 14.19,
    "w": 1,
    "h": 1.2,
    "label": "Dachfenster"
   },
   {
    "type": "sonstiges",
-   "u": 2.35,
-   "v": 9.89,
+   "u": 2.28,
+   "v": 9.85,
    "w": 1,
    "h": 1.2,
    "label": "Dachfenster"
   },
   {
    "type": "sonstiges",
-   "u": 2.31,
-   "v": 15.98,
+   "u": 2.28,
+   "v": 16.02,
    "w": 1,
    "h": 1.2,
    "label": "Dachfenster"
@@ -415,10 +454,11 @@
   "35|3": 986.5,
   "30|93": 773.7,
   "30|-87": 813.9,
-  "5|-87": 827.1
+  "5|-87": 827.1,
+  "30|3": 979.1
  },
  "notes": [
-  "Umriss aus dem Liegenschaftskataster (ALKIS, LGLN, Stand 2021); Abgleich mit Luftbild (Bing Maps, Maßstab über die 31,3 m lange Westwand geprüft) und Google Street View (Juli 2022): Backsteinbau, zweigeschossiger Hauptbau mit Walmdach, eingeschossiger Südflügel, Nordflügel mit vielen kleinen Dachfenstern.",
+  "Umriss aus dem Liegenschaftskataster (ALKIS, LGLN, Stand 2021); Abgleich mit Luftbild (Bing Maps, Zoom 21, Kanten einzeln nachgezeichnet und per Überlagerung geprüft; Maßstab über die 31,3 m lange Westwand geprüft) und Google Street View (Juli 2022): Backsteinbau, zweigeschossiger Hauptbau mit Walmdach, eingeschossiger Südflügel, Nordflügel mit vielen kleinen Dachfenstern.",
   "Dachneigungen GESCHÄTZT (Hauptbau/Nordflügel 35°, Südflügel 30°, ±5°): Das amtliche 3D-Modell (LoD2) ließ sich diesmal nicht abrufen. Modulzahlen ändern sich bei anderer Neigung um einige Prozent. Firstlinien aus dem Luftbild, ±0,5 m.",
   "Nicht aufgeführt: Nordwalm des Hauptbaus (nach Norden), Fahrradüberdachung (vermutlich lichtdurchlässig). Altbau — ggf. Denkmalschutz und Tragfähigkeit prüfen.",
   "Belegung: Modul 450 Wp, 1762 × 1134 mm, dachparallel, Randabstand 0,3 m; Hindernisse (Oberlichter, Dachfenster, Lüfter) aus dem Luftbild mit 0,3–0,5 m Abstand. Verschattung nicht berücksichtigt. Erträge PVGIS, 14 % Verluste."
@@ -432,18 +472,18 @@
  },
  "aerial": {
   "file": "luftbild.png",
-  "lat": 53.25415,
+  "lat": 53.25422,
   "lon": 10.42432,
-  "zoom": 20,
+  "zoom": 21,
   "cx": 700,
   "cy": 590,
   "crop": [
-   500,
-   330,
-   880,
-   1010
+   350,
+   160,
+   1010,
+   1600
   ],
-  "scale": 2,
+  "scale": 1,
   "source": "Bing Maps (Maxar)"
  },
  "excluded": []
