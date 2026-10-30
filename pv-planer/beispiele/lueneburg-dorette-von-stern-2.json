@@ -461,7 +461,7 @@
   "Umriss aus dem Liegenschaftskataster (ALKIS, LGLN, Stand 2021); Abgleich mit Luftbild (Bing Maps, Zoom 21, Kanten einzeln nachgezeichnet und per Überlagerung geprüft; Maßstab über die 31,3 m lange Westwand geprüft) und Google Street View (Juli 2022): Backsteinbau, zweigeschossiger Hauptbau mit Walmdach, eingeschossiger Südflügel, Nordflügel mit vielen kleinen Dachfenstern.",
   "Dachneigungen GESCHÄTZT (Hauptbau/Nordflügel 35°, Südflügel 30°, ±5°): Das amtliche 3D-Modell (LoD2) ließ sich diesmal nicht abrufen. Modulzahlen ändern sich bei anderer Neigung um einige Prozent. Firstlinien aus dem Luftbild, ±0,5 m.",
   "Nicht aufgeführt: Nordwalm des Hauptbaus (nach Norden), Fahrradüberdachung (vermutlich lichtdurchlässig). Altbau — ggf. Denkmalschutz und Tragfähigkeit prüfen.",
-  "Belegung: Modul 450 Wp, 1762 × 1134 mm, dachparallel, Randabstand 0,3 m; Hindernisse (Oberlichter, Dachfenster, Lüfter) aus dem Luftbild mit 0,3–0,5 m Abstand. Verschattung nicht berücksichtigt. Erträge PVGIS, 14 % Verluste."
+  "Belegung: Modul 450 Wp, 1762 × 1134 mm, immer hochkant, Randabstand 0,3 m (Flachdach 0,4 m). Obergrenze 100 kWp (222 Module): Flächen nach spezifischem Ertrag gefüllt, die letzte Fläche gekürzt. Verschattung nicht berücksichtigt. Erträge PVGIS, 14 % Verluste."
  ],
  "frame": {
   "origin": [
@@ -486,5 +486,7 @@
   "scale": 1,
   "source": "Bing Maps (Maxar)"
  },
- "excluded": []
+ "excluded": [],
+ "orient": "hoch",
+ "target_kwp": 100
 }

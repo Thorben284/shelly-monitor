@@ -9,7 +9,7 @@ Planer-Seite: https://claude.ai/artifact/PjdiaaCkvYrmLLaLFPUDS7 (nur diese eine;
 Code: `pv-planer/planer.html` (Seite), `pv-planer/tools/areas.js` (baut die Seite), `pv-planer/tools/aerial.js` (Luftbild-Hilfen), `pv-planer/engine.js` (Belegung).
 Ausgabe immer in dieselbe URL veröffentlichen, mit `capabilities: {artifact: {}}`.
 
-Nur Modulauslegung: keine Wirtschaftlichkeit, kein Speicher, kein Verbrauch. Verschattung nicht aussparen (nur auf ausdrücklichen Wunsch).
+Nur Modulauslegung: keine Wirtschaftlichkeit, kein Speicher, kein Verbrauch. **Vorgaben des Nutzers:** Module immer hochkant (`orient: "hoch"` in roof.json, geneigte Flächen nur `dach_hoch`); Anlagengröße höchstens 100 kWp (`target_kwp: 100` — areas.js wählt die Flächen nach spezifischem Ertrag vor und kürzt die letzte). Verschattung nicht aussparen (nur auf ausdrücklichen Wunsch).
 
 **Grundregel (Wunsch des Nutzers): verlässliche Planung ohne Fehler — alle verfügbaren Quellen nutzen und Ergebnisse selbst gegenprüfen**, bevor sie dem Nutzer gezeigt werden: Liegenschaftskataster, 3D-Gebäudemodell, Luftbild (Bing, Zoom 21), Street View aus mehreren Blickrichtungen, OpenStreetMap. Jede Fläche erst eintragen, wenn sie in mindestens zwei Quellen plausibel ist; Unsicheres in `note` kennzeichnen. Neue Quellen, die sich als nützlich erweisen, hier ergänzen.
 

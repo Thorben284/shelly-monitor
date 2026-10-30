@@ -157,7 +157,7 @@ function render(){
   // Kennzahlen nur für belegte Flächen
   let n=0,kwp=0,kwh=0;an.forEach(a=>{const v=a.variants[a.mounting],k=v.count*D.module.wp/1000;n+=v.count;kwp+=k;kwh+=k*v.spec});
   $("kpis").hidden=!an.length;
-  $("kpis").innerHTML=`<div class="kpi"><span class="k">Module</span><span class="v">${fmt(n)}<small>à ${D.module.wp} Wp</small></span></div><div class="kpi"><span class="k">Leistung</span><span class="v">${fmt(kwp,1)}<small>kWp</small></span></div><div class="kpi"><span class="k">Modulfläche</span><span class="v">${fmt(n*D.module.l*D.module.b)}<small>m²</small></span></div><div class="kpi"><span class="k">Ertrag ca.</span><span class="v">${fmt(kwh/1000,1)}<small>MWh/a</small></span></div>`;
+  $("kpis").innerHTML=`<div class="kpi"><span class="k">Module</span><span class="v">${fmt(n)}<small>à ${D.module.wp} Wp</small></span></div><div class="kpi"><span class="k">Leistung${D.target?` (max. ${fmt(D.target)})`:""}</span><span class="v"${D.target&&kwp>D.target+1e-6?' style="color:var(--excl)"':""}>${fmt(kwp,1)}<small>kWp${D.target&&kwp>D.target+1e-6?" — über der Grenze":""}</small></span></div><div class="kpi"><span class="k">Modulfläche</span><span class="v">${fmt(n*D.module.l*D.module.b)}<small>m²</small></span></div><div class="kpi"><span class="k">Ertrag ca.</span><span class="v">${fmt(kwh/1000,1)}<small>MWh/a</small></span></div>`;
   const line=has?`PV-Auswahl ${D.address}: ${s.map(a=>a.id).join(", ")||"keine"}`:`PV-Planer Adresse: ${$("addr").value.trim()||"…"}`;$("copyLine").textContent=line;
   if(!has)return;
   // Karte
@@ -180,7 +180,7 @@ function render(){
       ${v&&a.obstacles.length?`<span class="sub">${a.obstacles.length} Hindernisse erkannt</span>`:""}
       ${!a.selected&&a.analysed&&Object.keys(a.variants).length?`<span class="sub">${Object.values(a.variants).map(v=>v.count).sort((x,y)=>y-x)[0]} Module möglich</span>`:""}
       ${a.selected&&!a.analysed?`<span class="sub" style="color:var(--sun)">${pend&&req.type==="auswahl"&&req.ids.includes(a.id)?"wird analysiert":"noch nicht analysiert"}</span>`:""}</div>
-      <div class="n">${v?`${v.count} Module<small>${fmt(v.count*D.module.wp/1000,1)} kWp · ${fmt(v.spec)} kWh/kWp</small>`:""}</div></div>`}).join("");
+      <div class="n">${v?`${v.count} Module${v.capped?" (gekürzt)":""}<small>${fmt(v.count*D.module.wp/1000,1)} kWp · ${fmt(v.spec)} kWh/kWp</small>`:""}</div></div>`}).join("");
   $("send").disabled=!s.length||!changed()||pend;
   $("send").textContent=!s.length?"Erst Flächen auswählen":pend&&req.type==="auswahl"?"Wird bearbeitet …":changed()?"Auswahl senden":"Belegung wird angezeigt";
   $("notes").innerHTML=D.notes.map(t=>`<li>${t}</li>`).join("");

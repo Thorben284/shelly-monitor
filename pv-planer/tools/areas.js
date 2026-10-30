@@ -35,10 +35,12 @@ async function main(cfgFile, out) {
 
   /* Montagearten: lokales System (x entlang Reihe, y quer), Modulgrundriss, Reihenabstände, Ausrichtungen */
   const facingV = Math.abs(toAsp(br + 90)) <= 90 ? 1 : -1;            // welche Querrichtung zur Sonne zeigt
+  /* Flachdach-Aufständerung; R.orient = "hoch": Module hochkant (lange Seite in Neigungsrichtung), Reihenabstand Süd im gleichen Verhältnis */
+  const hoch = R.orient === "hoch", mw = hoch ? M.b : M.l, md = hoch ? M.l : M.b, dep = t => md * Math.cos(t * D2R);
   const MOUNT = {
-    sued: { label: "Süd aufgeständert 15°", tilt: 15, axes: "uv", w: M.l, h: M.b * Math.cos(15 * D2R), pitches: [2.2], comp: [br + 90 * facingV] },
-    ow: { label: "Ost-West 10°", tilt: 10, axes: "vu", w: M.l, h: M.b * Math.cos(10 * D2R), pitches: [M.b * Math.cos(10 * D2R) + .05, M.b * Math.cos(10 * D2R) + .35], comp: [br, br + 180] },
-    eben: { label: "flach 5°", tilt: 5, axes: "uv", w: M.l, h: M.b * Math.cos(5 * D2R), pitches: [M.b * Math.cos(5 * D2R) + .02], comp: [br + 90 * facingV] }
+    sued: { label: "Süd aufgeständert 15°", tilt: 15, axes: "uv", w: mw, h: dep(15), pitches: [2.2 * md / M.b], comp: [br + 90 * facingV] },
+    ow: { label: "Ost-West 10°", tilt: 10, axes: "vu", w: mw, h: dep(10), pitches: [dep(10) + .05, dep(10) + .35], comp: [br, br + 180] },
+    eben: { label: "flach 5°", tilt: 5, axes: "uv", w: mw, h: dep(5), pitches: [dep(5) + .02], comp: [br + 90 * facingV] }
   };
   /* Geneigte Dachfläche (`slope: {tilt, fall}`, fall = Gefällerichtung ° ab Nord): Module dachparallel,
      lokales x entlang der Traufe, y hangaufwärts in wahrer Länge (Grundriss / cos Neigung) */
@@ -66,7 +68,7 @@ async function main(cfgFile, out) {
     const area = (() => { let s = 0; const P = a.poly; for (let i = 0; i < P.length; i++) { const p = P[i], q = P[(i + 1) % P.length]; s += p[0] * q[1] - q[0] * p[1]; } return Math.abs(s) / 2; })();
     const obs = a.mountings ? obst.filter(o => inside(o, a.poly)) : [];
     const variants = {};
-    for (const mk of a.mountings || []) {
+    for (const mk of (a.mountings || []).filter(k => !hoch || k !== "dach_quer")) {
       const m = mountOf(a, mk);
       const L = E.layoutArea({
         poly: a.poly.map(p => toLocal(m, p)), edge: a.edge, w: m.w, h: m.h, pitches: m.pitches,
@@ -77,19 +79,31 @@ async function main(cfgFile, out) {
       variants[mk] = { label: m.label, tilt: m.tilt, aspects: m.comp.map(toAsp), count: L.count, spec: Math.round(yieldOf(m)), mods };
     }
     return { id: a.id, name: a.name, building: a.building, kind: a.kind || "", note: a.note || "", area: Math.round(area), edge: a.edge,
-      analysed: !!a.mountings, mounting: a.mountings ? a.mountings.reduce((b, k) => variants[k].count > variants[b].count ? k : b) : null, selected: !!a.selected,   // Vorgabe: Variante mit den meisten Modulen
+      analysed: !!a.mountings, mounting: a.mountings ? Object.keys(variants).reduce((b, k) => variants[k].count > variants[b].count ? k : b) : null, selected: !!a.selected,   // Vorgabe: Variante mit den meisten Modulen
       outline: a.poly.map(px), obstacles: obs.map(o => ({ label: o.label, poly: [[o.u - o.w / 2, o.v - o.h / 2], [o.u + o.w / 2, o.v - o.h / 2], [o.u + o.w / 2, o.v + o.h / 2], [o.u - o.w / 2, o.v + o.h / 2]].map(px),
         zone: [[o.u - o.w / 2 - o.c, o.v - o.h / 2 - o.c], [o.u + o.w / 2 + o.c, o.v - o.h / 2 - o.c], [o.u + o.w / 2 + o.c, o.v + o.h / 2 + o.c], [o.u - o.w / 2 - o.c, o.v + o.h / 2 + o.c]].map(px) })),
       variants };
   });
 
+  /* Obergrenze R.target_kwp: Flächen nach spezifischem Ertrag füllen; die letzte Fläche wird auf die Restzahl gekürzt */
+  if (R.target_kwp) {
+    let left = Math.floor(R.target_kwp * 1000 / M.wp + 1e-9);
+    const cand = areas.filter(a => a.mounting).sort((x, y) => y.variants[y.mounting].spec - x.variants[x.mounting].spec);
+    for (const a of areas) a.selected = false;
+    for (const a of cand) {
+      if (left <= 0) break;
+      const v = a.variants[a.mounting];
+      if (v.count > left) { for (const k of Object.keys(a.variants)) { const w = a.variants[k]; if (w.count > left) { w.mods = w.mods.slice(0, left); w.count = left; w.capped = true; } } }
+      a.selected = true; left -= a.variants[a.mounting].count;
+    }
+  }
   // Luftbildausschnitt als JPEG (ohne Luftbild: leerer Planer mit Adresseingabe)
   const jpg = AE ? await cropJpeg(path.resolve(dir, AE.file), AE.crop, S) : null;
   const data = {
     address: R.address || "", title: R.title || R.address || "", created: new Date().toISOString().slice(0, 10), stamp: Date.now(), module: M,
     image: AE ? { src: jpg, w: (cx1 - cx0) * S, h: (cy1 - cy0) * S, mpp: A.mpp(AE) / S, source: AE.source } : null,
     excluded: (R.excluded || []).map(e => ({ name: e.name, poly: e.poly.map(px) })),
-    areas, notes: R.notes || [], geo: R.geo || null, request: R.request || null, processed: R.processed || null, status: R.status || null, progress: R.progress || null
+    areas, target: R.target_kwp || null, notes: R.notes || [], geo: R.geo || null, request: R.request || null, processed: R.processed || null, status: R.status || null, progress: R.progress || null
   };
   const tpl = fs.readFileSync(path.join(__dirname, "..", "planer.html"), "utf8");
   const esc = s => String(s).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
