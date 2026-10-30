@@ -78,6 +78,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--sun);outline-of
 .head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:10px}
 .newbox{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.9rem}
 .addr{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.addr .kwp{display:flex;align-items:center;gap:6px;font-size:.95rem;color:var(--muted)}
+.addr .kwp input{flex:0 0 90px;width:90px}
 .addr input{flex:1 1 260px;font:inherit;font-size:1.02rem;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:9px 12px;min-width:0}
 details summary{cursor:pointer;font-weight:600}
 </style>
@@ -113,7 +115,7 @@ function progress(req){
   const rest=Math.max(0,Math.round(P.min*(1-pct/100)));
   return {P,el,done,pct,over:el>P.min*1.5,rest};
 }
-function progHTML(req){const g=progress(req),what=req.type==="adresse"?`Gebäude und mögliche Dachflächen für „${esc(req.address)}“`:`Hindernisse und Modulbelegung für ${esc(req.ids.join(", "))}`;
+function progHTML(req){const g=progress(req),what=req.type==="adresse"?`Gebäude und mögliche Dachflächen für „${esc(req.address)}“${req.kwp?` (max. ${fmt(req.kwp)} kWp)`:""}`:`Hindernisse und Modulbelegung für ${esc(req.ids.join(", "))}`;
     return `<div class="prog" role="status" aria-live="polite"><div class="row2"><span>In Arbeit seit ${when(req.at)}: ${what}</span><span class="pct">${g.pct} %</span></div>
       <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${g.pct}" aria-label="Fortschritt"><div class="fill" style="width:${g.pct}%"></div></div>
       <ol>${g.P.steps.map((t,k)=>`<li class="${k<g.done?"done":k===g.done?"now":""}">${k<g.done?"✓ ":""}${t}</li>`).join("")}</ol>
@@ -125,7 +127,7 @@ $("app").innerHTML=`<div class="wrap">
 <header><div class="head"><div><div class="eyebrow">PV-Planer · Luftbild</div><h1 id="title"></h1></div>
   <div class="newbox"><button class="ghost" id="newBtn" type="button">Neue Planung</button>
   <span id="newAsk" hidden>Aktuelle Planung verwerfen? <button class="ghost" id="newYes" type="button">Ja, neu beginnen</button> <button class="ghost" id="newNo" type="button">Abbrechen</button></span></div></div>
-  <form class="addr" id="addrForm" autocomplete="off"><input id="addr" type="text" placeholder="Straße Hausnummer, PLZ Ort" aria-label="Adresse"><button class="primary" id="plan" type="submit">Planen</button></form>
+  <form class="addr" id="addrForm" autocomplete="off"><input id="addr" type="text" placeholder="Straße Hausnummer, PLZ Ort" aria-label="Adresse"><label class="kwp">max.<input id="kwp" type="number" min="1" max="10000" step="1" inputmode="numeric" placeholder="100" aria-label="Maximale Anlagenleistung in kWp">kWp</label><button class="primary" id="plan" type="submit">Planen</button></form>
   <div class="msg" id="addrMsg"></div></header>
 <div class="steps" id="steps"></div>
 <div class="banner" id="banner"></div>
@@ -143,6 +145,7 @@ $("app").innerHTML=`<div class="wrap">
   <div class="copy"><code id="copyLine"></code><button class="ghost" id="copyBtn" type="button">Kopieren</button></div></details>
 </div>`;
 $("addr").value=D.request&&D.request.type==="adresse"&&pending()?D.request.address:(D.address||"");
+$("kwp").value=D.target||(D.request&&D.request.kwp)||"";
 
 let fresh=false;   // "Neue Planung": Ansicht geleert, alte Daten bleiben bis zum Senden gespeichert
 function render(){
@@ -163,7 +166,7 @@ function render(){
   let n=0,kwp=0,kwh=0;an.forEach(a=>{const v=a.variants[a.mounting],k=cnt(v)*D.module.wp/1000;n+=cnt(v);kwp+=k;kwh+=k*v.spec});
   $("kpis").hidden=!an.length;
   $("kpis").innerHTML=`<div class="kpi"><span class="k">Module</span><span class="v">${fmt(n)}<small>à ${D.module.wp} Wp</small></span></div><div class="kpi"><span class="k">Leistung${D.target?` (max. ${fmt(D.target)})`:""}</span><span class="v"${D.target&&kwp>D.target+1e-6?' style="color:var(--excl)"':""}>${fmt(kwp,1)}<small>kWp${D.target&&kwp>D.target+1e-6?" — über der Grenze":""}</small></span></div><div class="kpi"><span class="k">Modulfläche</span><span class="v">${fmt(n*D.module.l*D.module.b)}<small>m²</small></span></div><div class="kpi"><span class="k">Ertrag ca.</span><span class="v">${fmt(kwh/1000,1)}<small>MWh/a</small></span></div>`;
-  const line=has?`PV-Auswahl ${D.address}: ${s.map(a=>a.id).join(", ")||"keine"}`:`PV-Planer Adresse: ${$("addr").value.trim()||"…"}`;$("copyLine").textContent=line;
+  const line=has?`PV-Auswahl ${D.address}: ${s.map(a=>a.id).join(", ")||"keine"}`:`PV-Planer Adresse: ${$("addr").value.trim()||"…"}${$("kwp").value?`, max. ${$("kwp").value} kWp`:""}`;$("copyLine").textContent=line;
   if(!has)return;
   // Karte
   const I=D.image;let o=`<svg viewBox="0 0 ${I.w} ${I.h}" role="img" aria-label="Luftbild mit möglichen Dachflächen"><image href="${I.src}" width="${I.w}" height="${I.h}"/>`;
@@ -198,7 +201,8 @@ $("map").addEventListener("click",e=>{const m=e.target.closest(".mod");
 $("map").addEventListener("keydown",e=>{const g=e.target.closest(".cand");if(g&&(e.key==="Enter"||e.key===" ")){e.preventDefault();toggle(+g.dataset.i);const n=document.querySelector(`.cand[data-i="${g.dataset.i}"]`);n&&n.focus()}});
 $("list").addEventListener("change",e=>{const i=e.target.dataset.i;if(i!=null){D.areas[+i].selected=e.target.checked;render()}});
 $("list").addEventListener("click",e=>{const b=e.target.closest(".seg button");if(!b)return;D.areas[+b.closest(".seg").dataset.i].mounting=b.dataset.k;render()});
-$("addr").addEventListener("input",()=>{if(!D.image)$("copyLine").textContent=`PV-Planer Adresse: ${$("addr").value.trim()||"…"}`});
+const upd=()=>{if(!D.image||fresh)$("copyLine").textContent=`PV-Planer Adresse: ${$("addr").value.trim()||"…"}${$("kwp").value?`, max. ${$("kwp").value} kWp`:""}`};
+$("addr").addEventListener("input",upd);$("kwp").addEventListener("input",upd);
 $("copyBtn").addEventListener("click",async()=>{const t=$("copyLine").textContent;try{await navigator.clipboard.writeText(t);$("copyBtn").textContent="Kopiert"}catch(e){const r=document.createRange();r.selectNodeContents($("copyLine"));const s=getSelection();s.removeAllRanges();s.addRange(r);$("copyBtn").textContent="Markiert, Strg+C"}});
 
 /* Anfrage senden: die Seite veröffentlicht sich selbst mit der Anfrage; das weckt Claude, der die Seite danach aktualisiert */
@@ -213,7 +217,7 @@ async function submit(request,msgEl,btn){
   const art=window.claude?await window.claude.use("artifact"):null;
   if(!art){msgEl.className="msg err";msgEl.textContent="Senden geht in dieser Ansicht nicht. Bitte die Zeile unter „Falls Senden nicht funktioniert“ in den Chat kopieren.";btn.disabled=false;return}
   const data=JSON.parse(JSON.stringify(D));data.request=Object.assign(request,{at:new Date().toISOString()});data.status=null;data.progress=null;
-  if(request.type==="adresse"){Object.assign(data,{address:request.address,title:request.address,image:null,areas:[],excluded:[],notes:[],processed:null,geo:null})}
+  if(request.type==="adresse"){Object.assign(data,{address:request.address,title:request.address,image:null,areas:[],excluded:[],notes:[],processed:null,geo:null,target:request.kwp||null})}
   try{await art.publish(pageSource(data));msgEl.textContent="Gesendet. Die Seite lädt neu."}
   catch(e){const c=e&&e.code;msgEl.className="msg err";btn.disabled=false;
     msgEl.textContent=c==="conflict"?"Die Seite wurde gerade aktualisiert und lädt neu. Danach bitte erneut senden."
@@ -222,10 +226,11 @@ async function submit(request,msgEl,btn){
 }
 $("addrForm").addEventListener("submit",e=>{e.preventDefault();const a=$("addr").value.trim();
   if(a.length<5){$("addrMsg").className="msg err";$("addrMsg").textContent="Bitte Straße, Hausnummer und Ort eingeben.";return}
-  submit({type:"adresse",address:a},$("addrMsg"),$("plan"))});
+  const k=+$("kwp").value;if(!(k>0)){$("addrMsg").className="msg err";$("addrMsg").textContent="Bitte die maximale Anlagenleistung in kWp angeben.";$("kwp").focus();return}
+  submit({type:"adresse",address:a,kwp:k},$("addrMsg"),$("plan"))});
 $("newBtn").addEventListener("click",()=>{$("newAsk").hidden=false;$("newBtn").hidden=true;$("newYes").focus()});
 $("newNo").addEventListener("click",()=>{$("newAsk").hidden=true;render()});
-$("newYes").addEventListener("click",()=>{fresh=true;$("newAsk").hidden=true;$("addr").value="";$("addrMsg").textContent="";render();$("addr").focus()});
+$("newYes").addEventListener("click",()=>{fresh=true;$("newAsk").hidden=true;$("addr").value="";$("kwp").value="";$("addrMsg").textContent="";render();$("addr").focus()});
 $("save").addEventListener("click",async()=>{const b=$("save"),m=$("sendMsg");b.disabled=true;m.className="msg";m.textContent="Wird gespeichert …";
   const art=window.claude?await window.claude.use("artifact"):null;
   if(!art){m.className="msg err";m.textContent="Speichern geht in dieser Ansicht nicht.";b.disabled=false;return}
