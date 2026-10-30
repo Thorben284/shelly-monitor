@@ -13,6 +13,9 @@ Nur Modulauslegung: keine Wirtschaftlichkeit, kein Speicher, kein Verbrauch. **V
 
 **Grundregel (Wunsch des Nutzers): verlässliche Planung ohne Fehler — alle verfügbaren Quellen nutzen und Ergebnisse selbst gegenprüfen**, bevor sie dem Nutzer gezeigt werden: Liegenschaftskataster, 3D-Gebäudemodell, Luftbild (Bing, Zoom 21), Street View aus mehreren Blickrichtungen, OpenStreetMap. Jede Fläche erst eintragen, wenn sie in mindestens zwei Quellen plausibel ist; Unsicheres in `note` kennzeichnen. Neue Quellen, die sich als nützlich erweisen, hier ergänzen.
 
+## Moduländerungen des Nutzers
+Im Planer lassen sich einzelne Module per Klick entfernen/hinzufügen und speichern (Seite veröffentlicht sich selbst). Gespeicherter Stand: je Fläche `variants[mounting].off` (Indizes) und `selected`. Vor jedem Neubau aus roof.json das Artifact lesen und diese Angaben als `areas[].off = {<mounting>: [...]}` bzw. `selected` übernehmen, sonst gehen die Änderungen verloren.
+
 ## Anfrage lesen
 Die Seite speichert Anfragen, indem sie sich selbst neu veröffentlicht. Das Wecken der Sitzung kommt nicht zuverlässig an; bei jeder Nachricht zum Planer zuerst das Artifact mit `action: "read"` lesen, JSON aus `<script id="pv-data">` → `request` (und `processed`). Offen ist eine Anfrage, wenn `processed.at < request.at`.
 Bei einem Publish-Konflikt die gespeicherte Version auswerten (sie enthält oft eine neue Anfrage) und darauf aufbauen.

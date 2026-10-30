@@ -76,7 +76,8 @@ async function main(cfgFile, out) {
         holes: (R.excluded || []).map(e => e.poly.map(p => toLocal(m, p))), holeGap: a.edge
       });
       const mods = L.pos.map(q => [[q.x, q.y], [q.x + L.w, q.y], [q.x + L.w, q.y + L.h], [q.x, q.y + L.h]].map(p => px(fromLocal(m, p))));
-      variants[mk] = { label: m.label, tilt: m.tilt, aspects: m.comp.map(toAsp), count: L.count, spec: Math.round(yieldOf(m)), mods };
+      const off = ((a.off || {})[mk] || []).filter(j => j < mods.length);   // im Planer entfernte Module (gespeichert)
+      variants[mk] = { label: m.label, tilt: m.tilt, aspects: m.comp.map(toAsp), count: L.count - off.length, spec: Math.round(yieldOf(m)), mods, off };
     }
     return { id: a.id, name: a.name, building: a.building, kind: a.kind || "", note: a.note || "", area: Math.round(area), edge: a.edge,
       analysed: !!a.mountings, mounting: a.mountings ? Object.keys(variants).reduce((b, k) => variants[k].count > variants[b].count ? k : b) : null, selected: !!a.selected,   // Vorgabe: Variante mit den meisten Modulen
@@ -93,7 +94,7 @@ async function main(cfgFile, out) {
     for (const a of cand) {
       if (left <= 0) break;
       const v = a.variants[a.mounting];
-      if (v.count > left) { for (const k of Object.keys(a.variants)) { const w = a.variants[k]; if (w.count > left) { w.mods = w.mods.slice(0, left); w.count = left; w.capped = true; } } }
+      if (v.count > left) { for (const k of Object.keys(a.variants)) { const w = a.variants[k]; if (w.count > left) { const keep = new Set(w.off); let n = 0; w.off = w.mods.map((_, j) => j).filter(j => keep.has(j) || ++n > left); w.count = left; } } }
       a.selected = true; left -= a.variants[a.mounting].count;
     }
   }

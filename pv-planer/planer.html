@@ -46,6 +46,8 @@ h3{font-size:.76rem;text-transform:uppercase;letter-spacing:.08em;color:var(--mu
 .map{border-radius:8px;overflow:hidden;background:#000}
 .map svg{display:block;width:100%;height:auto}
 .map .cand{cursor:pointer}
+.map .mod{cursor:pointer}
+.map .mod:hover{stroke:var(--pick);stroke-width:2.5}
 .map .cand:focus{outline:none}
 .map .cand:focus-visible polygon.edge{stroke-width:6}
 .legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.82rem;color:var(--muted);margin-top:10px}
@@ -93,6 +95,9 @@ const dSeg=(x,y,[a,b],[e,f])=>{const dx=e-a,dy=f-b,L=dx*dx+dy*dy,t=L?Math.max(0,
 const cen=P=>{const xs=P.map(p=>p[0]),ys=P.map(p=>p[1]),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);let best=[(x0+x1)/2,(y0+y1)/2],bd=-1;
   for(let i=1;i<24;i++)for(let j=1;j<24;j++){const x=x0+(x1-x0)*i/24,y=y0+(y1-y0)*j/24;if(!inP(x,y,P))continue;const d=Math.min(...P.map((p,k)=>dSeg(x,y,p,P[(k+1)%P.length])));if(d>bd){bd=d;best=[x,y]}}return best};
 const sel=()=>D.areas.filter(a=>a.selected);
+/* Einzelne Module abwählbar: v.off = Indizes der entfernten Plätze */
+const cnt=v=>v.mods.length-(v.off||[]).length;
+let dirty=false;   // Moduländerungen noch nicht gespeichert
 /* Anfrage offen, solange Claude sie noch nicht beantwortet hat */
 const pending=()=>!!D.request&&(!D.processed||D.processed.at<D.request.at);
 /* Flächen mit vorab berechneter Belegung zeigen sie sofort; senden nur nötig für Flächen ohne Berechnung */
@@ -130,7 +135,7 @@ $("app").innerHTML=`<div class="wrap">
     <div class="legend"><span><i style="border:3px solid var(--pick)"></i>ausgewählt</span><span><i style="border:2px dashed #fff;background:#555"></i>mögliche Fläche</span><span><i style="background:var(--mod);outline:1px solid var(--mod-line)"></i>Modul</span><span><i style="background:var(--obs)"></i>Hindernis mit Abstand</span><span><i style="background:rgba(255,59,59,.4)"></i>nicht nutzbar</span></div>
   </section>
   <section class="card"><h2>Mögliche Flächen</h2><div class="list" id="list"></div>
-    <div class="send"><button class="primary" id="send" type="button">Auswahl senden</button><div class="msg" id="sendMsg"></div></div>
+    <div class="send"><p class="msg" id="modHint">Tipp: Module im Luftbild anklicken, um sie zu entfernen; gestrichelte Plätze anklicken, um sie wieder hinzuzufügen.</p><button class="ghost" id="save" type="button" hidden>Moduländerungen speichern</button><button class="primary" id="send" type="button">Auswahl senden</button><div class="msg" id="sendMsg"></div></div>
   </section>
 </div>
 <section class="card" id="notesCard"><h2>Hinweise</h2><ul class="notes" id="notes"></ul></section>
@@ -155,7 +160,7 @@ function render(){
   $("main").hidden=!has;$("notesCard").hidden=!has;
   $("plan").disabled=pend&&req.type==="adresse";
   // Kennzahlen nur für belegte Flächen
-  let n=0,kwp=0,kwh=0;an.forEach(a=>{const v=a.variants[a.mounting],k=v.count*D.module.wp/1000;n+=v.count;kwp+=k;kwh+=k*v.spec});
+  let n=0,kwp=0,kwh=0;an.forEach(a=>{const v=a.variants[a.mounting],k=cnt(v)*D.module.wp/1000;n+=cnt(v);kwp+=k;kwh+=k*v.spec});
   $("kpis").hidden=!an.length;
   $("kpis").innerHTML=`<div class="kpi"><span class="k">Module</span><span class="v">${fmt(n)}<small>à ${D.module.wp} Wp</small></span></div><div class="kpi"><span class="k">Leistung${D.target?` (max. ${fmt(D.target)})`:""}</span><span class="v"${D.target&&kwp>D.target+1e-6?' style="color:var(--excl)"':""}>${fmt(kwp,1)}<small>kWp${D.target&&kwp>D.target+1e-6?" — über der Grenze":""}</small></span></div><div class="kpi"><span class="k">Modulfläche</span><span class="v">${fmt(n*D.module.l*D.module.b)}<small>m²</small></span></div><div class="kpi"><span class="k">Ertrag ca.</span><span class="v">${fmt(kwh/1000,1)}<small>MWh/a</small></span></div>`;
   const line=has?`PV-Auswahl ${D.address}: ${s.map(a=>a.id).join(", ")||"keine"}`:`PV-Planer Adresse: ${$("addr").value.trim()||"…"}`;$("copyLine").textContent=line;
@@ -166,9 +171,9 @@ function render(){
   D.areas.forEach((a,i)=>{const on=a.selected,v=a.analysed&&on?a.variants[a.mounting]:null;
     o+=`<g class="cand" data-i="${i}" tabindex="0" role="checkbox" aria-checked="${on}" aria-label="${esc(a.id+" "+a.name)}">`+
       `<polygon class="edge" points="${pts(a.outline)}" fill="${on?"rgba(255,176,32,.16)":"rgba(0,0,0,.18)"}" stroke="${on?"var(--pick)":"#fff"}" stroke-width="${on?3.5:2}" ${on?"":'stroke-dasharray="9 6"'}/>`;
-    if(v){v.mods.forEach(m=>{o+=`<polygon points="${pts(m)}" fill="var(--mod)" stroke="var(--mod-line)" stroke-width=".8" pointer-events="none"/>`});
+    if(v){const off=new Set(v.off||[]);v.mods.forEach((m,j)=>{o+=off.has(j)?`<polygon class="mod off" data-i="${i}" data-j="${j}" points="${pts(m)}" fill="rgba(255,255,255,.08)" stroke="#fff" stroke-width="1.2" stroke-dasharray="4 3"><title>Modul hinzufügen</title></polygon>`:`<polygon class="mod" data-i="${i}" data-j="${j}" points="${pts(m)}" fill="var(--mod)" stroke="var(--mod-line)" stroke-width=".8"><title>Modul entfernen</title></polygon>`});
       a.obstacles.forEach(q=>{o+=`<polygon points="${pts(q.zone)}" fill="rgba(255,79,176,.18)" stroke="var(--obs)" stroke-dasharray="3 2" pointer-events="none"/><polygon points="${pts(q.poly)}" fill="var(--obs)"><title>${esc(q.label)}</title></polygon>`})}
-    const c=cen(a.outline);o+=`<text x="${c[0]}" y="${c[1]+12}" text-anchor="middle" font-family="var(--f-body)" font-size="34" font-weight="700" fill="#fff" stroke="#000" stroke-width="6" paint-order="stroke" pointer-events="none">${a.id}${v?" · "+v.count:""}</text></g>`});
+    const c=cen(a.outline);o+=`<text x="${c[0]}" y="${c[1]+12}" text-anchor="middle" font-family="var(--f-body)" font-size="34" font-weight="700" fill="#fff" stroke="#000" stroke-width="6" paint-order="stroke" pointer-events="none">${a.id}${v?" · "+cnt(v):""}</text></g>`});
   const sb=5/I.mpp;o+=`<g transform="translate(16 ${I.h-20})"><rect x="-8" y="-26" width="${sb+70}" height="38" rx="4" fill="rgba(0,0,0,.55)"/><line x1="0" y1="0" x2="${sb}" y2="0" stroke="#fff" stroke-width="3"/><text x="${sb+8}" y="6" fill="#fff" font-size="24" font-family="var(--f-body)">5 m</text></g>`;
   o+=`<g transform="translate(${I.w-34} 44)"><path d="M0 -26l10 26l-10-8l-10 8z" fill="#fff" stroke="#000"/><text y="20" text-anchor="middle" fill="#fff" stroke="#000" stroke-width="3" paint-order="stroke" font-size="16" font-weight="700" font-family="var(--f-body)">N</text></g></svg>`;
   $("map").innerHTML=o;
@@ -176,17 +181,20 @@ function render(){
   $("list").innerHTML=D.areas.map((a,i)=>{const v=a.analysed&&a.selected?a.variants[a.mounting]:null,ks=Object.keys(a.variants||{});
     return `<div class="row ${a.selected?"":"off"}"><input type="checkbox" data-i="${i}" ${a.selected?"checked":""} aria-label="${esc(a.id+" "+a.name)} auswählen">
       <div><span class="t">${a.id} ${esc(a.name)}</span><span class="sub">${esc(a.kind)} · ca. ${fmt(a.area)} m²${a.note?" · "+esc(a.note):""}</span>
-      ${v&&ks.length>1?`<div class="seg" data-i="${i}">${ks.map(k=>`<button type="button" data-k="${k}" aria-pressed="${k===a.mounting}">${esc(a.variants[k].label)}: ${a.variants[k].count}</button>`).join("")}</div>`:""}
+      ${v&&ks.length>1?`<div class="seg" data-i="${i}">${ks.map(k=>`<button type="button" data-k="${k}" aria-pressed="${k===a.mounting}">${esc(a.variants[k].label)}: ${cnt(a.variants[k])}</button>`).join("")}</div>`:""}
       ${v&&a.obstacles.length?`<span class="sub">${a.obstacles.length} Hindernisse erkannt</span>`:""}
-      ${!a.selected&&a.analysed&&Object.keys(a.variants).length?`<span class="sub">${Object.values(a.variants).map(v=>v.count).sort((x,y)=>y-x)[0]} Module möglich</span>`:""}
+      ${!a.selected&&a.analysed&&Object.keys(a.variants).length?`<span class="sub">${Object.values(a.variants).map(v=>v.mods.length).sort((x,y)=>y-x)[0]} Module möglich</span>`:""}
       ${a.selected&&!a.analysed?`<span class="sub" style="color:var(--sun)">${pend&&req.type==="auswahl"&&req.ids.includes(a.id)?"wird analysiert":"noch nicht analysiert"}</span>`:""}</div>
-      <div class="n">${v?`${v.count} Module${v.capped?" (gekürzt)":""}<small>${fmt(v.count*D.module.wp/1000,1)} kWp · ${fmt(v.spec)} kWh/kWp</small>`:""}</div></div>`}).join("");
+      <div class="n">${v?`${cnt(v)} Module${(v.off||[]).length?` <small style="display:inline">(${v.off.length} entfernt)</small>`:""}<small>${fmt(cnt(v)*D.module.wp/1000,1)} kWp · ${fmt(v.spec)} kWh/kWp</small>`:""}</div></div>`}).join("");
   $("send").disabled=!s.length||!changed()||pend;
   $("send").textContent=!s.length?"Erst Flächen auswählen":pend&&req.type==="auswahl"?"Wird bearbeitet …":changed()?"Auswahl senden":"Belegung wird angezeigt";
+  $("save").hidden=!dirty;$("modHint").hidden=!an.length;
   $("notes").innerHTML=D.notes.map(t=>`<li>${t}</li>`).join("");
 }
 function toggle(i){D.areas[i].selected=!D.areas[i].selected;render()}
-$("map").addEventListener("click",e=>{const g=e.target.closest(".cand");g&&toggle(+g.dataset.i)});
+$("map").addEventListener("click",e=>{const m=e.target.closest(".mod");
+  if(m){const a=D.areas[+m.dataset.i],v=a.variants[a.mounting],j=+m.dataset.j,off=new Set(v.off||[]);off.has(j)?off.delete(j):off.add(j);v.off=[...off].sort((x,y)=>x-y);dirty=true;render();return}
+  const g=e.target.closest(".cand");g&&toggle(+g.dataset.i)});
 $("map").addEventListener("keydown",e=>{const g=e.target.closest(".cand");if(g&&(e.key==="Enter"||e.key===" ")){e.preventDefault();toggle(+g.dataset.i);const n=document.querySelector(`.cand[data-i="${g.dataset.i}"]`);n&&n.focus()}});
 $("list").addEventListener("change",e=>{const i=e.target.dataset.i;if(i!=null){D.areas[+i].selected=e.target.checked;render()}});
 $("list").addEventListener("click",e=>{const b=e.target.closest(".seg button");if(!b)return;D.areas[+b.closest(".seg").dataset.i].mounting=b.dataset.k;render()});
@@ -218,6 +226,11 @@ $("addrForm").addEventListener("submit",e=>{e.preventDefault();const a=$("addr")
 $("newBtn").addEventListener("click",()=>{$("newAsk").hidden=false;$("newBtn").hidden=true;$("newYes").focus()});
 $("newNo").addEventListener("click",()=>{$("newAsk").hidden=true;render()});
 $("newYes").addEventListener("click",()=>{fresh=true;$("newAsk").hidden=true;$("addr").value="";$("addrMsg").textContent="";render();$("addr").focus()});
+$("save").addEventListener("click",async()=>{const b=$("save"),m=$("sendMsg");b.disabled=true;m.className="msg";m.textContent="Wird gespeichert …";
+  const art=window.claude?await window.claude.use("artifact"):null;
+  if(!art){m.className="msg err";m.textContent="Speichern geht in dieser Ansicht nicht.";b.disabled=false;return}
+  try{await art.publish(pageSource(JSON.parse(JSON.stringify(D))));dirty=false;m.textContent="Gespeichert.";render()}
+  catch(e){m.className="msg err";m.textContent=e&&e.code==="conflict"?"Die Seite wurde inzwischen geändert. Bitte neu laden und erneut ändern.":"Speichern fehlgeschlagen.";b.disabled=false}});
 $("send").addEventListener("click",()=>{const ids=sel().map(a=>a.id);if(ids.length)submit({type:"auswahl",ids},$("sendMsg"),$("send"))});
 render();
 setInterval(()=>{if(!fresh&&pending())$("banner").innerHTML=progHTML(D.request)},15000);   // Balken und Restzeit laufend nachführen
