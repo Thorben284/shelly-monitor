@@ -3,6 +3,7 @@
    node tools/kataster.js alkis <wfs.gml> [oid]          Gebäudeumrisse aus dem ALKIS-WFS (vereinfacht, EPSG:4326) → JSON
    node tools/kataster.js lod2 <dump.txt|.json> <id>      Dachflächen eines LoD2-Gebäudes (Text ohne XML-Tags, wie Firecrawl ihn liefert) → JSON
    node tools/kataster.js uv <frame.json> <data.json>     Umrisse/Dachflächen in Gebäudekoordinaten u/v (Meter) umrechnen
+   node tools/kataster.js gebaeude <alkis.json> <oid>     alle Wand an Wand verbundenen Gebäude (gesamtes Dach, alle Hausnummern)
    node tools/kataster.js rahmen <alkis.json> [oid]       Gebäudesystem für roof.json: bearing = Richtung der längsten Wand, Ursprung = nordwestlichste Ecke
    Ausgabe: {buildings:[{oid, name, ll:[[lon,lat],…]}]} bzw. {ground, roofs:[{tilt, az, area, plan, zmin, zmax, ll}]} */
 "use strict";
@@ -78,7 +79,21 @@ function rahmen(ll) {
   return { origin: ll[i0], bearing: +b.toFixed(1) };
 }
 
-module.exports = { utmToLL, alkis, lod2, toUV, rahmen };
+/* Zusammenhängendes Gebäude: Umrisse, deren Ecken höchstens tol Meter von einer Kante eines anderen Umrisses liegen (gemeinsame Wand) */
+function gebaeude(buildings, oid, tol = 0.5) {
+  const o = buildings[0].ll[0], kx = Math.cos(o[1] * D2R) * 111320, ky = 110540;
+  const en = b => b.ll.map(([lo, la]) => [(lo - o[0]) * kx, (la - o[1]) * ky]);
+  const P = buildings.map(en), d = (p, a, b) => { const dx = b[0] - a[0], dy = b[1] - a[1], L = dx * dx + dy * dy, t = L ? Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / L)) : 0; return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy); };
+  const touch = (A, B) => A.some(p => B.some((q, k) => d(p, q, B[(k + 1) % B.length]) <= tol));
+  const start = buildings.findIndex(b => b.oid === oid);
+  if (start < 0) throw new Error("Gebäude " + oid + " nicht gefunden");
+  const seen = new Set([start]), queue = [start];
+  while (queue.length) { const i = queue.shift(); P.forEach((Q, j) => { if (!seen.has(j) && buildings[j].funktion !== "Überdachung" && (touch(P[i], Q) || touch(Q, P[i]))) { seen.add(j); queue.push(j); } }); }
+  const parts = [...seen].map(i => buildings[i]);
+  return { parts, adressen: [...new Set(parts.flatMap(b => (b.lage || "").split(/,\s*(?=\d)/).filter(Boolean).reduce((a, x) => { const m = x.match(/^(.*\D)\s(\d+\w*)$/); if (m) { a.street = m[1]; a.list.push(x); } else a.list.push(a.street ? a.street + " " + x : x); return a; }, { street: "", list: [] }).list))] };
+}
+
+module.exports = { utmToLL, alkis, lod2, toUV, rahmen, gebaeude };
 
 if (require.main === module) {
   const [cmd, a, b] = process.argv.slice(2), read = f => { const t = fs.readFileSync(f, "utf8"); try { const j = JSON.parse(t); return j.answer || j.rawHtml || t; } catch { return t; } };
@@ -89,6 +104,9 @@ if (require.main === module) {
     const R = JSON.parse(fs.readFileSync(a, "utf8")), uv = toUV(R.frame || R), d = JSON.parse(fs.readFileSync(b, "utf8"));
     for (const x of d.buildings || d.roofs) x.uv = x.ll.map(uv);
     r = d;
+  } else if (cmd === "gebaeude") {
+    const g = gebaeude(JSON.parse(fs.readFileSync(a, "utf8")).buildings, b);
+    r = { adressen: g.adressen, teile: g.parts.map(x => ({ oid: x.oid, funktion: x.funktion, lage: x.lage })), buildings: g.parts };
   } else if (cmd === "rahmen") {
     const d = JSON.parse(fs.readFileSync(a, "utf8")), bld = (d.buildings || []).find(x => !b || x.oid === b) || d.buildings[0];
     r = { frame: rahmen(bld.ll), oid: bld.oid };

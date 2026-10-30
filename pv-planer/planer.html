@@ -147,6 +147,16 @@ h2 small{font-family:var(--f-body);text-transform:none;letter-spacing:0;font-wei
 .dist .dr{display:grid;grid-template-columns:34px 1fr 64px;gap:8px;align-items:center}
 .dist .db{height:6px;background:var(--bg);border-radius:1px;overflow:hidden}.dist .db i{display:block;height:100%;background:var(--mod-line)}
 .dist .dr span:last-child{text-align:right}
+.ent{display:flex;flex-direction:column;gap:8px}
+.ent .ask{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px}
+.ent .ask.q{background:var(--accent-soft);border:1px solid var(--accent);border-radius:4px;padding:8px 10px}
+.ent .field{height:30px;width:76px}.ent .field input{text-align:right}
+.etbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.etbl th{font-weight:500;color:var(--muted);text-align:right;padding:3px 4px;border-bottom:1px solid var(--line)}
+.etbl th:first-child,.etbl td:first-child{text-align:left}
+.etbl td{padding:4px;border-bottom:1px solid var(--line);text-align:right;font-family:var(--f-num)}
+.etbl td:first-child{font-family:var(--f-body)}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
 .notes{margin:0;padding-left:16px;color:var(--muted);font-size:12.5px;display:flex;flex-direction:column;gap:6px}
 .copyline{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .copyline code{font-family:var(--f-num);font-size:11.5px;background:var(--bg);border:1px solid var(--line);border-radius:3px;padding:4px 6px;user-select:all;word-break:break-all;flex:1;min-width:0}
@@ -186,6 +196,22 @@ const sel=()=>D.areas.filter(a=>a.selected);
 const cnt=v=>v.mods.length-(v.off||[]).length;                 // aktive Module (v.off = entfernte Plätze)
 const pending=()=>!!D.request&&(!D.processed||D.processed.at<D.request.at);
 const changed=()=>sel().some(a=>!a.analysed);                   // gewählte Flächen ohne Berechnung
+/* Aufteilung auf Eingänge: aktive Module entlang der Hauptachse des Gebäudes (Hauptkomponente der Modulmitten) sortieren
+   und in zusammenhängende Blöcke mit gleicher Modulzahl (±1) teilen */
+const GCOL=["#2f6fb3","#2f8a57","#8f55c0","#c0702a","#23959a","#b0466e","#6b7d2a","#5a5fc7"];
+function groups(){
+  const N=Math.round(D.entrances||0);if(!(N>1)||fresh)return null;
+  const it=[];sel().filter(a=>a.analysed).forEach(a=>{const i=D.areas.indexOf(a),v=a.variants[a.mounting],off=new Set(v.off||[]);v.mods.forEach((m,j)=>{if(!off.has(j))it.push({i,j,spec:v.spec,c:[m.reduce((t,p)=>t+p[0],0)/m.length,m.reduce((t,p)=>t+p[1],0)/m.length]})})});
+  if(it.length<N)return null;
+  const mx=it.reduce((t,o)=>t+o.c[0],0)/it.length,my=it.reduce((t,o)=>t+o.c[1],0)/it.length;let sxx=0,syy=0,sxy=0;
+  it.forEach(o=>{const dx=o.c[0]-mx,dy=o.c[1]-my;sxx+=dx*dx;syy+=dy*dy;sxy+=dx*dy});
+  const th=.5*Math.atan2(2*sxy,sxx-syy),ax=[Math.cos(th),Math.sin(th)];
+  if(Math.abs(ax[1])>Math.abs(ax[0])?ax[1]<0:ax[0]<0){ax[0]=-ax[0];ax[1]=-ax[1]}       // Reihenfolge: von Nord nach Süd bzw. West nach Ost
+  it.sort((a,b)=>(a.c[0]*ax[0]+a.c[1]*ax[1])-(b.c[0]*ax[0]+b.c[1]*ax[1]));
+  const base=Math.floor(it.length/N),extra=it.length%N,G=Array.from({length:N},(_,g)=>({n:0,kwp:0,kwh:0,name:(D.addresses&&D.addresses.length===N?D.addresses[g]:`Eingang ${g+1}`)})),key={};
+  let k=0;for(let g=0;g<N;g++){const size=base+(g<extra?1:0);for(let q=0;q<size;q++,k++){const o=it[k],kw=D.module.wp/1000;key[o.i+":"+o.j]=g;G[g].n++;G[g].kwp+=kw;G[g].kwh+=kw*o.spec}}
+  return {G,key};
+}
 let fresh=false,dirty=false,tool="area",showObs=true,showLbl=true;
 
 /* Fortschritt: echte Schritte meldet Claude über D.progress {step, at}; dazwischen Schätzung nach üblicher Dauer */
@@ -240,6 +266,7 @@ $("app").innerHTML=`<div class="app">
   </section>
   <aside class="side r" aria-label="Auswertung">
     <div class="sec"><h2>Anlage</h2><div class="kpi" id="kpi"></div><div class="cap" id="cap"></div></div>
+    <div class="sec" id="entSec"><h2>Eingänge <small id="entSub"></small></h2><div class="ent"><div class="ask" id="entAsk"><label for="ent">Auf wie viele Eingänge soll die Leistung verteilt werden?</label><div class="field"><input id="ent" type="number" min="1" max="20" step="1" inputmode="numeric"></div></div><div id="entTbl"></div></div></div>
     <div class="sec"><h2>Verteilung <small>kWp je Fläche</small></h2><div class="dist" id="dist"></div></div>
     <div class="sec"><h2>Zusammenfassung</h2><div class="copyline"><button class="btn sm" id="copySum" type="button">Als Text kopieren</button><span class="msg" id="copyMsg"></span></div></div>
     <div class="sec scroll"><h2>Hinweise und Quellen</h2><ul class="notes" id="notes"></ul>
@@ -262,12 +289,12 @@ const zoom=(f,cx,cy)=>{if(!vb)return;const I=D.image,nw=Math.min(Math.max(vb.w*f
 const toImg=e=>{const r=$("canvas").getBoundingClientRect();return [vb.x+(e.clientX-r.left)/r.width*vb.w,vb.y+(e.clientY-r.top)/r.height*vb.h]};
 
 function mapSVG(an){
-  const I=D.image;
+  const I=D.image,gr=groups();
   let o=`<svg viewBox="0 0 ${I.w} ${I.h}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Luftbild mit Dachflächen und Modulbelegung"><image href="${I.src}" width="${I.w}" height="${I.h}"/>`;
   if(an.length)D.excluded.forEach(e=>{o+=`<polygon points="${pts(e.poly)}" fill="rgba(255,59,59,.3)" stroke="var(--excl)" stroke-width="2"><title>${esc(e.name)}: nicht nutzbar</title></polygon>`});
   D.areas.forEach((a,i)=>{const on=a.selected,v=a.analysed&&on?a.variants[a.mounting]:null;
     o+=`<g class="cand" data-i="${i}" tabindex="0" role="checkbox" aria-checked="${on}" aria-label="${esc(a.id+" "+a.name)}"><polygon class="edge" points="${pts(a.outline)}" fill="${on?"rgba(240,163,42,.10)":"rgba(0,0,0,.22)"}" stroke="${on?"var(--accent)":"#fff"}" stroke-width="${on?2.2:1.3}" ${on?"":'stroke-dasharray="7 5"'}/>`;
-    if(v){const off=new Set(v.off||[]);v.mods.forEach((m,j)=>{o+=off.has(j)?`<polygon class="mod off" data-i="${i}" data-j="${j}" points="${pts(m)}" fill="rgba(255,255,255,.06)" stroke="#fff" stroke-width="1" stroke-dasharray="3 2"><title>Platz frei — anklicken zum Hinzufügen</title></polygon>`:`<polygon class="mod" data-i="${i}" data-j="${j}" points="${pts(m)}" fill="var(--mod)" stroke="var(--mod-line)" stroke-width=".7"><title>Modul — anklicken zum Entfernen</title></polygon>`});
+    if(v){const off=new Set(v.off||[]);v.mods.forEach((m,j)=>{o+=off.has(j)?`<polygon class="mod off" data-i="${i}" data-j="${j}" points="${pts(m)}" fill="rgba(255,255,255,.06)" stroke="#fff" stroke-width="1" stroke-dasharray="3 2"><title>Platz frei — anklicken zum Hinzufügen</title></polygon>`:`<polygon class="mod" data-i="${i}" data-j="${j}" points="${pts(m)}" fill="${gr&&gr.key[i+":"+j]!=null?GCOL[gr.key[i+":"+j]%GCOL.length]:"var(--mod)"}" stroke="var(--mod-line)" stroke-width=".7"><title>Modul — anklicken zum Entfernen</title></polygon>`});
       if(showObs)a.obstacles.forEach(q=>{o+=`<polygon points="${pts(q.zone)}" fill="rgba(223,47,143,.16)" stroke="var(--obs)" stroke-width="1" stroke-dasharray="3 2" pointer-events="none"/><polygon points="${pts(q.poly)}" fill="var(--obs)" pointer-events="none"><title>${esc(q.label)}</title></polygon>`})}
     if(showLbl){const c=cen(a.outline);o+=`<text class="lbl" x="${c[0]}" y="${c[1]}" text-anchor="middle" dominant-baseline="middle">${a.id}${v?" · "+cnt(v):""}</text>`}
     o+=`</g>`});
@@ -279,7 +306,7 @@ function render(){
   const s=fresh?[]:sel(),an=s.filter(a=>a.analysed),req=fresh?null:D.request,pend=!fresh&&pending(),has=!fresh&&!!D.image;
   const stage=!has?0:pend&&req.type==="auswahl"?2:an.length&&!changed()?3:1;
   $("ptitle").textContent=fresh?"Neue Planung":D.title||D.address||"Neue Planung";
-  $("pmeta").textContent=fresh||!D.image?"Adresse und maximale Leistung eingeben":`Stand ${D.created?new Date(D.created).toLocaleDateString("de-DE"):"–"} · ${D.areas.length} Dachflächen · Modul ${D.module.wp} Wp, ${fmt(D.module.l*1000)} × ${fmt(D.module.b*1000)} mm, hochkant`;
+  $("pmeta").textContent=fresh||!D.image?"Adresse und maximale Leistung eingeben":`${D.addresses&&D.addresses.length>1?`Gebäude ${D.addresses.join(", ")} · `:""}Stand ${D.created?new Date(D.created).toLocaleDateString("de-DE"):"–"} · ${D.areas.length} Dachflächen · Modul ${D.module.wp} Wp, ${fmt(D.module.l*1000)} × ${fmt(D.module.b*1000)} mm, hochkant`;
   $("newBtn").hidden=!D.image||fresh||!$("newAsk").hidden;
   $("plan").disabled=pend&&req.type==="adresse";
   // Kennzahlen
@@ -290,6 +317,13 @@ function render(){
   $("cap").innerHTML=T?`<div class="row"><span>Obergrenze</span><b class="num">${fmt(kwp,1)} / ${fmt(T)} kWp</b></div><div class="meter${over?" over":""}"><i style="width:${Math.min(100,kwp/T*100)}%"></i></div><div class="msg${over?" err":""}">${over?`${fmt(kwp-T,1)} kWp über der Grenze. Flächen oder Module abwählen.`:`Noch ${fmt(T-kwp,1)} kWp frei (${fmt(Math.floor((T-kwp)*1000/D.module.wp))} Module).`}</div>`:"";
   const mx=Math.max(1,...per.map(p=>p[1]));
   $("dist").innerHTML=per.length?per.sort((a,b)=>b[1]-a[1]).map(([id,k])=>`<div class="dr"><span class="tag">${id}</span><span class="db"><i style="width:${k/mx*100}%"></i></span><span class="num">${fmt(k,1)}</span></div>`).join(""):`<span class="msg">Noch keine Fläche gewählt.</span>`;
+  // Eingänge
+  const gr=groups(),hasAn=!fresh&&D.areas.some(a=>a.analysed);
+  $("entSec").hidden=!hasAn;
+  if(document.activeElement!==$("ent"))$("ent").value=D.entrances||"";
+  $("entAsk").className="ask"+(D.entrances?"":" q");
+  $("entSub").textContent=D.addresses&&D.addresses.length>1?`${D.addresses.length} Hausnummern im Gebäude`:"";
+  $("entTbl").innerHTML=gr?`<table class="etbl"><thead><tr><th>Eingang</th><th>Module</th><th>kWp</th><th>MWh/a</th></tr></thead><tbody>${gr.G.map((g,k)=>`<tr><td><span class="sw" style="background:${GCOL[k%GCOL.length]}"></span>${esc(g.name)}</td><td>${fmt(g.n)}</td><td>${fmt(g.kwp,1)}</td><td>${fmt(g.kwh/1000,1)}</td></tr>`).join("")}</tbody></table><p class="msg">Zusammenhängende Blöcke entlang des Gebäudes, je Eingang gleich viele Module (±1). Farben im Plan.</p>`:D.entrances==1?`<p class="msg">Gesamte Leistung auf einen Eingang.</p>`:"";
   // Flächentabelle
   const tot=D.areas.filter(a=>a.analysed).reduce((t,a)=>t+Math.max(0,...Object.values(a.variants).map(v=>v.mods.length)),0);
   $("areaSum").textContent=D.areas.length&&!fresh?`${s.length} von ${D.areas.length} gewählt · max. ${fmt(tot)} Module`:"";
@@ -345,8 +379,9 @@ $("list").addEventListener("change",e=>{const i=e.target.dataset.i;if(i!=null){D
 const copy=async(t,msg)=>{try{await navigator.clipboard.writeText(t);msg.textContent="Kopiert."}catch(_){msg.textContent="Kopieren nicht möglich. Text markieren und mit Strg+C kopieren."}};
 $("copyBtn").onclick=()=>copy($("copyLine").textContent,$("copyMsg"));
 $("copySum").onclick=()=>{let n=0,k=0,e=0;const L=sel().filter(a=>a.analysed).map(a=>{const v=a.variants[a.mounting],c=cnt(v),kw=c*D.module.wp/1000,az=azOf(v.aspects[0]);n+=c;k+=kw;e+=kw*v.spec;return `${a.id} ${a.name}: ${c} Module, ${fmt(kw,1)} kWp (${v.label}, ${compass(az)} ${fmt(az)}°, ${fmt(v.spec)} kWh/kWp)`});
-  copy([`PV-Planung ${D.title||D.address}`,`Modul ${D.module.wp} Wp, hochkant`,...L,`Summe: ${n} Module, ${fmt(k,1)} kWp${D.target?` (max. ${fmt(D.target)} kWp)`:""}, ca. ${fmt(e/1000,1)} MWh/a`].join("\n"),$("copyMsg"))};
+  copy([`PV-Planung ${D.title||D.address}`,`Modul ${D.module.wp} Wp, hochkant`,...L,`Summe: ${n} Module, ${fmt(k,1)} kWp${D.target?` (max. ${fmt(D.target)} kWp)`:""}, ca. ${fmt(e/1000,1)} MWh/a`,...(()=>{const g=groups();return g?["Aufteilung auf Eingänge:",...g.G.map(x=>`  ${x.name}: ${x.n} Module, ${fmt(x.kwp,1)} kWp, ca. ${fmt(x.kwh/1000,1)} MWh/a`)]:[]})()].join("\n"),$("copyMsg"))};
 const upd=()=>{if(!D.image||fresh)$("copyLine").textContent=`PV-Planer Adresse: ${$("addr").value.trim()||"…"}${$("kwp").value?`, max. ${$("kwp").value} kWp`:""}`};
+$("ent").addEventListener("input",()=>{const v=Math.round(+$("ent").value);D.entrances=v>0?Math.min(v,20):null;dirty=true;render()});
 $("addr").addEventListener("input",upd);$("kwp").addEventListener("input",upd);
 
 /* Senden und Speichern: die Seite veröffentlicht sich selbst; Claude liest die Anfrage und aktualisiert die Seite */
@@ -362,7 +397,7 @@ async function submit(request,msgEl,btn){
   const art=window.claude?await window.claude.use("artifact"):null;
   if(!art){say(msgEl,"Senden geht in dieser Ansicht nicht. Zeile unter „Hinweise und Quellen → Falls Senden nicht funktioniert“ in den Chat kopieren.",1);btn.disabled=false;return}
   const data=JSON.parse(JSON.stringify(D));data.request=Object.assign(request,{at:new Date().toISOString()});data.status=null;data.progress=null;
-  if(request.type==="adresse")Object.assign(data,{address:request.address,title:request.address,image:null,areas:[],excluded:[],notes:[],processed:null,geo:null,target:request.kwp||null});
+  if(request.type==="adresse")Object.assign(data,{address:request.address,title:request.address,image:null,areas:[],excluded:[],notes:[],processed:null,geo:null,target:request.kwp||null,entrances:null,addresses:null});
   try{await art.publish(pageSource(data));say(msgEl,"Gesendet. Die Seite lädt neu.")}
   catch(e){const c=e&&e.code;btn.disabled=false;say(msgEl,c==="conflict"?"Die Seite wurde gerade aktualisiert. Nach dem Neuladen bitte erneut senden.":c==="not_writer"||c==="not_granted"?"Nur Lesezugriff: Zeile unter „Falls Senden nicht funktioniert“ in den Chat kopieren.":"Senden fehlgeschlagen. Zeile unter „Falls Senden nicht funktioniert“ in den Chat kopieren.",1)}
 }
