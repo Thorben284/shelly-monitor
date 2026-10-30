@@ -1,0 +1,450 @@
+{
+ "address": "Dorette-von-Stern-Straße 2, 21337 Lüneburg",
+ "title": "Dorette-von-Stern-Straße 2, Lüneburg (Kulturbäckerei)",
+ "geo": {
+  "lat": 53.254087,
+  "lon": 10.4242927,
+  "osm": "way/62316711"
+ },
+ "request": {
+  "type": "adresse",
+  "address": "Dorette-von-Stern-Straße 2, 21337 Lüneburg, Deutschland",
+  "at": "2026-10-29T20:29:08.841Z"
+ },
+ "processed": {
+  "type": "adresse",
+  "at": "2026-10-30T08:00:46.000Z"
+ },
+ "progress": {
+  "type": "adresse",
+  "step": 6,
+  "at": "2026-10-30T08:00:46.000Z"
+ },
+ "areas": [
+  {
+   "id": "MW",
+   "name": "Hauptbau West",
+   "kind": "Walmdach",
+   "building": "Hauptbau",
+   "note": "2-geschossig, Pfannen; Neigung geschätzt 35° (Street View), großes Oberlicht am First",
+   "selected": false,
+   "poly": [
+    [
+     -1.03,
+     -0.76
+    ],
+    [
+     -8.82,
+     11.89
+    ],
+    [
+     -26.54,
+     12.79
+    ],
+    [
+     -32.03,
+     0.82
+    ]
+   ],
+   "slope": {
+    "tilt": 35,
+    "fall": 273
+   },
+   "mountings": [
+    "dach_quer",
+    "dach_hoch"
+   ],
+   "edge": 0.3
+  },
+  {
+   "id": "MO",
+   "name": "Hauptbau Ost",
+   "kind": "Walmdach",
+   "building": "Hauptbau",
+   "note": "Pfannen; Neigung geschätzt 35°",
+   "selected": false,
+   "poly": [
+    [
+     -8.82,
+     11.89
+    ],
+    [
+     -0.04,
+     22.36
+    ],
+    [
+     -31.04,
+     23.93
+    ],
+    [
+     -26.54,
+     12.79
+    ]
+   ],
+   "slope": {
+    "tilt": 35,
+    "fall": 93
+   },
+   "mountings": [
+    "dach_quer",
+    "dach_hoch"
+   ],
+   "edge": 0.3
+  },
+  {
+   "id": "MS",
+   "name": "Hauptbau Südwalm",
+   "kind": "Walmdach",
+   "building": "Hauptbau",
+   "note": "Dreieck nach Süden; Neigung geschätzt 35°; Oberlicht",
+   "selected": false,
+   "poly": [
+    [
+     -32.03,
+     0.82
+    ],
+    [
+     -26.54,
+     12.79
+    ],
+    [
+     -31.04,
+     23.93
+    ]
+   ],
+   "slope": {
+    "tilt": 35,
+    "fall": 183
+   },
+   "mountings": [
+    "dach_quer",
+    "dach_hoch"
+   ],
+   "edge": 0.3
+  },
+  {
+   "id": "SW",
+   "name": "Südflügel West",
+   "kind": "Walmdach",
+   "building": "Südflügel",
+   "note": "eingeschossig; Neigung geschätzt 30°",
+   "selected": false,
+   "poly": [
+    [
+     -32.1,
+     2.88
+    ],
+    [
+     -31.59,
+     13.04
+    ],
+    [
+     -43.64,
+     13.65
+    ],
+    [
+     -43.43,
+     3.63
+    ]
+   ],
+   "slope": {
+    "tilt": 30,
+    "fall": 273
+   },
+   "mountings": [
+    "dach_quer",
+    "dach_hoch"
+   ],
+   "edge": 0.3
+  },
+  {
+   "id": "SO",
+   "name": "Südflügel Ost",
+   "kind": "Walmdach",
+   "building": "Südflügel",
+   "note": "eingeschossig; Neigung geschätzt 30°; 2 Lüfter",
+   "selected": false,
+   "poly": [
+    [
+     -31.59,
+     13.04
+    ],
+    [
+     -31.14,
+     21.96
+    ],
+    [
+     -43.37,
+     22.49
+    ],
+    [
+     -43.64,
+     13.65
+    ]
+   ],
+   "slope": {
+    "tilt": 30,
+    "fall": 93
+   },
+   "mountings": [
+    "dach_quer",
+    "dach_hoch"
+   ],
+   "edge": 0.3
+  },
+  {
+   "id": "NW",
+   "name": "Nordflügel West",
+   "kind": "Dach",
+   "building": "Nordflügel",
+   "note": "viele kleine Dachfenster; Neigung geschätzt 35°",
+   "selected": false,
+   "poly": [
+    [
+     11.57,
+     6.03
+    ],
+    [
+     11.82,
+     12.72
+    ],
+    [
+     -0.05,
+     13.32
+    ],
+    [
+     -0.22,
+     6.45
+    ]
+   ],
+   "slope": {
+    "tilt": 35,
+    "fall": 273
+   },
+   "mountings": [
+    "dach_quer",
+    "dach_hoch"
+   ],
+   "edge": 0.3
+  },
+  {
+   "id": "NO",
+   "name": "Nordflügel Ost",
+   "kind": "Dach",
+   "building": "Nordflügel",
+   "note": "viele kleine Dachfenster; Neigung geschätzt 35°",
+   "selected": false,
+   "poly": [
+    [
+     11.82,
+     12.72
+    ],
+    [
+     12.08,
+     19.69
+    ],
+    [
+     0.01,
+     19.85
+    ],
+    [
+     -0.05,
+     13.32
+    ]
+   ],
+   "slope": {
+    "tilt": 35,
+    "fall": 93
+   },
+   "mountings": [
+    "dach_quer",
+    "dach_hoch"
+   ],
+   "edge": 0.3
+  },
+  {
+   "id": "FO",
+   "name": "Flachdach Ost",
+   "kind": "Flachdach",
+   "building": "Anbau Ost",
+   "note": "schmaler Streifen ca. 3 m breit, niedriger",
+   "selected": false,
+   "poly": [
+    [
+     -6.41,
+     22.68
+    ],
+    [
+     -6.26,
+     25.71
+    ],
+    [
+     -25,
+     25.68
+    ],
+    [
+     -24.98,
+     22.64
+    ]
+   ],
+   "mountings": [
+    "eben"
+   ],
+   "edge": 0.4
+  }
+ ],
+ "obstacles": [
+  {
+   "type": "lichtkuppel",
+   "u": -16.1,
+   "v": 10.2,
+   "w": 4.2,
+   "h": 6.4,
+   "label": "Oberlicht"
+  },
+  {
+   "type": "lichtkuppel",
+   "u": -29.36,
+   "v": 9.71,
+   "w": 2.4,
+   "h": 4.6,
+   "label": "Oberlicht"
+  },
+  {
+   "type": "lichtkuppel",
+   "u": -6.75,
+   "v": 17.78,
+   "w": 1,
+   "h": 1,
+   "label": "Dachfenster"
+  },
+  {
+   "type": "entlueftung",
+   "u": -35.16,
+   "v": 14.39
+  },
+  {
+   "type": "entlueftung",
+   "u": -35.09,
+   "v": 15.9
+  },
+  {
+   "type": "sonstiges",
+   "u": 9.47,
+   "v": 10.16,
+   "w": 1,
+   "h": 1.2,
+   "label": "Dachfenster"
+  },
+  {
+   "type": "sonstiges",
+   "u": 9.42,
+   "v": 16.15,
+   "w": 1,
+   "h": 1.2,
+   "label": "Dachfenster"
+  },
+  {
+   "type": "sonstiges",
+   "u": 7.69,
+   "v": 11.86,
+   "w": 1,
+   "h": 1.2,
+   "label": "Dachfenster"
+  },
+  {
+   "type": "sonstiges",
+   "u": 7.54,
+   "v": 14.1,
+   "w": 1,
+   "h": 1.2,
+   "label": "Dachfenster"
+  },
+  {
+   "type": "sonstiges",
+   "u": 5.74,
+   "v": 10.17,
+   "w": 1,
+   "h": 1.2,
+   "label": "Dachfenster"
+  },
+  {
+   "type": "sonstiges",
+   "u": 5.86,
+   "v": 16.07,
+   "w": 1,
+   "h": 1.2,
+   "label": "Dachfenster"
+  },
+  {
+   "type": "sonstiges",
+   "u": 4.23,
+   "v": 11.95,
+   "w": 1,
+   "h": 1.2,
+   "label": "Dachfenster"
+  },
+  {
+   "type": "sonstiges",
+   "u": 4.17,
+   "v": 14.18,
+   "w": 1,
+   "h": 1.2,
+   "label": "Dachfenster"
+  },
+  {
+   "type": "sonstiges",
+   "u": 2.35,
+   "v": 9.89,
+   "w": 1,
+   "h": 1.2,
+   "label": "Dachfenster"
+  },
+  {
+   "type": "sonstiges",
+   "u": 2.31,
+   "v": 15.98,
+   "w": 1,
+   "h": 1.2,
+   "label": "Dachfenster"
+  }
+ ],
+ "pvgis": {
+  "35|93": 761.3,
+  "35|-87": 805.1,
+  "35|3": 986.5,
+  "30|93": 773.7,
+  "30|-87": 813.9,
+  "5|-87": 827.1
+ },
+ "notes": [
+  "Umriss aus dem Liegenschaftskataster (ALKIS, LGLN, Stand 2021); Abgleich mit Luftbild (Bing Maps, Maßstab über die 31,3 m lange Westwand geprüft) und Google Street View (Juli 2022): Backsteinbau, zweigeschossiger Hauptbau mit Walmdach, eingeschossiger Südflügel, Nordflügel mit vielen kleinen Dachfenstern.",
+  "Dachneigungen GESCHÄTZT (Hauptbau/Nordflügel 35°, Südflügel 30°, ±5°): Das amtliche 3D-Modell (LoD2) ließ sich diesmal nicht abrufen. Modulzahlen ändern sich bei anderer Neigung um einige Prozent. Firstlinien aus dem Luftbild, ±0,5 m.",
+  "Nicht aufgeführt: Nordwalm des Hauptbaus (nach Norden), Fahrradüberdachung (vermutlich lichtdurchlässig). Altbau — ggf. Denkmalschutz und Tragfähigkeit prüfen.",
+  "Belegung: Modul 450 Wp, 1762 × 1134 mm, dachparallel, Randabstand 0,3 m; Hindernisse (Oberlichter, Dachfenster, Lüfter) aus dem Luftbild mit 0,3–0,5 m Abstand. Verschattung nicht berücksichtigt. Erträge PVGIS, 14 % Verluste."
+ ],
+ "frame": {
+  "origin": [
+   10.424134968553,
+   53.25423116137
+  ],
+  "bearing": 2.9
+ },
+ "aerial": {
+  "file": "luftbild.png",
+  "lat": 53.25415,
+  "lon": 10.42432,
+  "zoom": 20,
+  "cx": 700,
+  "cy": 590,
+  "crop": [
+   500,
+   330,
+   880,
+   1010
+  ],
+  "scale": 2,
+  "source": "Bing Maps (Maxar)"
+ },
+ "excluded": []
+}
