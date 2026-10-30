@@ -62,7 +62,8 @@ async function main(cfgFile, out) {
     const { d, r, ct } = m.plane, e = x * r[0] - y * ct * d[0], n = x * r[1] - y * ct * d[1];
     return [e * eu[0] + n * eu[1], e * ev[0] + n * ev[1]];
   };
-  const yieldOf = m => { const ks = m.comp.map(c => `${m.tilt}|${toAsp(c)}`); const miss = ks.filter(k => !R.pvgis[k]); if (miss.length) throw new Error("PVGIS fehlt: " + miss.join(", ")); return ks.reduce((a, k) => a + R.pvgis[k], 0) / ks.length; };
+  const missing = new Set();   // fehlende PVGIS-Werte sammeln, am Ende alle auf einmal melden (parallel abrufbar)
+  const yieldOf = m => { const ks = m.comp.map(c => `${m.tilt}|${toAsp(c)}`); ks.filter(k => !R.pvgis[k]).forEach(k => missing.add(k)); return ks.reduce((a, k) => a + (R.pvgis[k] || 0), 0) / ks.length; };
 
   const areas = R.areas.map(a => {
     const area = (() => { let s = 0; const P = a.poly; for (let i = 0; i < P.length; i++) { const p = P[i], q = P[(i + 1) % P.length]; s += p[0] * q[1] - q[0] * p[1]; } return Math.abs(s) / 2; })();
@@ -86,6 +87,10 @@ async function main(cfgFile, out) {
       variants };
   });
 
+  if (missing.size) {
+    const g = R.geo || (R.aerial ? { lat: R.aerial.lat, lon: R.aerial.lon } : null), u = k => { const [t, a] = k.split("|"); return `https://re.jrc.ec.europa.eu/api/v5_2/PVcalc?lat=${g.lat.toFixed(4)}&lon=${g.lon.toFixed(4)}&peakpower=1&loss=14&angle=${t}&aspect=${a}&usehorizon=1&outputformat=basic`; };
+    throw new Error("PVGIS fehlt (" + missing.size + "), Jahreswert = Zeile \"Year\", 2. Spalte:\n" + [...missing].map(k => `  "${k}": ${g ? u(k) : "(geo fehlt)"}`).join("\n"));
+  }
   /* Obergrenze R.target_kwp: Flächen nach spezifischem Ertrag füllen; die letzte Fläche wird auf die Restzahl gekürzt */
   if (R.target_kwp) {
     let left = Math.floor(R.target_kwp * 1000 / M.wp + 1e-9);

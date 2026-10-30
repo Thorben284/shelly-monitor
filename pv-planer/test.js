@@ -270,5 +270,15 @@ console.log("Kataster (ALKIS, LoD2)");
   near(L.roofs[0].plan, 50, .1, "LoD2: Grundfläche"); near(L.ground, 37, 0, "LoD2: Geländehöhe");
 }
 
+{
+  const K = require("./tools/kataster.js"), D = Math.PI / 180, kx = Math.cos(53 * D) * 111320, ky = 110540;
+  // Rechteck 20 m (Achse 30° ab Nord) × 8 m
+  const P = [[0, 0], [20 * Math.sin(30 * D), 20 * Math.cos(30 * D)], [20 * Math.sin(30 * D) + 8 * Math.sin(120 * D), 20 * Math.cos(30 * D) + 8 * Math.cos(120 * D)], [8 * Math.sin(120 * D), 8 * Math.cos(120 * D)]].map(([e, n]) => [10 + e / kx, 53 + n / ky]);
+  const f = K.rahmen(P);
+  near(f.bearing, 30, .2, "Rahmen: Achse der längsten Wand");
+  const uv = K.toUV(f);
+  ok(P.every(p => { const [u, v] = uv(p); return v > -0.01 && u < 0.01; }), "Rahmen: Ursprung an der Nordwestecke (u ≤ 0, v ≥ 0)");
+}
+
 console.log(`\n${pass} bestanden, ${fail} fehlgeschlagen`);
 process.exit(fail ? 1 : 0);

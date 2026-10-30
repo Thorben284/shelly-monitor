@@ -27,6 +27,8 @@ Die Seite zeigt einen Prozentbalken mit Schritten und geschätzter Restzeit (Sch
 Erste Meldung (step 1) sofort nach dem Lesen der Anfrage. Beim Abschluss `processed` setzen; `progress` kann bleiben.
 
 ## request.type = "adresse"
+**Schnellablauf:** (1) Anfrage lesen, `progress` step 1 veröffentlichen; (2) in EINEM Schritt parallel: Nominatim, ALKIS-WFS, LoD2-STAC, Bing Zoom 21 (bei großen Gebäuden 2 Ausschnitte), Street View 2–3 Richtungen; (3) `kataster.js alkis` + `kataster.js rahmen` → frame; (4) Kanten mit `kanten.js` messen, roof.json schreiben; (5) `areas.js` meldet ALLE fehlenden PVGIS-Werte mit fertigen URLs → alle parallel abrufen; (6) Overlay-Kontrolle, bauen, veröffentlichen.
+
 **Tempo (Wunsch des Nutzers): Schon bei der Adresse ALLE Flächen fertig rechnen** (Hindernisse, PVGIS, `mountings`), damit die Auswahl im Planer sofort die Belegung zeigt und keine zweite Runde nötig ist. Unabhängige Abrufe immer gleichzeitig in einem Schritt starten (ALKIS, STAC, Luftbild, Street View; alle PVGIS-Abfragen). PVGIS mit `outputformat=basic` (kurze Antwort, Jahreswert in der Zeile `Year`, 2. Spalte).
 
 Rangfolge der Quellen: **amtliche Daten vor Bildauswertung.** Luftbilder (Bing) sind keine echten Orthofotos (Dächer leicht versetzt), Linien im Dach sind mehrdeutig (First, Traufkante, Fensterband).

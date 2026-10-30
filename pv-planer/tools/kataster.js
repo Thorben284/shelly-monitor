@@ -3,6 +3,7 @@
    node tools/kataster.js alkis <wfs.gml> [oid]          Gebäudeumrisse aus dem ALKIS-WFS (vereinfacht, EPSG:4326) → JSON
    node tools/kataster.js lod2 <dump.txt|.json> <id>      Dachflächen eines LoD2-Gebäudes (Text ohne XML-Tags, wie Firecrawl ihn liefert) → JSON
    node tools/kataster.js uv <frame.json> <data.json>     Umrisse/Dachflächen in Gebäudekoordinaten u/v (Meter) umrechnen
+   node tools/kataster.js rahmen <alkis.json> [oid]       Gebäudesystem für roof.json: bearing = Richtung der längsten Wand, Ursprung = nordwestlichste Ecke
    Ausgabe: {buildings:[{oid, name, ll:[[lon,lat],…]}]} bzw. {ground, roofs:[{tilt, az, area, plan, zmin, zmax, ll}]} */
 "use strict";
 const fs = require("fs");
@@ -65,7 +66,19 @@ function toUV(frame) {
   return ([lo, la]) => { const e = (lo - frame.origin[0]) * kx, n = (la - frame.origin[1]) * ky; return [+(e * eu[0] + n * eu[1]).toFixed(2), +(e * ev[0] + n * ev[1]).toFixed(2)]; };
 }
 
-module.exports = { utmToLL, alkis, lod2, toUV };
+/* Gebäudesystem aus einem Umriss: Achse der längsten Kante (0–180°), Ursprung so, dass alle Ecken u,v ≥ 0 nahe liegen */
+function rahmen(ll) {
+  const kx = Math.cos(ll[0][1] * D2R) * 111320, ky = 110540, en = ll.map(([lo, la]) => [(lo - ll[0][0]) * kx, (la - ll[0][1]) * ky]);
+  let best = 0, b = 0;
+  en.forEach((p, i) => { const q = en[(i + 1) % en.length], L = Math.hypot(q[0] - p[0], q[1] - p[1]); if (L > best) { best = L; b = (Math.atan2(q[0] - p[0], q[1] - p[1]) / D2R + 360) % 180; } });
+  if (b > 135) b -= 180; else if (b > 45 && b < 135) b -= 90;   // Achse möglichst nach Norden (u ≈ Nord, v ≈ Ost)
+  const eu = [Math.sin(b * D2R), Math.cos(b * D2R)], ev = [Math.sin((b + 90) * D2R), Math.cos((b + 90) * D2R)];
+  const uv = en.map(([e, n]) => [e * eu[0] + n * eu[1], e * ev[0] + n * ev[1]]);
+  const i0 = uv.reduce((k, p, i) => (p[1] - p[0] < uv[k][1] - uv[k][0] ? i : k), 0);   // nordwestlichste Ecke: u groß, v klein
+  return { origin: ll[i0], bearing: +b.toFixed(1) };
+}
+
+module.exports = { utmToLL, alkis, lod2, toUV, rahmen };
 
 if (require.main === module) {
   const [cmd, a, b] = process.argv.slice(2), read = f => { const t = fs.readFileSync(f, "utf8"); try { const j = JSON.parse(t); return j.answer || j.rawHtml || t; } catch { return t; } };
@@ -76,6 +89,9 @@ if (require.main === module) {
     const R = JSON.parse(fs.readFileSync(a, "utf8")), uv = toUV(R.frame || R), d = JSON.parse(fs.readFileSync(b, "utf8"));
     for (const x of d.buildings || d.roofs) x.uv = x.ll.map(uv);
     r = d;
-  } else { console.error("node tools/kataster.js alkis|lod2|uv …"); process.exit(1); }
+  } else if (cmd === "rahmen") {
+    const d = JSON.parse(fs.readFileSync(a, "utf8")), bld = (d.buildings || []).find(x => !b || x.oid === b) || d.buildings[0];
+    r = { frame: rahmen(bld.ll), oid: bld.oid };
+  } else { console.error("node tools/kataster.js alkis|lod2|uv|rahmen …"); process.exit(1); }
   console.log(JSON.stringify(r));
 }
