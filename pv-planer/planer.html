@@ -258,6 +258,9 @@ function groups(){
 let fresh=false,dirty=false,tool="area",showObs=true,showLbl=true;
 
 /* Fortschritt: echte Schritte meldet Claude über D.progress {step, at}; dazwischen Schätzung nach üblicher Dauer */
+/* Alle Hausnummern an derselben Straße → im Plan und in der Tabelle kurz „Nr. 25“ */
+const street=()=>{const A=D.addresses||[],m=A.map(x=>(x.match(/^(.*\D)\s+(\d+\w*)$/)||[])[1]);return A.length>1&&m.every(s=>s&&s===m[0])?m[0]:null};
+const hn=s=>{const st=street();return st&&s.startsWith(st+" ")?"Nr. "+s.slice(st.length+1):s};
 const PHASES={adresse:{min:15,steps:["Adresse und Kataster","3D-Modell, Luftbild, Street View","Hindernisse und Erträge","Belegung und Gegenprüfung","Planer aufbauen"]},
   auswahl:{min:10,steps:["Hindernisse erkennen","Ertragsdaten (PVGIS)","Module auslegen","Gegenprüfung"]}};
 function progress(req){
@@ -345,7 +348,7 @@ function mapSVG(an){
       if(showObs)a.obstacles.forEach(q=>{o+=`<polygon points="${pts(q.zone)}" fill="rgba(223,47,143,.16)" stroke="var(--obs)" stroke-width="1" stroke-dasharray="3 2" pointer-events="none"/><polygon points="${pts(q.poly)}" fill="var(--obs)" pointer-events="none"><title>${esc(q.label)}</title></polygon>`})}
     if(showLbl){const c=cen(a.outline);o+=`<text class="lbl" x="${c[0]}" y="${c[1]}" text-anchor="middle" dominant-baseline="middle">${a.id}${v?" · "+cnt(v):""}</text>`}
     o+=`</g>`});
-  if(gr&&gr.house)D.parts.forEach((q,k)=>{const c=cen(q.poly);o+=`<polygon points="${pts(q.poly)}" fill="none" stroke="${GCOL[k%GCOL.length]}" stroke-width="2.5" stroke-dasharray="10 4" pointer-events="none"/><text class="lbl hn" x="${c[0]}" y="${c[1]}" text-anchor="middle" dominant-baseline="middle">${esc(q.name)}</text>`});
+  if(gr&&gr.house)D.parts.forEach((q,k)=>{const c=cen(q.poly);o+=`<polygon points="${pts(q.poly)}" fill="none" stroke="${GCOL[k%GCOL.length]}" stroke-width="2.5" stroke-dasharray="10 4" pointer-events="none"/><text class="lbl hn" x="${Math.min(...q.poly.map(p=>p[0]))-8}" y="${c[1]}" text-anchor="end" dominant-baseline="middle">${esc(hn(q.name))}</text>`});
   if(ed&&editI!=null){const P=D.areas[editI].outline;
     P.forEach((p,k)=>{const q=P[(k+1)%P.length];o+=`<line class="edg" data-e="${k}" x1="${p[0]}" y1="${p[1]}" x2="${q[0]}" y2="${q[1]}"><title>Doppelklick: Punkt einfügen</title></line>`});
     P.forEach((p,k)=>{const lnk=D.areas.some((b,j)=>j!==editI&&b.outline.some(z=>Math.hypot(z[0]-p[0],z[1]-p[1])<1.5));o+=`<circle class="hdl${k===selV?" sel":""}${lnk?" lnk":""}" data-v="${k}" cx="${p[0]}" cy="${p[1]}"><title>Ziehen: Punkt verschieben${lnk?" (gemeinsamer Punkt, angrenzende Flächen folgen)":""}</title></circle>`})}
@@ -356,7 +359,7 @@ function render(){
   const s=fresh?[]:sel(),an=s.filter(a=>a.analysed),req=fresh?null:D.request,pend=!fresh&&pending(),has=!fresh&&!!D.image;
   const stage=!has?0:pend&&req.type==="auswahl"?2:an.length&&!changed()?3:1;
   $("ptitle").textContent=fresh?"Neue Planung":D.title||D.address||"Neue Planung";
-  $("pmeta").textContent=fresh||!D.image?"Adresse und maximale Leistung eingeben":`${D.addresses&&D.addresses.length>1?`Gebäude ${D.addresses.join(", ")} · `:""}Stand ${D.created?new Date(D.created).toLocaleDateString("de-DE"):"–"} · ${D.areas.length} Dachflächen · Modul ${D.module.wp} Wp, ${fmt(D.module.l*1000)} × ${fmt(D.module.b*1000)} mm, hochkant`;
+  $("pmeta").textContent=fresh||!D.image?"Adresse und maximale Leistung eingeben":`${D.addresses&&D.addresses.length>1?`Gebäude ${street()?`${street()} ${D.addresses.length>4?`${hn(D.addresses[0]).slice(4)}–${hn(D.addresses[D.addresses.length-1]).slice(4)} (${D.addresses.length} Hausnummern)`:D.addresses.map(x=>hn(x).slice(4)).join(", ")}`:D.addresses.join(", ")} · `:""}Stand ${D.created?new Date(D.created).toLocaleDateString("de-DE"):"–"} · ${D.areas.length} Dachflächen · Modul ${D.module.wp} Wp, ${fmt(D.module.l*1000)} × ${fmt(D.module.b*1000)} mm, hochkant`;
   $("newBtn").hidden=!D.image||fresh||!$("newAsk").hidden;
   $("plan").disabled=pend&&req.type==="adresse";
   // Kennzahlen
@@ -375,7 +378,7 @@ function render(){
   [...$("splitSeg").children].forEach(b=>b.setAttribute("aria-pressed",(b.dataset.s==="haus")===byHouse()));
   $("entAsk").hidden=byHouse();$("entAsk").className="ask"+(D.entrances||hp?"":" q");
   $("entSub").textContent=D.addresses&&D.addresses.length>1?`${D.addresses.length} Hausnummern im Gebäude`:"";
-  $("entTbl").innerHTML=gr?`<table class="etbl"><thead><tr><th>Eingang</th><th>Module</th><th>kWp</th><th>MWh/a</th></tr></thead><tbody>${gr.G.map((g,k)=>`<tr><td><span class="sw" style="background:${GCOL[k%GCOL.length]}"></span>${esc(g.name)}</td><td>${fmt(g.n)}</td><td>${fmt(g.kwp,1)}</td><td>${fmt(g.kwh/1000,1)}</td></tr>`).join("")}</tbody></table>${gr.house?`<p class="msg">Jedes Modul gehört zu der Hausnummer, auf deren Dachteil es liegt (Gebäudeteile laut Liegenschaftskataster). Grenzen und Farben im Plan.</p>`:`<p class="msg">Zusammenhängende Blöcke entlang des Gebäudes, je Eingang gleich viele Module (±1). Farben im Plan.</p>`}`:D.entrances==1?`<p class="msg">Gesamte Leistung auf einen Eingang.</p>`:"";
+  $("entTbl").innerHTML=gr?`<table class="etbl"><thead><tr><th>Eingang</th><th>Module</th><th>kWp</th><th>MWh/a</th></tr></thead><tbody>${gr.G.map((g,k)=>`<tr><td><span class="sw" style="background:${GCOL[k%GCOL.length]}"></span>${esc(hn(g.name))}</td><td>${fmt(g.n)}</td><td>${fmt(g.kwp,1)}</td><td>${fmt(g.kwh/1000,1)}</td></tr>`).join("")}</tbody></table>${gr.house?`<p class="msg">Jedes Modul gehört zu der Hausnummer, auf deren Dachteil es liegt (Gebäudeteile laut Liegenschaftskataster). Grenzen und Farben im Plan.</p>`:`<p class="msg">Zusammenhängende Blöcke entlang des Gebäudes, je Eingang gleich viele Module (±1). Farben im Plan.</p>`}`:D.entrances==1?`<p class="msg">Gesamte Leistung auf einen Eingang.</p>`:"";
   // Flächentabelle
   const tot=D.areas.filter(a=>a.analysed).reduce((t,a)=>t+Math.max(0,...Object.values(a.variants).map(v=>v.mods.length)),0);
   $("areaSum").textContent=D.areas.length&&!fresh?`${s.length} von ${D.areas.length} gewählt · max. ${fmt(tot)} Module`:"";
@@ -454,7 +457,7 @@ $("addr").addEventListener("input",upd);$("kwp").addEventListener("input",upd);
 /* Senden und Speichern: die Seite veröffentlicht sich selbst; Claude liest die Anfrage und aktualisiert die Seite */
 const RESET=":root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.4 system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}";
 function pageSource(data){
-  const head=[...document.querySelectorAll("title,meta[name='claude:viewport-fit-sides'],link[rel=preconnect],link[rel=stylesheet]")].map(n=>n.outerHTML).join("");
+  const head=[document.head.querySelector("title"),...document.head.querySelectorAll("meta[name='claude:viewport-fit-sides'],link[rel=preconnect],link[rel=stylesheet]")].filter(Boolean).map(n=>n.outerHTML).join("");
   return "<!doctype html><html><head><meta charset=utf8><meta name=viewport content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><style>"+RESET+"</style></head><body>"+head+
     `<style id="pv-css">${$("pv-css").textContent}</style><div id="app"></div><script type="application/json" id="pv-data">${JSON.stringify(data).replace(/</g,"\\u003c")}<\/script><script id="pv-app">${$("pv-app").textContent}<\/script></body></html>`;
 }
