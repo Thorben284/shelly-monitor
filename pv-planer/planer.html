@@ -109,6 +109,7 @@ h2 small{font-family:var(--f-body);text-transform:none;letter-spacing:0;font-wei
 .canvas.mt .mod{cursor:pointer}
 .canvas .mod:hover{stroke:var(--accent);stroke-width:2.5}
 #map svg *{vector-effect:non-scaling-stroke}
+.canvas .lbl.hn{font-family:var(--f-body);font-weight:600;font-size:calc(var(--k,1)*12px);fill:var(--accent)}
 .canvas .lbl{font-family:var(--f-num);font-weight:500;font-size:calc(var(--k,1)*13px);fill:#fff;stroke:#000;stroke-width:3px;paint-order:stroke;pointer-events:none}
 .north{position:absolute;top:12px;right:12px;width:30px;height:38px;pointer-events:none}
 .scale{background:var(--raised);border:1px solid var(--line);border-radius:4px;padding:5px 8px;font:500 11.5px var(--f-num);color:var(--ink);display:flex;flex-direction:column;gap:3px;opacity:.94}
@@ -199,8 +200,19 @@ const changed=()=>sel().some(a=>!a.analysed);                   // gewählte Fl�
 /* Aufteilung auf Eingänge: aktive Module entlang der Hauptachse des Gebäudes (Hauptkomponente der Modulmitten) sortieren
    und in zusammenhängende Blöcke mit gleicher Modulzahl (±1) teilen */
 const GCOL=["#2f6fb3","#2f8a57","#8f55c0","#c0702a","#23959a","#b0466e","#6b7d2a","#5a5fc7"];
+const byHouse=()=>(D.parts||[]).length>1&&D.split!=="gleich";
 function groups(){
-  const N=Math.round(D.entrances||0);if(!(N>1)||fresh)return null;
+  if(fresh)return null;
+  if(byHouse()){   // jedes Modul gehört zum Hausteil, auf dessen Dach seine Mitte liegt (sonst zum nächstgelegenen)
+    const P=D.parts,G=P.map(q=>({n:0,kwp:0,kwh:0,name:q.name})),key={},kw=D.module.wp/1000;
+    const cpt=P.map(q=>[q.poly.reduce((t,p)=>t+p[0],0)/q.poly.length,q.poly.reduce((t,p)=>t+p[1],0)/q.poly.length]);
+    sel().filter(a=>a.analysed).forEach(a=>{const i=D.areas.indexOf(a),v=a.variants[a.mounting],off=new Set(v.off||[]);v.mods.forEach((m,j)=>{if(off.has(j))return;
+      const c=[m.reduce((t,p)=>t+p[0],0)/m.length,m.reduce((t,p)=>t+p[1],0)/m.length];let g=P.findIndex(q=>inP(c[0],c[1],q.poly));
+      if(g<0)g=cpt.reduce((b,p,k)=>Math.hypot(p[0]-c[0],p[1]-c[1])<Math.hypot(cpt[b][0]-c[0],cpt[b][1]-c[1])?k:b,0);
+      key[i+":"+j]=g;G[g].n++;G[g].kwp+=kw;G[g].kwh+=kw*v.spec})});
+    return {G,key,house:true};
+  }
+  const N=Math.round(D.entrances||0);if(!(N>1))return null;
   const it=[];sel().filter(a=>a.analysed).forEach(a=>{const i=D.areas.indexOf(a),v=a.variants[a.mounting],off=new Set(v.off||[]);v.mods.forEach((m,j)=>{if(!off.has(j))it.push({i,j,spec:v.spec,c:[m.reduce((t,p)=>t+p[0],0)/m.length,m.reduce((t,p)=>t+p[1],0)/m.length]})})});
   if(it.length<N)return null;
   const mx=it.reduce((t,o)=>t+o.c[0],0)/it.length,my=it.reduce((t,o)=>t+o.c[1],0)/it.length;let sxx=0,syy=0,sxy=0;
@@ -266,7 +278,7 @@ $("app").innerHTML=`<div class="app">
   </section>
   <aside class="side r" aria-label="Auswertung">
     <div class="sec"><h2>Anlage</h2><div class="kpi" id="kpi"></div><div class="cap" id="cap"></div></div>
-    <div class="sec" id="entSec"><h2>Eingänge <small id="entSub"></small></h2><div class="ent"><div class="ask" id="entAsk"><label for="ent">Auf wie viele Eingänge soll die Leistung verteilt werden?</label><div class="field"><input id="ent" type="number" min="1" max="20" step="1" inputmode="numeric"></div></div><div id="entTbl"></div></div></div>
+    <div class="sec" id="entSec"><h2>Eingänge <small id="entSub"></small></h2><div class="ent"><div class="seg" id="splitSeg" role="group" aria-label="Aufteilung"><button type="button" data-s="haus">Nach Hausnummern</button><button type="button" data-s="gleich">Gleich große Blöcke</button></div><div class="ask" id="entAsk"><label for="ent">Auf wie viele Eingänge soll die Leistung verteilt werden?</label><div class="field"><input id="ent" type="number" min="1" max="20" step="1" inputmode="numeric"></div></div><div id="entTbl"></div></div></div>
     <div class="sec"><h2>Verteilung <small>kWp je Fläche</small></h2><div class="dist" id="dist"></div></div>
     <div class="sec"><h2>Zusammenfassung</h2><div class="copyline"><button class="btn sm" id="copySum" type="button">Als Text kopieren</button><span class="msg" id="copyMsg"></span></div></div>
     <div class="sec scroll"><h2>Hinweise und Quellen</h2><ul class="notes" id="notes"></ul>
@@ -298,6 +310,7 @@ function mapSVG(an){
       if(showObs)a.obstacles.forEach(q=>{o+=`<polygon points="${pts(q.zone)}" fill="rgba(223,47,143,.16)" stroke="var(--obs)" stroke-width="1" stroke-dasharray="3 2" pointer-events="none"/><polygon points="${pts(q.poly)}" fill="var(--obs)" pointer-events="none"><title>${esc(q.label)}</title></polygon>`})}
     if(showLbl){const c=cen(a.outline);o+=`<text class="lbl" x="${c[0]}" y="${c[1]}" text-anchor="middle" dominant-baseline="middle">${a.id}${v?" · "+cnt(v):""}</text>`}
     o+=`</g>`});
+  if(gr&&gr.house)D.parts.forEach((q,k)=>{const c=cen(q.poly);o+=`<polygon points="${pts(q.poly)}" fill="none" stroke="${GCOL[k%GCOL.length]}" stroke-width="2.5" stroke-dasharray="10 4" pointer-events="none"/><text class="lbl hn" x="${c[0]}" y="${c[1]}" text-anchor="middle" dominant-baseline="middle">${esc(q.name)}</text>`});
   o+=`</svg>`;
   return o;
 }
@@ -321,9 +334,11 @@ function render(){
   const gr=groups(),hasAn=!fresh&&D.areas.some(a=>a.analysed);
   $("entSec").hidden=!hasAn;
   if(document.activeElement!==$("ent"))$("ent").value=D.entrances||"";
-  $("entAsk").className="ask"+(D.entrances?"":" q");
+  const hp=(D.parts||[]).length>1;$("splitSeg").hidden=!hp;
+  [...$("splitSeg").children].forEach(b=>b.setAttribute("aria-pressed",(b.dataset.s==="haus")===byHouse()));
+  $("entAsk").hidden=byHouse();$("entAsk").className="ask"+(D.entrances||hp?"":" q");
   $("entSub").textContent=D.addresses&&D.addresses.length>1?`${D.addresses.length} Hausnummern im Gebäude`:"";
-  $("entTbl").innerHTML=gr?`<table class="etbl"><thead><tr><th>Eingang</th><th>Module</th><th>kWp</th><th>MWh/a</th></tr></thead><tbody>${gr.G.map((g,k)=>`<tr><td><span class="sw" style="background:${GCOL[k%GCOL.length]}"></span>${esc(g.name)}</td><td>${fmt(g.n)}</td><td>${fmt(g.kwp,1)}</td><td>${fmt(g.kwh/1000,1)}</td></tr>`).join("")}</tbody></table><p class="msg">Zusammenhängende Blöcke entlang des Gebäudes, je Eingang gleich viele Module (±1). Farben im Plan.</p>`:D.entrances==1?`<p class="msg">Gesamte Leistung auf einen Eingang.</p>`:"";
+  $("entTbl").innerHTML=gr?`<table class="etbl"><thead><tr><th>Eingang</th><th>Module</th><th>kWp</th><th>MWh/a</th></tr></thead><tbody>${gr.G.map((g,k)=>`<tr><td><span class="sw" style="background:${GCOL[k%GCOL.length]}"></span>${esc(g.name)}</td><td>${fmt(g.n)}</td><td>${fmt(g.kwp,1)}</td><td>${fmt(g.kwh/1000,1)}</td></tr>`).join("")}</tbody></table>${gr.house?`<p class="msg">Jedes Modul gehört zu der Hausnummer, auf deren Dachteil es liegt (Gebäudeteile laut Liegenschaftskataster). Grenzen und Farben im Plan.</p>`:`<p class="msg">Zusammenhängende Blöcke entlang des Gebäudes, je Eingang gleich viele Module (±1). Farben im Plan.</p>`}`:D.entrances==1?`<p class="msg">Gesamte Leistung auf einen Eingang.</p>`:"";
   // Flächentabelle
   const tot=D.areas.filter(a=>a.analysed).reduce((t,a)=>t+Math.max(0,...Object.values(a.variants).map(v=>v.mods.length)),0);
   $("areaSum").textContent=D.areas.length&&!fresh?`${s.length} von ${D.areas.length} gewählt · max. ${fmt(tot)} Module`:"";
@@ -381,6 +396,7 @@ $("copyBtn").onclick=()=>copy($("copyLine").textContent,$("copyMsg"));
 $("copySum").onclick=()=>{let n=0,k=0,e=0;const L=sel().filter(a=>a.analysed).map(a=>{const v=a.variants[a.mounting],c=cnt(v),kw=c*D.module.wp/1000,az=azOf(v.aspects[0]);n+=c;k+=kw;e+=kw*v.spec;return `${a.id} ${a.name}: ${c} Module, ${fmt(kw,1)} kWp (${v.label}, ${compass(az)} ${fmt(az)}°, ${fmt(v.spec)} kWh/kWp)`});
   copy([`PV-Planung ${D.title||D.address}`,`Modul ${D.module.wp} Wp, hochkant`,...L,`Summe: ${n} Module, ${fmt(k,1)} kWp${D.target?` (max. ${fmt(D.target)} kWp)`:""}, ca. ${fmt(e/1000,1)} MWh/a`,...(()=>{const g=groups();return g?["Aufteilung auf Eingänge:",...g.G.map(x=>`  ${x.name}: ${x.n} Module, ${fmt(x.kwp,1)} kWp, ca. ${fmt(x.kwh/1000,1)} MWh/a`)]:[]})()].join("\n"),$("copyMsg"))};
 const upd=()=>{if(!D.image||fresh)$("copyLine").textContent=`PV-Planer Adresse: ${$("addr").value.trim()||"…"}${$("kwp").value?`, max. ${$("kwp").value} kWp`:""}`};
+$("splitSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;D.split=b.dataset.s;dirty=true;render()});
 $("ent").addEventListener("input",()=>{const v=Math.round(+$("ent").value);D.entrances=v>0?Math.min(v,20):null;dirty=true;render()});
 $("addr").addEventListener("input",upd);$("kwp").addEventListener("input",upd);
 
@@ -397,7 +413,7 @@ async function submit(request,msgEl,btn){
   const art=window.claude?await window.claude.use("artifact"):null;
   if(!art){say(msgEl,"Senden geht in dieser Ansicht nicht. Zeile unter „Hinweise und Quellen → Falls Senden nicht funktioniert“ in den Chat kopieren.",1);btn.disabled=false;return}
   const data=JSON.parse(JSON.stringify(D));data.request=Object.assign(request,{at:new Date().toISOString()});data.status=null;data.progress=null;
-  if(request.type==="adresse")Object.assign(data,{address:request.address,title:request.address,image:null,areas:[],excluded:[],notes:[],processed:null,geo:null,target:request.kwp||null,entrances:null,addresses:null});
+  if(request.type==="adresse")Object.assign(data,{address:request.address,title:request.address,image:null,areas:[],excluded:[],notes:[],processed:null,geo:null,target:request.kwp||null,entrances:null,addresses:null,parts:[],split:null});
   try{await art.publish(pageSource(data));say(msgEl,"Gesendet. Die Seite lädt neu.")}
   catch(e){const c=e&&e.code;btn.disabled=false;say(msgEl,c==="conflict"?"Die Seite wurde gerade aktualisiert. Nach dem Neuladen bitte erneut senden.":c==="not_writer"||c==="not_granted"?"Nur Lesezugriff: Zeile unter „Falls Senden nicht funktioniert“ in den Chat kopieren.":"Senden fehlgeschlagen. Zeile unter „Falls Senden nicht funktioniert“ in den Chat kopieren.",1)}
 }
