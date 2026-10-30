@@ -78,9 +78,10 @@ async function main(cfgFile, out) {
       });
       const mods = L.pos.map(q => [[q.x, q.y], [q.x + L.w, q.y], [q.x + L.w, q.y + L.h], [q.x, q.y + L.h]].map(p => px(fromLocal(m, p))));
       const off = ((a.off || {})[mk] || []).filter(j => j < mods.length);   // im Planer entfernte Module (gespeichert)
-      variants[mk] = { label: m.label, tilt: m.tilt, aspects: m.comp.map(toAsp), count: L.count - off.length, spec: Math.round(yieldOf(m)), mods, off };
+      variants[mk] = { label: m.label, tilt: m.tilt, aspects: m.comp.map(toAsp), count: L.count - off.length, spec: Math.round(yieldOf(m)), mods, off,
+        m: { w: m.w, h: m.h, pitches: m.pitches, axes: m.axes, plane: m.plane } };   // Montagegeometrie: Neuberechnung im Planer nach Kantenänderung
     }
-    return { id: a.id, name: a.name, building: a.building, kind: a.kind || "", note: a.note || "", area: Math.round(area), edge: a.edge,
+    return { id: a.id, name: a.name, building: a.building, kind: a.kind || "", note: a.note || "", area: Math.round(area), edge: a.edge, uv: a.poly,
       analysed: !!a.mountings, mounting: a.mountings ? Object.keys(variants).reduce((b, k) => variants[k].count > variants[b].count ? k : b) : null, selected: !!a.selected,   // Vorgabe: Variante mit den meisten Modulen
       outline: a.poly.map(px), obstacles: obs.map(o => ({ label: o.label, poly: [[o.u - o.w / 2, o.v - o.h / 2], [o.u + o.w / 2, o.v - o.h / 2], [o.u + o.w / 2, o.v + o.h / 2], [o.u - o.w / 2, o.v + o.h / 2]].map(px),
         zone: [[o.u - o.w / 2 - o.c, o.v - o.h / 2 - o.c], [o.u + o.w / 2 + o.c, o.v - o.h / 2 - o.c], [o.u + o.w / 2 + o.c, o.v + o.h / 2 + o.c], [o.u - o.w / 2 - o.c, o.v + o.h / 2 + o.c]].map(px) })),
@@ -113,7 +114,16 @@ async function main(cfgFile, out) {
     // Hausteile je Hausnummer (Katasterumrisse) für die Aufteilung auf Eingänge
     parts: (R.parts || []).map(q => ({ name: q.name, poly: q.poly.map(px) })), notes: R.notes || [], geo: R.geo || null, request: R.request || null, processed: R.processed || null, status: R.status || null, progress: R.progress || null
   };
-  const tpl = fs.readFileSync(path.join(__dirname, "..", "planer.html"), "utf8");
+  /* Für die Kantenbearbeitung im Planer: Gebäudeachsen, lineare Abbildung u/v (m) → Bildpixel, Hindernisse und Aussparungen in u/v */
+  if (AE) {
+    const o = px([0, 0]), pu = px([10, 0]), pv = px([0, 10]);
+    data.lay = { eu, ev, aff: { o, u: [(pu[0] - o[0]) / 10, (pu[1] - o[1]) / 10], v: [(pv[0] - o[0]) / 10, (pv[1] - o[1]) / 10] },
+      obs: obst.map(q => ({ u: q.u, v: q.v, w: q.w, h: q.h, c: q.c, label: q.label })), excl: (R.excluded || []).map(e => e.poly) };
+  }
+  /* Belegungsrechnung aus dem Rechenkern in die Seite übernehmen (eine Quelle) */
+  const eng = fs.readFileSync(path.join(__dirname, "..", "engine.js"), "utf8");
+  const kit = "const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));\n" + eng.slice(eng.indexOf("  function inPoly("), eng.indexOf("  /* ---------- Gebäudeumriss"));
+  const tpl = fs.readFileSync(path.join(__dirname, "..", "planer.html"), "utf8").replace("/*__LAYOUT__*/", () => kit);
   const esc = s => String(s).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
   fs.writeFileSync(out, tpl.replace(/__TITLE__/g, esc(R.title || R.address || "")).replace("/*__DATA__*/null", () => JSON.stringify(data).replace(/</g, "\\u003c")));
   for (const a of areas) console.log(a.selected ? "[x]" : "[ ]", a.id.padEnd(3), a.name.padEnd(22), `${a.area} m²`.padStart(7), Object.entries(a.variants).map(([k, v]) => `${k}: ${v.count} Mod. (${v.spec} kWh/kWp)`).join(" | "), `Hindernisse ${a.obstacles.length}`);

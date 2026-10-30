@@ -109,6 +109,13 @@ h2 small{font-family:var(--f-body);text-transform:none;letter-spacing:0;font-wei
 .canvas.mt .mod{cursor:pointer}
 .canvas .mod:hover{stroke:var(--accent);stroke-width:2.5}
 #map svg *{vector-effect:non-scaling-stroke}
+.canvas.et .cand{cursor:pointer}
+.canvas .hdl{fill:var(--raised);stroke:var(--accent);stroke-width:2;r:calc(var(--k,1)*6px);cursor:move}
+.canvas .hdl.sel{fill:var(--accent)}
+.canvas .hdl.lnk{stroke:#fff}
+.canvas .edg{stroke:transparent;stroke-width:12;cursor:copy;fill:none}
+.canvas .edg:hover{stroke:rgba(240,163,42,.35)}
+.tgrp button:disabled{opacity:.45;cursor:default}
 .canvas .lbl.hn{font-family:var(--f-body);font-weight:600;font-size:calc(var(--k,1)*12px);fill:var(--accent)}
 .canvas .lbl{font-family:var(--f-num);font-weight:500;font-size:calc(var(--k,1)*13px);fill:#fff;stroke:#000;stroke-width:3px;paint-order:stroke;pointer-events:none}
 .north{position:absolute;top:12px;right:12px;width:30px;height:38px;pointer-events:none}
@@ -191,6 +198,30 @@ const dSeg=(x,y,[a,b],[e,f])=>{const dx=e-a,dy=f-b,L=dx*dx+dy*dy,t=L?Math.max(0,
 /* Beschriftungspunkt: Punkt im Umriss mit größtem Randabstand */
 const cen=P=>{const xs=P.map(p=>p[0]),ys=P.map(p=>p[1]),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);let best=[(x0+x1)/2,(y0+y1)/2],bd=-1;
   for(let i=1;i<24;i++)for(let j=1;j<24;j++){const x=x0+(x1-x0)*i/24,y=y0+(y1-y0)*j/24;if(!inP(x,y,P))continue;const d=Math.min(...P.map((p,k)=>dSeg(x,y,p,P[(k+1)%P.length])));if(d>bd){bd=d;best=[x,y]}}return best};
+/* Belegungsrechnung (aus dem Rechenkern eingefügt) */
+/*__LAYOUT__*/
+/* u/v (m) ↔ Bildpixel (lineare Abbildung) und lokale Montagesysteme wie in tools/areas.js */
+const L_=D.lay||null;
+const fwd=([u,v])=>[L_.aff.o[0]+u*L_.aff.u[0]+v*L_.aff.v[0],L_.aff.o[1]+u*L_.aff.u[1]+v*L_.aff.v[1]];
+const inv=([x,y])=>{const a=L_.aff,det=a.u[0]*a.v[1]-a.v[0]*a.u[1],dx=x-a.o[0],dy=y-a.o[1];return [(dx*a.v[1]-dy*a.v[0])/det,(a.u[0]*dy-a.u[1]*dx)/det]};
+const toLocal=(m,[u,v])=>{if(m.axes==="uv")return [u,v];if(m.axes==="vu")return [v,u];const {d,r,ct}=m.plane,e=u*L_.eu[0]+v*L_.ev[0],n=u*L_.eu[1]+v*L_.ev[1];return [e*r[0]+n*r[1],-(e*d[0]+n*d[1])/ct]};
+const fromLocal=(m,[x,y])=>{if(m.axes==="uv")return [x,y];if(m.axes==="vu")return [y,x];const {d,r,ct}=m.plane,e=x*r[0]-y*ct*d[0],n=x*r[1]-y*ct*d[1];return [e*L_.eu[0]+n*L_.eu[1],e*L_.ev[0]+n*L_.ev[1]]};
+const shoelace=P=>{let t=0;P.forEach((p,i)=>{const q=P[(i+1)%P.length];t+=p[0]*q[1]-q[0]*p[1]});return Math.abs(t)/2};
+/* Fläche nach Kantenänderung neu belegen: Umriss in m, Hindernisse innerhalb, alle Montagevarianten */
+function relayout(i){
+  const a=D.areas[i],uv=a.outline.map(inv);a.uv=uv.map(p=>[+p[0].toFixed(2),+p[1].toFixed(2)]);a.area=Math.round(shoelace(uv));a.edited=true;
+  const obs=L_.obs.filter(o=>inPoly(o.u,o.v,uv));
+  a.obstacles=obs.map(o=>({label:o.label,poly:[[o.u-o.w/2,o.v-o.h/2],[o.u+o.w/2,o.v-o.h/2],[o.u+o.w/2,o.v+o.h/2],[o.u-o.w/2,o.v+o.h/2]].map(fwd),zone:[[o.u-o.w/2-o.c,o.v-o.h/2-o.c],[o.u+o.w/2+o.c,o.v-o.h/2-o.c],[o.u+o.w/2+o.c,o.v+o.h/2+o.c],[o.u-o.w/2-o.c,o.v+o.h/2+o.c]].map(fwd)}));
+  Object.values(a.variants||{}).forEach(v=>{const m=v.m;if(!m)return;
+    const R=layoutArea({poly:uv.map(p=>toLocal(m,p)),edge:a.edge,w:m.w,h:m.h,pitches:m.pitches,
+      obstacles:obs.map(o=>{const [x,y]=toLocal(m,[o.u,o.v]);return {x,y,w:m.axes==="vu"?o.h:o.w,h:m.axes==="vu"?o.w:o.h,c:o.c}}),
+      holes:(L_.excl||[]).map(H=>H.map(p=>toLocal(m,p))),holeGap:a.edge});
+    v.mods=R.pos.map(q=>[[q.x,q.y],[q.x+R.w,q.y],[q.x+R.w,q.y+R.h],[q.x,q.y+R.h]].map(p=>fwd(fromLocal(m,p)).map(z=>+z.toFixed(1))));v.off=[];v.count=v.mods.length});
+}
+const UNDO=[];   // Bearbeitungsschritte (Stand aller Flächen vor dem Schritt)
+const snap=()=>{UNDO.push(JSON.stringify(D.areas.map(a=>({outline:a.outline,variants:a.variants,obstacles:a.obstacles,area:a.area,uv:a.uv,edited:a.edited}))));if(UNDO.length>30)UNDO.shift()};
+const undo=()=>{const t=UNDO.pop();if(!t)return;JSON.parse(t).forEach((o,i)=>Object.assign(D.areas[i],o));selV=null;dirty=true;render()};
+let editI=null,selV=null,vdrag=null;
 const DIRS=["N","NO","O","SO","S","SW","W","NW"];
 const azOf=asp=>((asp+180)%360+360)%360, compass=az=>DIRS[Math.round(az/45)%8];
 const sel=()=>D.areas.filter(a=>a.selected);
@@ -243,6 +274,7 @@ function progHTML(req){const g=progress(req);
     ${g.el>5&&g.done===0?`<p class="msg err">Noch keine Rückmeldung: bitte im Chat „gesendet“ schreiben.</p>`:""}</div>`}
 
 const ICON={sel:'<svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2l9 5-4 1.2L6.5 13z" fill="currentColor"/></svg>',
+  edge:'<svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 12.5L6 3.5l7.5 4-4 5.5z" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="6" cy="3.5" r="1.8" fill="currentColor"/><circle cx="13.5" cy="7.5" r="1.8" fill="currentColor"/></svg>',
   mod:'<svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12v10H2z M6 3v10 M10 3v10 M2 8h12" stroke="currentColor" fill="none" stroke-width="1.3"/></svg>'};
 $("app").innerHTML=`<div class="app">
 <header class="bar">
@@ -265,7 +297,8 @@ $("app").innerHTML=`<div class="app">
   </aside>
   <section class="plan" aria-label="Lageplan">
     <div class="tools" id="tools">
-      <div class="tgrp" role="group" aria-label="Werkzeug"><button type="button" id="tArea" aria-pressed="true">${ICON.sel}Flächen wählen</button><button type="button" id="tMod" aria-pressed="false">${ICON.mod}Module bearbeiten</button></div>
+      <div class="tgrp" role="group" aria-label="Werkzeug"><button type="button" id="tArea" aria-pressed="true">${ICON.sel}Flächen wählen</button><button type="button" id="tMod" aria-pressed="false">${ICON.mod}Module bearbeiten</button><button type="button" id="tEdge" aria-pressed="false">${ICON.edge}Kanten bearbeiten</button></div>
+      <div class="tgrp" role="group" aria-label="Kanten" id="edgeTools" hidden><button type="button" id="vDel" disabled>Punkt löschen</button><button type="button" id="aReset" disabled>Rückgängig</button></div>
       <div class="tgrp" role="group" aria-label="Zoom"><button type="button" id="zOut" aria-label="Verkleinern">−</button><button type="button" id="zFit">Einpassen</button><button type="button" id="zIn" aria-label="Vergrößern">+</button></div>
       <div class="tgrp" role="group" aria-label="Ebenen"><button type="button" id="lObs" aria-pressed="true">Hindernisse</button><button type="button" id="lLbl" aria-pressed="true">Beschriftung</button></div>
       <span class="tsp"></span><span class="hint" id="thint"></span>
@@ -300,18 +333,22 @@ const applyVb=()=>{const s=$("map").querySelector("svg");if(!s||!vb)return;s.set
 const zoom=(f,cx,cy)=>{if(!vb)return;const I=D.image,nw=Math.min(Math.max(vb.w*f,I.w*.08),I.w*3),k=nw/vb.w;cx=cx??vb.x+vb.w/2;cy=cy??vb.y+vb.h/2;vb={x:cx-(cx-vb.x)*k,y:cy-(cy-vb.y)*k,w:nw,h:vb.h*k};applyVb()};
 const toImg=e=>{const r=$("canvas").getBoundingClientRect();return [vb.x+(e.clientX-r.left)/r.width*vb.w,vb.y+(e.clientY-r.top)/r.height*vb.h]};
 
+/* Luftbild nur einmal einsetzen; bei Änderungen wird nur die Überlagerung neu gezeichnet (flüssiges Ziehen) */
+function ensureSvg(){const I=D.image;if($("map").querySelector("#ov"))return;$("map").innerHTML=`<svg viewBox="0 0 ${I.w} ${I.h}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Luftbild mit Dachflächen und Modulbelegung"><image href="${I.src}" width="${I.w}" height="${I.h}"/><g id="ov"></g></svg>`}
 function mapSVG(an){
-  const I=D.image,gr=groups();
-  let o=`<svg viewBox="0 0 ${I.w} ${I.h}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Luftbild mit Dachflächen und Modulbelegung"><image href="${I.src}" width="${I.w}" height="${I.h}"/>`;
+  const I=D.image,gr=groups(),ed=tool==="edge";
+  let o="";
   if(an.length)D.excluded.forEach(e=>{o+=`<polygon points="${pts(e.poly)}" fill="rgba(255,59,59,.3)" stroke="var(--excl)" stroke-width="2"><title>${esc(e.name)}: nicht nutzbar</title></polygon>`});
   D.areas.forEach((a,i)=>{const on=a.selected,v=a.analysed&&on?a.variants[a.mounting]:null;
     o+=`<g class="cand" data-i="${i}" tabindex="0" role="checkbox" aria-checked="${on}" aria-label="${esc(a.id+" "+a.name)}"><polygon class="edge" points="${pts(a.outline)}" fill="${on?"rgba(240,163,42,.10)":"rgba(0,0,0,.22)"}" stroke="${on?"var(--accent)":"#fff"}" stroke-width="${on?2.2:1.3}" ${on?"":'stroke-dasharray="7 5"'}/>`;
-    if(v){const off=new Set(v.off||[]);v.mods.forEach((m,j)=>{o+=off.has(j)?`<polygon class="mod off" data-i="${i}" data-j="${j}" points="${pts(m)}" fill="rgba(255,255,255,.06)" stroke="#fff" stroke-width="1" stroke-dasharray="3 2"><title>Platz frei — anklicken zum Hinzufügen</title></polygon>`:`<polygon class="mod" data-i="${i}" data-j="${j}" points="${pts(m)}" fill="${gr&&gr.key[i+":"+j]!=null?GCOL[gr.key[i+":"+j]%GCOL.length]:"var(--mod)"}" stroke="var(--mod-line)" stroke-width=".7"><title>Modul — anklicken zum Entfernen</title></polygon>`});
+    if(v&&!(vdrag&&vdrag.areas.has(i))){const off=new Set(v.off||[]);v.mods.forEach((m,j)=>{o+=off.has(j)?`<polygon class="mod off" data-i="${i}" data-j="${j}" points="${pts(m)}" fill="rgba(255,255,255,.06)" stroke="#fff" stroke-width="1" stroke-dasharray="3 2"><title>Platz frei — anklicken zum Hinzufügen</title></polygon>`:`<polygon class="mod" data-i="${i}" data-j="${j}" points="${pts(m)}" fill="${gr&&gr.key[i+":"+j]!=null?GCOL[gr.key[i+":"+j]%GCOL.length]:"var(--mod)"}" stroke="var(--mod-line)" stroke-width=".7"><title>Modul — anklicken zum Entfernen</title></polygon>`});
       if(showObs)a.obstacles.forEach(q=>{o+=`<polygon points="${pts(q.zone)}" fill="rgba(223,47,143,.16)" stroke="var(--obs)" stroke-width="1" stroke-dasharray="3 2" pointer-events="none"/><polygon points="${pts(q.poly)}" fill="var(--obs)" pointer-events="none"><title>${esc(q.label)}</title></polygon>`})}
     if(showLbl){const c=cen(a.outline);o+=`<text class="lbl" x="${c[0]}" y="${c[1]}" text-anchor="middle" dominant-baseline="middle">${a.id}${v?" · "+cnt(v):""}</text>`}
     o+=`</g>`});
   if(gr&&gr.house)D.parts.forEach((q,k)=>{const c=cen(q.poly);o+=`<polygon points="${pts(q.poly)}" fill="none" stroke="${GCOL[k%GCOL.length]}" stroke-width="2.5" stroke-dasharray="10 4" pointer-events="none"/><text class="lbl hn" x="${c[0]}" y="${c[1]}" text-anchor="middle" dominant-baseline="middle">${esc(q.name)}</text>`});
-  o+=`</svg>`;
+  if(ed&&editI!=null){const P=D.areas[editI].outline;
+    P.forEach((p,k)=>{const q=P[(k+1)%P.length];o+=`<line class="edg" data-e="${k}" x1="${p[0]}" y1="${p[1]}" x2="${q[0]}" y2="${q[1]}"><title>Doppelklick: Punkt einfügen</title></line>`});
+    P.forEach((p,k)=>{const lnk=D.areas.some((b,j)=>j!==editI&&b.outline.some(z=>Math.hypot(z[0]-p[0],z[1]-p[1])<1.5));o+=`<circle class="hdl${k===selV?" sel":""}${lnk?" lnk":""}" data-v="${k}" cx="${p[0]}" cy="${p[1]}"><title>Ziehen: Punkt verschieben${lnk?" (gemeinsamer Punkt, angrenzende Flächen folgen)":""}</title></circle>`})}
   return o;
 }
 
@@ -352,9 +389,11 @@ function render(){
   $("save").hidden=!dirty;$("send").hidden=!changed()||pend;
   // Plan
   $("tools").hidden=!has;$("ovl").hidden=!has;$("north").toggleAttribute("hidden",!has);
-  if(has){if(!vb)fit();$("map").innerHTML=mapSVG(an);applyVb()}else $("map").innerHTML="";
+  if(has){if(!vb)fit();ensureSvg();$("ov").innerHTML=mapSVG(an);applyVb()}else $("map").innerHTML="";
+  $("tEdge").disabled=!L_;$("edgeTools").hidden=tool!=="edge";$("vDel").disabled=selV==null||editI==null||D.areas[editI].outline.length<=3;$("aReset").disabled=!UNDO.length;
+  $("canvas").classList.toggle("et",tool==="edge");
   $("canvas").classList.toggle("mt",tool==="mod");
-  $("thint").textContent=tool==="mod"?"Modul anklicken: entfernen · freien Platz anklicken: hinzufügen":"Fläche anklicken: an- oder abwählen · Ziehen: verschieben · Mausrad: zoomen";
+  $("thint").textContent=tool==="edge"?(editI==null?"Fläche anklicken, deren Kanten bearbeitet werden sollen":`${D.areas[editI].id}: Punkte ziehen · Doppelklick auf Kante: Punkt einfügen · Entf: Punkt löschen`):tool==="mod"?"Modul anklicken: entfernen · freien Platz anklicken: hinzufügen":"Fläche anklicken: an- oder abwählen · Ziehen: verschieben · Mausrad: zoomen";
   $("empty").hidden=has&&!(pend&&req.type==="adresse");
   $("emptyCard").innerHTML=pend&&req.type==="adresse"?`<h3>Analyse läuft</h3>${progHTML(req)}`:`<h3>Neue PV-Planung</h3><p>Adresse und maximale Anlagenleistung oben eintragen und „Planen“ drücken. Claude ermittelt Gebäudeumriss (Liegenschaftskataster), Dachflächen (Luftbild, Street View, 3D-Gebäudemodell), Hindernisse und Erträge und legt alle Flächen mit hochkant gestellten Modulen aus.</p><p>Danach Flächen anklicken: Die Belegung erscheint sofort und lässt sich modulweise anpassen.</p>`;
   // Statusleiste
@@ -369,17 +408,29 @@ function render(){
 
 /* Bedienung im Plan: Klick wählt, Ziehen verschiebt */
 const cv=$("canvas");let down=null,moved=false;
-cv.addEventListener("pointerdown",e=>{if(!vb||e.button!==0)return;down={x:e.clientX,y:e.clientY,vx:vb.x,vy:vb.y};moved=false});
-cv.addEventListener("pointermove",e=>{if(!down)return;const dx=e.clientX-down.x,dy=e.clientY-down.y;if(!moved&&Math.hypot(dx,dy)<5)return;
+const linked=(p)=>{const L=[];D.areas.forEach((b,j)=>b.outline.forEach((z,k)=>{if(Math.hypot(z[0]-p[0],z[1]-p[1])<1.5)L.push([j,k])}));return L};
+cv.addEventListener("pointerdown",e=>{const h=tool==="edge"&&e.target.closest(".hdl");
+  if(h&&e.button===0){e.stopPropagation();selV=+h.dataset.v;const L=linked(D.areas[editI].outline[selV]);snap();vdrag={L,areas:new Set(L.map(x=>x[0]))};try{cv.setPointerCapture(e.pointerId)}catch(_){};render();return}});
+cv.addEventListener("pointerdown",e=>{if(vdrag||!vb||e.button!==0)return;down={x:e.clientX,y:e.clientY,vx:vb.x,vy:vb.y};moved=false});
+cv.addEventListener("pointermove",e=>{if(vdrag){const p=toImg(e).map(z=>+z.toFixed(1));vdrag.L.forEach(([j,k])=>{D.areas[j].outline[k]=p});$("ov").innerHTML=mapSVG(sel().filter(a=>a.analysed));return}if(!down)return;const dx=e.clientX-down.x,dy=e.clientY-down.y;if(!moved&&Math.hypot(dx,dy)<5)return;
   if(!moved){moved=true;cv.classList.add("drag")}const r=cv.getBoundingClientRect();vb.x=down.vx-dx/r.width*vb.w;vb.y=down.vy-dy/r.height*vb.h;applyVb()});
-const up=()=>{down=null;cv.classList.remove("drag")};window.addEventListener("pointerup",up);cv.addEventListener("pointercancel",up);
+const up=()=>{if(vdrag){const A=[...vdrag.areas];vdrag=null;A.forEach(relayout);dirty=true;moved=true;render()}down=null;cv.classList.remove("drag")};window.addEventListener("pointerup",up);cv.addEventListener("pointercancel",up);
 cv.addEventListener("wheel",e=>{if(!vb)return;e.preventDefault();const [x,y]=toImg(e);zoom(e.deltaY>0?1.15:1/1.15,x,y)},{passive:false});
+cv.addEventListener("dblclick",e=>{if(tool!=="edge"||editI==null)return;const g=e.target.closest(".edg");if(!g)return;const k=+g.dataset.e,p=toImg(e).map(z=>+z.toFixed(1));snap();
+  const P=D.areas[editI].outline,a=P[k],b=P[(k+1)%P.length];D.areas[editI].outline.splice(k+1,0,p);
+  D.areas.forEach((B,j)=>{if(j===editI)return;const Q=B.outline;for(let t=0;t<Q.length;t++){const c=Q[t],d=Q[(t+1)%Q.length];const same=(x,y)=>Math.hypot(x[0]-y[0],x[1]-y[1])<1.5;if((same(c,a)&&same(d,b))||(same(c,b)&&same(d,a))){Q.splice(t+1,0,p.slice());relayout(j);break}}});   // gemeinsame Kante: Punkt auch beim Nachbarn
+  selV=k+1;relayout(editI);dirty=true;render()});
+const delV=()=>{if(editI==null||selV==null)return;const P=D.areas[editI].outline;if(P.length<=3)return;snap();const gone=P[selV];P.splice(selV,1);D.areas.forEach((B,j)=>{if(j===editI)return;const t=B.outline.findIndex(z=>Math.hypot(z[0]-gone[0],z[1]-gone[1])<1.5);if(t>=0&&B.outline.length>3){B.outline.splice(t,1);relayout(j)}});selV=null;relayout(editI);dirty=true;render()};
+$("vDel").onclick=delV;
+document.addEventListener("keydown",e=>{if(e.target.matches("input"))return;if(tool==="edge"&&(e.key==="Delete"||e.key==="Backspace")){e.preventDefault();delV()}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="z"&&UNDO.length){e.preventDefault();undo()}});
+$("aReset").onclick=undo;
 cv.addEventListener("click",e=>{if(moved){moved=false;return}
+  if(tool==="edge"){if(e.target.closest(".hdl")||e.target.closest(".edg"))return;const g=e.target.closest(".cand");editI=g?+g.dataset.i:null;selV=null;render();return}
   if(tool==="mod"){const m=e.target.closest(".mod");if(!m)return;const a=D.areas[+m.dataset.i],v=a.variants[a.mounting],j=+m.dataset.j,off=new Set(v.off||[]);off.has(j)?off.delete(j):off.add(j);v.off=[...off].sort((x,y)=>x-y);dirty=true;render();return}
   const g=e.target.closest(".cand");if(g){D.areas[+g.dataset.i].selected=!D.areas[+g.dataset.i].selected;render()}});
 cv.addEventListener("keydown",e=>{const g=e.target.closest(".cand");if(g&&(e.key==="Enter"||e.key===" ")){e.preventDefault();D.areas[+g.dataset.i].selected=!D.areas[+g.dataset.i].selected;render();const n=document.querySelector(`.cand[data-i="${g.dataset.i}"]`);n&&n.focus()}});
-const setTool=t=>{tool=t;$("tArea").setAttribute("aria-pressed",t==="area");$("tMod").setAttribute("aria-pressed",t==="mod");render()};
-$("tArea").onclick=()=>setTool("area");$("tMod").onclick=()=>setTool("mod");
+const setTool=t=>{tool=t;if(t!=="edge"){editI=null;selV=null}["tArea","tMod","tEdge"].forEach((id,k)=>$(id).setAttribute("aria-pressed",t===["area","mod","edge"][k]));render()};
+$("tArea").onclick=()=>setTool("area");$("tMod").onclick=()=>setTool("mod");$("tEdge").onclick=()=>setTool("edge");
 $("zIn").onclick=()=>zoom(1/1.4);$("zOut").onclick=()=>zoom(1.4);$("zFit").onclick=()=>{fit();applyVb()};
 $("lObs").onclick=()=>{showObs=!showObs;$("lObs").setAttribute("aria-pressed",showObs);render()};
 $("lLbl").onclick=()=>{showLbl=!showLbl;$("lLbl").setAttribute("aria-pressed",showLbl);render()};
@@ -423,7 +474,7 @@ $("addrForm").addEventListener("submit",e=>{e.preventDefault();const a=$("addr")
   submit({type:"adresse",address:a,kwp:k},$("addrMsg"),$("plan"))});
 $("newBtn").onclick=()=>{$("newAsk").hidden=false;$("newBtn").hidden=true;$("newYes").focus()};
 $("newNo").onclick=()=>{$("newAsk").hidden=true;render()};
-$("newYes").onclick=()=>{fresh=true;vb=null;$("newAsk").hidden=true;$("addr").value="";$("kwp").value="";say($("addrMsg"),"");render();$("addr").focus()};
+$("newYes").onclick=()=>{fresh=true;vb=null;editI=null;$("newAsk").hidden=true;$("addr").value="";$("kwp").value="";say($("addrMsg"),"");render();$("addr").focus()};
 $("send").onclick=()=>{const ids=sel().map(a=>a.id);if(ids.length)submit({type:"auswahl",ids},$("sendMsg"),$("send"))};
 $("save").onclick=async()=>{const b=$("save"),m=$("sendMsg");b.disabled=true;say(m,"Wird gespeichert …");
   const art=window.claude?await window.claude.use("artifact"):null;
