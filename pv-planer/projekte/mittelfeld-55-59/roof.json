@@ -40,7 +40,7 @@
   },
   {
    "kind": "Satteldach",
-   "selected": true,
+   "selected": false,
    "mountings": [
     "dach_hoch"
    ],
@@ -108,7 +108,7 @@
   },
   {
    "kind": "Satteldach",
-   "selected": true,
+   "selected": false,
    "mountings": [
     "dach_hoch"
    ],
@@ -176,7 +176,7 @@
   },
   {
    "kind": "Satteldach",
-   "selected": true,
+   "selected": false,
    "mountings": [
     "dach_hoch"
    ],
@@ -317,7 +317,7 @@
   "34|-122": 668.69
  },
  "notes": [
-  "Mittelfeld 55, 57, 59: laut Kataster ein zusammenhängender Baukörper (3 Häuser, gegeneinander ca. 1,2 m versetzt), Satteldach mit je einem Zwerchhaus auf der Nordostseite (ausgespart). Alle Flächen belegt (keine kWp-Obergrenze).",
+  "Mittelfeld 55, 57, 59: laut Kataster ein zusammenhängender Baukörper (3 Häuser, gegeneinander ca. 1,2 m versetzt), Satteldach mit je einem Zwerchhaus auf der Nordostseite (ausgespart). Belegt nur die Südwestseiten (Vorgabe), keine kWp-Obergrenze.",
   "Dachneigung 34° aus dem amtlichen 3D-Modell LoD2 (LGLN, Laserscan): Nr. 57 Satteldach 34,4°, Traufe ca. 9,1 m (SW) bzw. 10,1 m (NO), First 13,5 m über Gelände. Für Nr. 55 und 59 enthält LoD2 fehlerhaft ein Flachdach – Luftbild zeigt dasselbe Satteldach, daher gleiche Neigung angesetzt. Street View: in der Umgebung keine Aufnahmen (5 Standpunkte geprüft) – keine zweite Neigungsmessung möglich.",
   "First aus Luftbild gemessen (Helligkeitssprung, 25 Profile): Nr. 59 v = 5,75 m, Nr. 57/55 v = 7,22 m im Bild; nach Korrektur der Bildschräglage (aus den Traufen bestimmt, ca. 0,6 m in Firsthöhe) Nr. 57/55 bei 7,8 m wie LoD2; First nicht mittig (Südwestseite breiter). First springt am Hausversatz 59/57.",
   "Traufen = Katasterwand + 0,4 m Dachüberstand (Luftbild ca. 0,45 m). Ortgänge + 0,3 m. Hindernisse aus dem Luftbild: 2 Schornsteine (Nr. 57), 2 Lüfter, 4 kleinere Dachaufbauten auf der Nordostseite (Art nicht erkennbar, Lage ±0,4 m).",
