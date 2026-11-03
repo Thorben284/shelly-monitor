@@ -1,0 +1,681 @@
+{
+ "address": "Mittelfeld 55-59, Lüneburg",
+ "title": "Mittelfeld 55–59, Lüneburg",
+ "pagetitle": "PV Mittelfeld",
+ "orient": "hoch",
+ "areas": [
+  {
+   "kind": "Satteldach",
+   "selected": true,
+   "mountings": [
+    "dach_hoch"
+   ],
+   "edge": 0.3,
+   "id": "59SW",
+   "name": "Nr. 59 Südwest",
+   "building": "Nr. 59",
+   "note": "Neigung 34° aus LoD2 (LGLN, Laserscan; Nr. 57: 34,4°, für Nr. 59 fehlerhaft als Flachdach modelliert, gleiche Neigung angesetzt); First aus Luftbild, mit LoD2 abgeglichen; Traufe = Katasterwand + 0,4 m",
+   "poly": [
+    [
+     0.3,
+     -0.4
+    ],
+    [
+     0.3,
+     6.45
+    ],
+    [
+     -14.1,
+     6.45
+    ],
+    [
+     -14.1,
+     -0.4
+    ]
+   ],
+   "slope": {
+    "tilt": 34,
+    "fall": 238
+   }
+  },
+  {
+   "kind": "Satteldach",
+   "selected": true,
+   "mountings": [
+    "dach_hoch"
+   ],
+   "edge": 0.3,
+   "id": "59NO",
+   "name": "Nr. 59 Nordost",
+   "building": "Nr. 59",
+   "note": "Neigung 34° aus LoD2 (LGLN, Laserscan; Nr. 57: 34,4°, für Nr. 59 fehlerhaft als Flachdach modelliert, gleiche Neigung angesetzt); First aus Luftbild, mit LoD2 abgeglichen; Traufe = Katasterwand + 0,4 m; Zwerchhaus ausgespart",
+   "poly": [
+    [
+     0.3,
+     6.45
+    ],
+    [
+     0.3,
+     11.7
+    ],
+    [
+     -14.1,
+     11.7
+    ],
+    [
+     -14.1,
+     6.45
+    ]
+   ],
+   "slope": {
+    "tilt": 34,
+    "fall": 58
+   }
+  },
+  {
+   "kind": "Satteldach",
+   "selected": true,
+   "mountings": [
+    "dach_hoch"
+   ],
+   "edge": 0.3,
+   "id": "57SW",
+   "name": "Nr. 57 Südwest",
+   "building": "Nr. 57",
+   "note": "Neigung 34° aus LoD2 (LGLN, Laserscan; Nr. 57: 34,4°); First aus Luftbild, mit LoD2 abgeglichen; Traufe = Katasterwand + 0,4 m",
+   "poly": [
+    [
+     -14.1,
+     0.84
+    ],
+    [
+     -14.1,
+     7.8
+    ],
+    [
+     -25.64,
+     7.8
+    ],
+    [
+     -25.64,
+     0.84
+    ]
+   ],
+   "slope": {
+    "tilt": 34,
+    "fall": 238
+   }
+  },
+  {
+   "kind": "Satteldach",
+   "selected": true,
+   "mountings": [
+    "dach_hoch"
+   ],
+   "edge": 0.3,
+   "id": "57NO",
+   "name": "Nr. 57 Nordost",
+   "building": "Nr. 57",
+   "note": "Neigung 34° aus LoD2 (LGLN, Laserscan; Nr. 57: 34,4°); First aus Luftbild, mit LoD2 abgeglichen; Traufe = Katasterwand + 0,4 m; Zwerchhaus ausgespart",
+   "poly": [
+    [
+     -14.1,
+     7.8
+    ],
+    [
+     -14.1,
+     12.9
+    ],
+    [
+     -25.64,
+     12.9
+    ],
+    [
+     -25.64,
+     7.8
+    ]
+   ],
+   "slope": {
+    "tilt": 34,
+    "fall": 58
+   }
+  },
+  {
+   "kind": "Satteldach",
+   "selected": true,
+   "mountings": [
+    "dach_hoch"
+   ],
+   "edge": 0.3,
+   "id": "55SW",
+   "name": "Nr. 55 Südwest",
+   "building": "Nr. 55",
+   "note": "Neigung 34° aus LoD2 (LGLN, Laserscan; Nr. 57: 34,4°, für Nr. 55 fehlerhaft als Flachdach modelliert, gleiche Neigung angesetzt); First aus Luftbild, mit LoD2 abgeglichen; Traufe = Katasterwand + 0,4 m",
+   "poly": [
+    [
+     -25.64,
+     0.8
+    ],
+    [
+     -25.64,
+     7.8
+    ],
+    [
+     -39.3,
+     7.8
+    ],
+    [
+     -39.3,
+     0.8
+    ]
+   ],
+   "slope": {
+    "tilt": 34,
+    "fall": 238
+   }
+  },
+  {
+   "kind": "Satteldach",
+   "selected": true,
+   "mountings": [
+    "dach_hoch"
+   ],
+   "edge": 0.3,
+   "id": "55NO",
+   "name": "Nr. 55 Nordost",
+   "building": "Nr. 55",
+   "note": "Neigung 34° aus LoD2 (LGLN, Laserscan; Nr. 57: 34,4°, für Nr. 55 fehlerhaft als Flachdach modelliert, gleiche Neigung angesetzt); First aus Luftbild, mit LoD2 abgeglichen; Traufe = Katasterwand + 0,4 m; Zwerchhaus ausgespart",
+   "poly": [
+    [
+     -25.64,
+     7.8
+    ],
+    [
+     -25.64,
+     13.1
+    ],
+    [
+     -39.3,
+     13.1
+    ],
+    [
+     -39.3,
+     7.8
+    ]
+   ],
+   "slope": {
+    "tilt": 34,
+    "fall": 58
+   }
+  }
+ ],
+ "excluded": [
+  {
+   "name": "Zwerchhaus Nr. 59",
+   "poly": [
+    [
+     -5.4,
+     11.7
+    ],
+    [
+     -9.4,
+     11.7
+    ],
+    [
+     -7.4,
+     8.1
+    ]
+   ]
+  },
+  {
+   "name": "Zwerchhaus Nr. 57",
+   "poly": [
+    [
+     -17.6,
+     12.9
+    ],
+    [
+     -21.6,
+     12.9
+    ],
+    [
+     -19.6,
+     9.6
+    ]
+   ]
+  },
+  {
+   "name": "Zwerchhaus Nr. 55",
+   "poly": [
+    [
+     -30.5,
+     13.1
+    ],
+    [
+     -34.5,
+     13.1
+    ],
+    [
+     -32.5,
+     9.4
+    ]
+   ]
+  }
+ ],
+ "obstacles": [
+  {
+   "type": "schornstein",
+   "label": "Schornstein",
+   "u": -24.3,
+   "v": 7.05
+  },
+  {
+   "type": "entlueftung",
+   "u": -23.5,
+   "v": 4.4
+  },
+  {
+   "type": "entlueftung",
+   "u": -32.4,
+   "v": 4.35
+  },
+  {
+   "type": "schornstein",
+   "label": "Schornstein",
+   "u": -22.6,
+   "v": 10.85
+  },
+  {
+   "type": "sonstiges",
+   "label": "Dachaufbau (Luftbild)",
+   "u": -4.96,
+   "v": 9.4,
+   "w": 0.8,
+   "h": 0.8
+  },
+  {
+   "type": "sonstiges",
+   "label": "Dachaufbau (Luftbild)",
+   "u": -2.5,
+   "v": 9.7
+  },
+  {
+   "type": "sonstiges",
+   "label": "Dachaufbau (Luftbild)",
+   "u": -10.6,
+   "v": 9.5
+  },
+  {
+   "type": "sonstiges",
+   "label": "Dachaufbau (Luftbild)",
+   "u": -15.9,
+   "v": 11.1
+  }
+ ],
+ "pvgis": {
+  "34|58": 887.76,
+  "34|-122": 668.69
+ },
+ "notes": [
+  "Mittelfeld 55, 57, 59: laut Kataster ein zusammenhängender Baukörper (3 Häuser, gegeneinander ca. 1,2 m versetzt), Satteldach mit je einem Zwerchhaus auf der Nordostseite (ausgespart). Alle Flächen belegt (keine kWp-Obergrenze).",
+  "Dachneigung 34° aus dem amtlichen 3D-Modell LoD2 (LGLN, Laserscan): Nr. 57 Satteldach 34,4°, Traufe ca. 9,1 m (SW) bzw. 10,1 m (NO), First 13,5 m über Gelände. Für Nr. 55 und 59 enthält LoD2 fehlerhaft ein Flachdach – Luftbild zeigt dasselbe Satteldach, daher gleiche Neigung angesetzt. Street View: in der Umgebung keine Aufnahmen (5 Standpunkte geprüft) – keine zweite Neigungsmessung möglich.",
+  "First aus Luftbild gemessen (Helligkeitssprung, 25 Profile): Nr. 59 v = 5,75 m, Nr. 57/55 v = 7,22 m im Bild; nach Korrektur der Bildschräglage (aus den Traufen bestimmt, ca. 0,6 m in Firsthöhe) Nr. 57/55 bei 7,8 m wie LoD2; First nicht mittig (Südwestseite breiter). First springt am Hausversatz 59/57.",
+  "Traufen = Katasterwand + 0,4 m Dachüberstand (Luftbild ca. 0,45 m). Ortgänge + 0,3 m. Hindernisse aus dem Luftbild: 2 Schornsteine (Nr. 57), 2 Lüfter, 4 kleinere Dachaufbauten auf der Nordostseite (Art nicht erkennbar, Lage ±0,4 m).",
+  "Quellen: ALKIS und LoD2 (LGLN Open Data, CC BY 4.0), Bing Luftbild Zoom 21, PVGIS 5.2. Verschattung durch Bäume (v. a. Südwest/Garten) nicht berücksichtigt."
+ ],
+ "request": {
+  "type": "adresse",
+  "address": "Mittelfeld 55-59, Lüneburg",
+  "at": "2026-11-03T18:41:49.000Z"
+ },
+ "progress": {
+  "type": "adresse",
+  "step": 6,
+  "at": "2026-11-03T18:49:57.000Z"
+ },
+ "geo": {
+  "lat": 53.24193,
+  "lon": 10.38339
+ },
+ "frame": {
+  "origin": [
+   10.3830674449922,
+   53.2420243917417
+  ],
+  "bearing": -32
+ },
+ "aerial": {
+  "file": "b1.png",
+  "lat": 53.24193,
+  "lon": 10.38339,
+  "zoom": 21,
+  "cx": 700,
+  "cy": 590,
+  "crop": [
+   180,
+   180,
+   960,
+   1100
+  ],
+  "scale": 1,
+  "source": "Bing Luftbild (Zoom 21)"
+ },
+ "parts": [
+  {
+   "name": "Mittelfeld 59",
+   "poly": [
+    [
+     0,
+     0
+    ],
+    [
+     -4.83,
+     0
+    ],
+    [
+     -4.96,
+     -0.01
+    ],
+    [
+     -4.97,
+     1.21
+    ],
+    [
+     -7,
+     1.2
+    ],
+    [
+     -6.99,
+     -0.22
+    ],
+    [
+     -7.13,
+     -0.22
+    ],
+    [
+     -7.43,
+     -0.22
+    ],
+    [
+     -7.6,
+     -0.22
+    ],
+    [
+     -7.61,
+     1.2
+    ],
+    [
+     -9.63,
+     1.2
+    ],
+    [
+     -9.62,
+     -0.01
+    ],
+    [
+     -9.78,
+     -0.01
+    ],
+    [
+     -14.01,
+     -0.01
+    ],
+    [
+     -14.01,
+     1.24
+    ],
+    [
+     -14.14,
+     1.24
+    ],
+    [
+     -14.17,
+     11.05
+    ],
+    [
+     -13.96,
+     11.05
+    ],
+    [
+     -8.95,
+     11.04
+    ],
+    [
+     -8.95,
+     12.18
+    ],
+    [
+     -5.86,
+     12.17
+    ],
+    [
+     -5.85,
+     11.3
+    ],
+    [
+     -0.08,
+     11.29
+    ],
+    [
+     -0.07,
+     5.65
+    ],
+    [
+     0.2,
+     5.65
+    ],
+    [
+     0.21,
+     3.03
+    ],
+    [
+     -0.02,
+     3.03
+    ]
+   ]
+  },
+  {
+   "name": "Mittelfeld 57",
+   "poly": [
+    [
+     -14.14,
+     1.24
+    ],
+    [
+     -17.35,
+     1.25
+    ],
+    [
+     -17.54,
+     1.25
+    ],
+    [
+     -17.54,
+     2.66
+    ],
+    [
+     -19.55,
+     2.66
+    ],
+    [
+     -19.55,
+     1.24
+    ],
+    [
+     -19.7,
+     1.24
+    ],
+    [
+     -20,
+     1.24
+    ],
+    [
+     -20.16,
+     1.24
+    ],
+    [
+     -20.16,
+     2.66
+    ],
+    [
+     -22.17,
+     2.67
+    ],
+    [
+     -22.17,
+     1.21
+    ],
+    [
+     -22.34,
+     1.21
+    ],
+    [
+     -25.63,
+     1.22
+    ],
+    [
+     -25.65,
+     12.5
+    ],
+    [
+     -21.48,
+     12.49
+    ],
+    [
+     -21.49,
+     13.67
+    ],
+    [
+     -18.37,
+     13.66
+    ],
+    [
+     -18.37,
+     12.53
+    ],
+    [
+     -13.97,
+     12.52
+    ],
+    [
+     -13.96,
+     11.05
+    ],
+    [
+     -14.17,
+     11.05
+    ]
+   ]
+  },
+  {
+   "name": "Mittelfeld 55",
+   "poly": [
+    [
+     -25.63,
+     1.22
+    ],
+    [
+     -29.92,
+     1.23
+    ],
+    [
+     -30.07,
+     1.23
+    ],
+    [
+     -30.07,
+     2.62
+    ],
+    [
+     -32.09,
+     2.62
+    ],
+    [
+     -32.09,
+     1.19
+    ],
+    [
+     -32.23,
+     1.19
+    ],
+    [
+     -32.52,
+     1.2
+    ],
+    [
+     -32.7,
+     1.2
+    ],
+    [
+     -32.71,
+     2.61
+    ],
+    [
+     -34.71,
+     2.62
+    ],
+    [
+     -34.71,
+     1.36
+    ],
+    [
+     -34.86,
+     1.36
+    ],
+    [
+     -38.99,
+     1.39
+    ],
+    [
+     -38.98,
+     4.45
+    ],
+    [
+     -39.95,
+     4.45
+    ],
+    [
+     -39.96,
+     7.05
+    ],
+    [
+     -39.08,
+     7.04
+    ],
+    [
+     -39.08,
+     12.69
+    ],
+    [
+     -34.08,
+     12.67
+    ],
+    [
+     -34.08,
+     13.61
+    ],
+    [
+     -30.96,
+     13.6
+    ],
+    [
+     -30.96,
+     12.51
+    ],
+    [
+     -25.65,
+     12.5
+    ]
+   ]
+  }
+ ],
+ "addresses": [
+  "Mittelfeld 59",
+  "Mittelfeld 57",
+  "Mittelfeld 55"
+ ],
+ "processed": {
+  "type": "adresse",
+  "at": "2026-11-03T18:49:57.000Z"
+ }
+}
