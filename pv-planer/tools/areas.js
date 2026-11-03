@@ -125,7 +125,7 @@ async function main(cfgFile, out) {
   const kit = "const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));\n" + eng.slice(eng.indexOf("  function inPoly("), eng.indexOf("  /* ---------- Gebäudeumriss"));
   const tpl = fs.readFileSync(path.join(__dirname, "..", "planer.html"), "utf8").replace("/*__LAYOUT__*/", () => kit);
   const esc = s => String(s).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
-  fs.writeFileSync(out, tpl.replace(/__TITLE__/g, esc(R.title || R.address || "")).replace("/*__DATA__*/null", () => JSON.stringify(data).replace(/</g, "\\u003c")));
+  fs.writeFileSync(out, tpl.replace("<title>PV-Modulplaner</title>", () => `<title>${esc(R.pagetitle || "PV-Modulplaner")}</title>`).replace(/__TITLE__/g, esc(R.title || R.address || "")).replace("/*__DATA__*/null", () => JSON.stringify(data).replace(/</g, "\\u003c")));
   for (const a of areas) console.log(a.selected ? "[x]" : "[ ]", a.id.padEnd(3), a.name.padEnd(22), `${a.area} m²`.padStart(7), Object.entries(a.variants).map(([k, v]) => `${k}: ${v.count} Mod. (${v.spec} kWh/kWp)`).join(" | "), `Hindernisse ${a.obstacles.length}`);
   console.log(out, Math.round(fs.statSync(out).size / 1024) + " KB");
 }

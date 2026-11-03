@@ -5,9 +5,9 @@ description: PV-Modulauslegung mit Luftbild. Aktivieren, wenn der Nutzer eine Ad
 
 # PV-Planer (Luftbild)
 
-Planer-Seite: https://claude.ai/artifact/PjdiaaCkvYrmLLaLFPUDS7 (nur diese eine; keine weiteren Planer-Artifacts anlegen).
+**Je Projekt ein eigener Planer und ein eigener Ordner (Vorgabe des Nutzers).** Projektliste mit URLs: `pv-planer/projekte/README.md`; Planungsstand je Projekt in `pv-planer/projekte/<name>/roof.json` (`pagetitle` = Seitentitel, z. B. „PV Kulturbäckerei“). Eine neue Adresse (Anfrage „adresse“) im Planer eines bestehenden Projekts: neuen Planer als neues Artifact anlegen (neuer Dateipfad, `icon: "solar"`), das bestehende Projekt im alten Planer aus seinem roof.json wiederherstellen und README ergänzen. Nie ein Projekt mit einem anderen überschreiben.
 Code: `pv-planer/planer.html` (Seite), `pv-planer/tools/areas.js` (baut die Seite), `pv-planer/tools/aerial.js` (Luftbild-Hilfen), `pv-planer/engine.js` (Belegung).
-Ausgabe immer in dieselbe URL veröffentlichen, mit `capabilities: {artifact: {}, downloads: true}` (downloads = PDF-Kurzbericht über den Knopf „PDF erstellen“, jsPDF von cdnjs).
+Ausgabe immer in die URL des jeweiligen Projekts veröffentlichen, mit `capabilities: {artifact: {}, downloads: true}` (downloads = PDF-Kurzbericht über den Knopf „PDF erstellen“, jsPDF von cdnjs).
 
 Nur Modulauslegung: keine Wirtschaftlichkeit, kein Speicher, kein Verbrauch. **Vorgaben des Nutzers:** Module immer hochkant (`orient: "hoch"` in roof.json, geneigte Flächen nur `dach_hoch`); Maximale Anlagenleistung wird zu Beginn abgefragt: im Planer Pflichtfeld „max. kWp“ (`request.kwp`); nennt der Nutzer die Adresse im Chat ohne kWp, zuerst danach fragen. Wert als `target_kwp` in roof.json — areas.js wählt die Flächen nach spezifischem Ertrag vor und kürzt die letzte. Verschattung nicht aussparen (nur auf ausdrücklichen Wunsch).
 
