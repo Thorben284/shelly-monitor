@@ -481,7 +481,7 @@ async function makePdf(){
   K.forEach(([l,v],i)=>{const x=M+i*46.5;doc.setDrawColor(200);doc.rect(x,31,44,13);doc.setTextColor(90);doc.setFontSize(7);T(l.toUpperCase(),x+2.5,35.5);doc.setTextColor(20);doc.setFont("helvetica","bold");doc.setFontSize(11);T(v,x+2.5,41.5);doc.setFont("helvetica","normal")});
   // Plan links
   const img=await planImage(),pw=Math.min(62,240*img.w/img.h),ph=pw*img.h/img.w;doc.addImage(img.url,"JPEG",M,49,pw,ph);
-  doc.setFontSize(6.5);doc.setTextColor(90);T((D.image.source||"Luftbild")+" · Norden oben",M,49+ph+3.5);
+  doc.setFontSize(6.5);doc.setTextColor(90);T(doc.splitTextToSize(A1((D.image.source||"Luftbild")+" · Norden oben"),pw),M,49+ph+3.5);
   // Tabellen rechts
   let x=M+pw+6,y=52;const cw=W-M-x;
   const table=(title,head,rows,al,foot)=>{doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(20);T(title,x,y);y+=4.5;
@@ -495,7 +495,7 @@ async function makePdf(){
     [["l",.34],["l",.16],["r",.12],["r",.12],["r",.12],["r",.14]],["Summe","","",fmt(n),fmt(k,1),fmt(k?e/k:0)]);
   // Hinweise (gekürzt)
   const H=(D.notes||[]).slice(0,4);if(H.length){doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(20);T("Hinweise",x,y);y+=4;doc.setFont("helvetica","normal");doc.setFontSize(6.8);doc.setTextColor(60);
-    for(const h of H){const L=doc.splitTextToSize(A1("– "+h),cw);if(y+L.length*2.9>283){doc.addPage();y=16}T(L,x,y);y+=L.length*2.9+1}}
+    for(const h of H){const L=doc.splitTextToSize(A1("– "+h),cw);if(y+L.length*2.9>284)break;T(L,x,y);y+=L.length*2.9+1}}   // kurz: nur was auf die Seite passt
   const pages=doc.getNumberOfPages();for(let p=1;p<=pages;p++){doc.setPage(p);doc.setFontSize(6.5);doc.setTextColor(120);T("PV-Modulplaner · Planungsstand zur Abstimmung, keine Ausführungsplanung · Werte aus Kataster, Luftbild, Street View und PVGIS – vor Ausführung am Objekt prüfen",M,290);T(`${p}/${pages}`,W-M,290,{align:"right"})}
   return doc;
 }
