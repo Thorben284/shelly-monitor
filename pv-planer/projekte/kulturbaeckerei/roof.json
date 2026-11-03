@@ -27,7 +27,7 @@
    "kind": "Walmdach",
    "building": "Hauptbau",
    "note": "Neigung 25° aus Street View mit Kamerageometrie berechnet (2 Ansichten (Süd, West): Anstieg 5,47 m auf 11,8 m); Traufe = Katasterwand + 0,4 m; großes Oberlicht",
-   "selected": false,
+   "selected": true,
    "poly": [
     [
      0.4,
@@ -62,7 +62,7 @@
    "kind": "Walmdach",
    "building": "Hauptbau",
    "note": "Neigung 25° aus Street View mit Kamerageometrie berechnet (wie Westseite (symmetrisch, Ostseite ohne Street View)); Traufe = Katasterwand + 0,4 m",
-   "selected": false,
+   "selected": true,
    "poly": [
     [
      -6.79,
@@ -496,5 +496,6 @@
  "excluded": [],
  "orient": "hoch",
  "target_kwp": 100,
- "pagetitle": "PV Kulturbäckerei"
+ "pagetitle": "PV Kulturbäckerei",
+ "keep_selection": true
 }

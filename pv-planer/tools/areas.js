@@ -95,7 +95,8 @@ async function main(cfgFile, out) {
   /* Obergrenze R.target_kwp: Flächen nach spezifischem Ertrag füllen; die letzte Fläche wird auf die Restzahl gekürzt */
   if (R.target_kwp) {
     let left = Math.floor(R.target_kwp * 1000 / M.wp + 1e-9);
-    const cand = areas.filter(a => a.mounting).sort((x, y) => y.variants[y.mounting].spec - x.variants[x.mounting].spec);
+    // keep_selection: Auswahl des Nutzers behalten, Obergrenze nur innerhalb der gewählten Flächen anwenden
+    const cand = areas.filter(a => a.mounting && (!R.keep_selection || a.selected)).sort((x, y) => y.variants[y.mounting].spec - x.variants[x.mounting].spec);
     for (const a of areas) a.selected = false;
     for (const a of cand) {
       if (left <= 0) break;
