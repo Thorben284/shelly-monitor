@@ -54,7 +54,13 @@
     "dach_quer",
     "dach_hoch"
    ],
-   "edge": 0.3
+   "edge": 0.3,
+   "off": {
+    "dach_hoch": [
+     0,
+     24
+    ]
+   }
   },
   {
    "id": "MO",
@@ -89,7 +95,13 @@
     "dach_quer",
     "dach_hoch"
    ],
-   "edge": 0.3
+   "edge": 0.3,
+   "off": {
+    "dach_hoch": [
+     0,
+     24
+    ]
+   }
   },
   {
    "id": "MS",
