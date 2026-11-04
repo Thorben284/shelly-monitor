@@ -1,0 +1,495 @@
+{
+ "address": "Mittelfeld 61-65, Lüneburg",
+ "title": "Mittelfeld 61–65, Lüneburg",
+ "pagetitle": "PV Mittelfeld 61–65",
+ "orient": "hoch",
+ "geo": {
+  "lat": 53.2423,
+  "lon": 10.3829
+ },
+ "frame": {
+  "origin": [
+   10.382787460098,
+   53.2424189933709
+  ],
+  "bearing": -31.6
+ },
+ "aerial": {
+  "file": "mf.png",
+  "lat": 53.24246,
+  "lon": 10.38294,
+  "zoom": 21,
+  "cx": 700,
+  "cy": 590,
+  "crop": [
+   400,
+   300,
+   1000,
+   1520
+  ],
+  "scale": 1,
+  "source": "Bing Luftbild (Zoom 21)"
+ },
+ "areas": [
+  {
+   "id": "SSW",
+   "name": "Südflügel Südwest",
+   "kind": "Steildach",
+   "building": "Mittelfeld 61–65",
+   "note": "35° (Schnitt A-A, LoD2 35,3°), Ausrichtung 238° (Südwest). First mittig nach Schnitt A-A und Luftbild (LoD2 setzt ihn ca. 0,9 m zu weit nach Nordost). Neigung und Firstlage aus den Bauplänen (Schnitte A-A/B-B, Ansichten Ost/West, Lüneburger Wohnungsbau 1992) mit ALKIS-Umriss; deckungsgleich mit Luftbild (First, Kehlen, Grate ±0,2 m).",
+   "poly": [
+    [
+     -18.95,
+     -3.35
+    ],
+    [
+     -20.03,
+     -9.45
+    ],
+    [
+     -35.79,
+     -9.4
+    ],
+    [
+     -35.79,
+     -3.29
+    ]
+   ],
+   "slope": {
+    "tilt": 35,
+    "fall": 238
+   },
+   "selected": true,
+   "mountings": [
+    "dach_quer",
+    "dach_hoch"
+   ],
+   "edge": 0.3
+  },
+  {
+   "id": "ZS",
+   "name": "Zwerchgiebel West, Südseite",
+   "kind": "Steildach",
+   "building": "Mittelfeld 61–65",
+   "note": "39° (Ansicht West: Giebelneigung 39,4°), Ausrichtung 175° (Süd). Neigung und Firstlage aus den Bauplänen (Schnitte A-A/B-B, Ansichten Ost/West, Lüneburger Wohnungsbau 1992) mit ALKIS-Umriss; deckungsgleich mit Luftbild (First, Kehlen, Grate ±0,2 m).",
+   "poly": [
+    [
+     -11.49,
+     0.52
+    ],
+    [
+     -8.26,
+     -5.87
+    ],
+    [
+     -12.94,
+     -8.29
+    ],
+    [
+     -13.93,
+     -6.38
+    ]
+   ],
+   "slope": {
+    "tilt": 39,
+    "fall": 175
+   },
+   "selected": true,
+   "mountings": [
+    "dach_quer",
+    "dach_hoch"
+   ],
+   "edge": 0.3
+  },
+  {
+   "id": "NO",
+   "name": "Nordflügel Ostsüdost",
+   "kind": "Steildach",
+   "building": "Mittelfeld 61–65",
+   "note": "35° (Schnitt A-A, LoD2 35,3°), Ausrichtung 112° (Ostsüdost). Treppenhausgiebel A und Schornstein ausgespart. Neigung und Firstlage aus den Bauplänen (Schnitte A-A/B-B, Ansichten Ost/West, Lüneburger Wohnungsbau 1992) mit ALKIS-Umriss; deckungsgleich mit Luftbild (First, Kehlen, Grate ±0,2 m).",
+   "poly": [
+    [
+     5.41,
+     17.16
+    ],
+    [
+     0.48,
+     20.77
+    ],
+    [
+     -7.84,
+     9.32
+    ],
+    [
+     -3.79,
+     4.5
+    ]
+   ],
+   "slope": {
+    "tilt": 35,
+    "fall": 112
+   },
+   "selected": true,
+   "mountings": [
+    "dach_quer",
+    "dach_hoch"
+   ],
+   "edge": 0.3
+  },
+  {
+   "id": "MO",
+   "name": "Mittelteil Ost",
+   "kind": "Steildach",
+   "building": "Mittelfeld 61–65",
+   "note": "35° (aus Firsthöhe = Flügel und Lauf 6,2 m; Schnitt B-B ≈35–37°), Ausrichtung 85° (Ost). Treppenhausgiebel B ausgespart. Neigung und Firstlage aus den Bauplänen (Schnitte A-A/B-B, Ansichten Ost/West, Lüneburger Wohnungsbau 1992) mit ALKIS-Umriss; deckungsgleich mit Luftbild (First, Kehlen, Grate ±0,2 m).",
+   "poly": [
+    [
+     -3.79,
+     4.5
+    ],
+    [
+     -7.84,
+     9.32
+    ],
+    [
+     -20.76,
+     2.77
+    ],
+    [
+     -18.95,
+     -3.35
+    ]
+   ],
+   "slope": {
+    "tilt": 35,
+    "fall": 85
+   },
+   "selected": true,
+   "mountings": [
+    "dach_quer",
+    "dach_hoch"
+   ],
+   "edge": 0.3
+  },
+  {
+   "id": "MWN",
+   "name": "Mittelteil West Nord",
+   "kind": "Steildach",
+   "building": "Mittelfeld 61–65",
+   "note": "40° (aus gleicher Firsthöhe und Lauf 5,1 m bis First lt. Schnitt B-B: 6,855 m ab Westwand Zwerchhaus) – nicht direkt gemessen. Ausrichtung 265° (West). Gaube ausgespart. Neigung und Firstlage aus den Bauplänen (Schnitte A-A/B-B, Ansichten Ost/West, Lüneburger Wohnungsbau 1992) mit ALKIS-Umriss; deckungsgleich mit Luftbild (First, Kehlen, Grate ±0,2 m).",
+   "poly": [
+    [
+     1.5,
+     1.39
+    ],
+    [
+     -3.79,
+     4.5
+    ],
+    [
+     -11.49,
+     0.52
+    ],
+    [
+     -4.51,
+     -1.64
+    ]
+   ],
+   "slope": {
+    "tilt": 40,
+    "fall": 265
+   },
+   "selected": true,
+   "mountings": [
+    "dach_quer",
+    "dach_hoch"
+   ],
+   "edge": 0.3
+  },
+  {
+   "id": "MWS",
+   "name": "Mittelteil West Süd",
+   "kind": "Steildach",
+   "building": "Mittelfeld 61–65",
+   "note": "40° (abgeleitet wie Mittelteil West Nord) – nicht direkt gemessen. Ausrichtung 265° (West). Gaube ausgespart. Neigung und Firstlage aus den Bauplänen (Schnitte A-A/B-B, Ansichten Ost/West, Lüneburger Wohnungsbau 1992) mit ALKIS-Umriss; deckungsgleich mit Luftbild (First, Kehlen, Grate ±0,2 m).",
+   "poly": [
+    [
+     -13.93,
+     -6.38
+    ],
+    [
+     -11.49,
+     0.52
+    ],
+    [
+     -18.95,
+     -3.35
+    ],
+    [
+     -20.03,
+     -9.45
+    ]
+   ],
+   "slope": {
+    "tilt": 40,
+    "fall": 265
+   },
+   "selected": true,
+   "mountings": [
+    "dach_quer",
+    "dach_hoch"
+   ],
+   "edge": 0.3
+  },
+  {
+   "id": "NWNW",
+   "name": "Nordflügel Westnordwest",
+   "kind": "Steildach",
+   "building": "Mittelfeld 61–65",
+   "note": "Ausrichtung 292° (Westnordwest), PVGIS 687 kWh/kWp (69 % von Süd) – nicht sinnvoll, nicht belegt.",
+   "poly": [
+    [
+     10.33,
+     13.55
+    ],
+    [
+     5.41,
+     17.16
+    ],
+    [
+     -3.79,
+     4.5
+    ],
+    [
+     1.5,
+     1.39
+    ]
+   ],
+   "slope": {
+    "tilt": 35,
+    "fall": 292
+   },
+   "selected": false
+  },
+  {
+   "id": "SNO",
+   "name": "Südflügel Nordost",
+   "kind": "Steildach",
+   "building": "Mittelfeld 61–65",
+   "note": "Ausrichtung 58° (Nordost), PVGIS 664 kWh/kWp (67 % von Süd) – nicht sinnvoll, nicht belegt. Treppenhausgiebel C liegt auf dieser Seite.",
+   "poly": [
+    [
+     -35.79,
+     -3.29
+    ],
+    [
+     -35.8,
+     2.82
+    ],
+    [
+     -20.76,
+     2.77
+    ],
+    [
+     -18.95,
+     -3.35
+    ]
+   ],
+   "slope": {
+    "tilt": 35,
+    "fall": 58
+   },
+   "selected": false
+  },
+  {
+   "id": "ZN",
+   "name": "Zwerchgiebel West, Nordseite",
+   "kind": "Steildach",
+   "building": "Mittelfeld 61–65",
+   "note": "Ausrichtung 355° (Nord) – nicht sinnvoll, nicht belegt.",
+   "poly": [
+    [
+     -4.51,
+     -1.64
+    ],
+    [
+     -3.58,
+     -3.45
+    ],
+    [
+     -8.26,
+     -5.87
+    ],
+    [
+     -11.49,
+     0.52
+    ]
+   ],
+   "slope": {
+    "tilt": 39,
+    "fall": 355
+   },
+   "selected": false
+  }
+ ],
+ "excluded": [
+  {
+   "name": "Treppenhausgiebel A (Ansicht Ost, Luftbild)",
+   "poly": [
+    [
+     -1.53,
+     12.83
+    ],
+    [
+     -2.34,
+     16.68
+    ],
+    [
+     -4.84,
+     15.67
+    ],
+    [
+     -5.96,
+     13.51
+    ]
+   ]
+  },
+  {
+   "name": "Treppenhausgiebel B (Ansicht Ost, Luftbild)",
+   "poly": [
+    [
+     -12.62,
+     2.75
+    ],
+    [
+     -12.0,
+     8.01
+    ],
+    [
+     -17.2,
+     5.12
+    ]
+   ]
+  },
+  {
+   "name": "Gaube Mittelteil West Nord (Ansicht West, Luftbild)",
+   "poly": [
+    [
+     -3.09,
+     -0.04
+    ],
+    [
+     -4.26,
+     1.86
+    ],
+    [
+     -6.07,
+     0.75
+    ],
+    [
+     -4.9,
+     -1.16
+    ]
+   ]
+  },
+  {
+   "name": "Gaube Mittelteil West Süd (Ansicht West, Luftbild)",
+   "poly": [
+    [
+     -13.76,
+     -5.55
+    ],
+    [
+     -14.93,
+     -3.65
+    ],
+    [
+     -16.74,
+     -4.77
+    ],
+    [
+     -15.57,
+     -6.67
+    ]
+   ]
+  }
+ ],
+ "obstacles": [
+  {
+   "type": "schornstein",
+   "u": 0.22,
+   "v": 9.81,
+   "w": 1.0,
+   "h": 1.0,
+   "label": "Schornstein (Ansicht West/Ost, Luftbild)"
+  },
+  {
+   "type": "ausstieg",
+   "u": 0.48,
+   "v": 16.42,
+   "label": "Dachausstieg/-fenster (Luftbild)"
+  },
+  {
+   "type": "ausstieg",
+   "u": -4.53,
+   "v": 9.67,
+   "label": "Dachausstieg/-fenster (Luftbild)"
+  },
+  {
+   "type": "ausstieg",
+   "u": -9.35,
+   "v": 5.65,
+   "label": "Dachausstieg/-fenster (Luftbild)"
+  },
+  {
+   "type": "ausstieg",
+   "u": -16.81,
+   "v": 2.11,
+   "label": "Dachausstieg/-fenster (Luftbild)"
+  },
+  {
+   "type": "ausstieg",
+   "u": -22.29,
+   "v": -6.76,
+   "label": "Dachausstieg/-fenster (Luftbild)"
+  },
+  {
+   "type": "ausstieg",
+   "u": -27.59,
+   "v": -6.61,
+   "label": "Dachausstieg/-fenster (Luftbild)"
+  },
+  {
+   "type": "ausstieg",
+   "u": -32.96,
+   "v": -6.77,
+   "label": "Dachausstieg/-fenster (Luftbild)"
+  }
+ ],
+ "pvgis": {
+  "35|-68": 875.37,
+  "35|-95": 775.23,
+  "40|85": 781.45,
+  "39|-5": 992.0,
+  "35|58": 887.08,
+  "35|112": 686.98,
+  "35|-122": 663.96
+ },
+ "notes": [
+  "Mittelfeld 61, 63, 65: laut Kataster ein Baukörper (ein Umriss, Grenzen der Hausnummern nicht bekannt). Drei Flügel: Nordflügel, Mittelteil, Südflügel, je Satteldach, gleiche Firsthöhe; im Mittelteil Zwerchhaus West (Giebel bis First) und Treppenhausgiebel A/B/C auf der Ostseite (Eingangsseite).",
+  "Belegt nur sinnvoll ausgerichtete Flächen (Vorgabe): Süd, Südwest, Ostsüdost, Ost, West – mindestens ca. 78 % des Süd-Ertrags. Nicht belegt: Nordflügel Westnordwest (69 %), Südflügel Nordost (67 %), Zwerchgiebel Nordseite. Keine kWp-Obergrenze.",
+  "Grundlage: Baupläne Lüneburger Wohnungsbau 1992 (DG-Grundriss, Schnitte A-A/B-B, Ansichten Ost/West) vor Kataster vor Luftbild. Neigungen: Flügel 35° (Schnitt A-A gemessen 34–36°, LoD2 35,3°), Mittelteil Ost 35°, Mittelteil West 40° (abgeleitet, nicht direkt gemessen), Zwerchgiebel 39° (Ansicht West).",
+  "Amtliches 3D-Modell (LoD2) fehlerhaft: Mittelteil als Flachdach, Südflügel-First ca. 0,9 m außermittig – durch Pläne und Luftbild widerlegt, nicht verwendet. Street View: hier keine Aufnahmen (wie Mittelfeld 55–59).",
+  "Traufen = Katasterwand + 0,4 m, Ortgänge + 0,3 m. Dachausstiege/-fenster aus dem Luftbild als 0,9 m-Hindernisse (Art und Größe vor Ort prüfen). Verschattung durch Bäume nicht berücksichtigt.",
+  "Quellen: ALKIS und LoD2 (LGLN Open Data, CC BY 4.0), Bing Luftbild Zoom 21, PVGIS 5.2, Baupläne des Nutzers."
+ ],
+ "request": {
+  "type": "adresse",
+  "address": "Mittelfeld 61-65, Lüneburg",
+  "at": "2026-11-04T09:00:00.000Z"
+ },
+ "processed": {
+  "type": "adresse",
+  "at": "2026-11-04T09:30:00.000Z"
+ }
+}
