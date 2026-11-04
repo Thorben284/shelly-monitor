@@ -26,7 +26,7 @@
    "name": "Hauptbau West",
    "kind": "Walmdach",
    "building": "Hauptbau",
-   "note": "Neigung 25° aus Street View mit Kamerageometrie berechnet (2 Ansichten (Süd, West): Anstieg 5,47 m auf 11,8 m); Traufe = Katasterwand + 0,4 m; großes Oberlicht",
+   "note": "Neigung 25° – bestätigt durch Bauplan 01.10 Querschnitt C-C („25° HD“); Street View 2 Ansichten ebenfalls 25°. Traufe = Katasterwand + 0,4 m (Plan: Traufbreite ca. 23,5 m, First mittig); großes Oberlicht (Plan 01.6 Pos. 102)",
    "selected": true,
    "poly": [
     [
@@ -61,7 +61,7 @@
    "name": "Hauptbau Ost",
    "kind": "Walmdach",
    "building": "Hauptbau",
-   "note": "Neigung 25° aus Street View mit Kamerageometrie berechnet (wie Westseite (symmetrisch, Ostseite ohne Street View)); Traufe = Katasterwand + 0,4 m",
+   "note": "Neigung 25° – bestätigt durch Bauplan 01.10 Querschnitt C-C („25° HD“); Street View 2 Ansichten ebenfalls 25°. Traufe = Katasterwand + 0,4 m (Plan: Traufbreite ca. 23,5 m, First mittig)",
    "selected": true,
    "poly": [
     [
@@ -96,7 +96,7 @@
    "name": "Hauptbau Südwalm",
    "kind": "Walmdach",
    "building": "Hauptbau",
-   "note": "Neigung 37° aus Street View mit Kamerageometrie berechnet (Südansicht: Anstieg 5,47 m auf 7,3 m); Traufe = Katasterwand + 0,4 m; großes Oberlicht",
+   "note": "Walmneigung 38° laut Bauplan 01.10 („38° ND“; Street View ca. 37°); Oberlicht Pos. 104 (Plan 01.6)",
    "selected": false,
    "poly": [
     [
@@ -113,7 +113,7 @@
     ]
    ],
    "slope": {
-    "tilt": 37,
+    "tilt": 38,
     "fall": 183
    },
    "mountings": [
@@ -228,7 +228,7 @@
    "name": "Nordflügel West",
    "kind": "Dach",
    "building": "Nordflügel",
-   "note": "Neigung 30° aus Street View mit Kamerageometrie berechnet (Westansicht: Anstieg 4,35 m auf 7,5 m); Traufe = Katasterwand + 0,4 m; viele kleine Dachfenster",
+   "note": "Neigung 33° laut Bauplan 01.10 Querschnitt B-B (Street View ca. 30°); viele kleine Dachfenster",
    "selected": false,
    "poly": [
     [
@@ -249,7 +249,7 @@
     ]
    ],
    "slope": {
-    "tilt": 30,
+    "tilt": 33,
     "fall": 273
    },
    "mountings": [
@@ -263,7 +263,7 @@
    "name": "Nordflügel Ost",
    "kind": "Dach",
    "building": "Nordflügel",
-   "note": "Neigung 30° aus Street View mit Kamerageometrie berechnet (wie Westseite (Ostseite ohne Street View)); Traufe = Katasterwand + 0,4 m; viele kleine Dachfenster",
+   "note": "Neigung 33° laut Bauplan 01.10 Querschnitt B-B (Street View ca. 30°); viele kleine Dachfenster",
    "selected": false,
    "poly": [
     [
@@ -284,7 +284,7 @@
     ]
    ],
    "slope": {
-    "tilt": 30,
+    "tilt": 33,
     "fall": 93
    },
    "mountings": [
@@ -461,12 +461,16 @@
   "37|3": 987.93,
   "16|93": 802.34,
   "16|-87": 825.51,
-  "27|3": 971.86
+  "27|3": 971.86,
+  "33|93": 766.25,
+  "33|-87": 808.91,
+  "38|3": 988.34
  },
  "notes": [
   "Umriss aus dem Liegenschaftskataster (ALKIS, LGLN, Stand 2021); Abgleich mit Luftbild (Bing Maps, Zoom 21, Kanten einzeln nachgezeichnet und per Überlagerung geprüft; Maßstab über die 31,3 m lange Westwand geprüft) und Google Street View (Juli 2022): Backsteinbau, zweigeschossiger Hauptbau mit Walmdach, eingeschossiger Südflügel, Nordflügel mit vielen kleinen Dachfenstern.",
-  "Dachneigungen aus Street View mit Kamerageometrie berechnet (Juli 2022, Standpunkte Dorette-von-Stern-Straße Süd und West; Ostseiten nicht einsehbar): Hauptbau Längsseiten 25° (2 Ansichten, Traufe ca. 9 m, First ca. 14,5 m über Gelände), Hauptbau-Walme ca. 37°, Nordflügel 30°, Südflügel Längsseiten ca. 16° und Südwalm ca. 27° (nur 1 Ansicht, ±3°). LoD2 nicht abrufbar.",
-  "Traufen einheitlich Katasterwand + 0,4 m Dachüberstand (Luftbild: 0,3–0,45 m gemessen; nachgezeichnete Kanten lagen wegen Schräglage des Luftbilds teils bis 1,5 m innerhalb der Wand). First und Grate aus dem Luftbild (Firstende Südwalm nach Hinweis des Nutzers).",
+  "Dachneigungen aus den Bauplänen (Architekt, Revisionsunterlage 2014: 01.10 Querschnitte B-B/C-C, 01.6 Ansicht von West): Hauptbau Längsseiten 25° (HD), Walme 38° (ND), Nordflügel 33°. Gegenprobe Street View mit Kamerageometrie: 25° / ca. 37° / ca. 30°. Südflügel ca. 16° (Längsseiten) und ca. 27° (Walm) nur aus 1 Street-View-Ansicht – nicht im Plan, bitte prüfen.",
+  "Abgleich mit Ansicht West (1:50): Firstlänge ca. 18 m (Plan) / 17,5 m (Planung), Firstenden 6,6 m bzw. 24,6 m ab Nordwand (Planung 6,8 / 24,3 m), Traufüberstand ca. 0,4 m, First +13,61 m / Traufe +8,39 m über EG-Fußboden – stimmt mit der Planung überein (Abweichung < 0,5 m). Schnitt C-C: Breite Traufe–Traufe ca. 23,5 m, First mittig.",
+  "Dach laut Plan 2014 neu eingedeckt (Sparren 12 cm Bestand, Schalung 2,4 cm, Lattung 40/60) – Tragfähigkeit für PV durch Statiker prüfen lassen.",
   "Nicht aufgeführt: Nordwalm des Hauptbaus (nach Norden), Fahrradüberdachung (vermutlich lichtdurchlässig). Altbau — ggf. Denkmalschutz und Tragfähigkeit prüfen.",
   "Belegung: Modul 450 Wp, 1762 × 1134 mm, immer hochkant, Randabstand 0,3 m (Flachdach 0,4 m). Obergrenze 100 kWp (222 Module): Flächen nach spezifischem Ertrag gefüllt, die letzte Fläche gekürzt. Verschattung nicht berücksichtigt. Erträge PVGIS, 14 % Verluste."
  ],

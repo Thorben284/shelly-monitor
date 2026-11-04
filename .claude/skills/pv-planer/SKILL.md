@@ -33,7 +33,7 @@ Erste Meldung (step 1) sofort nach dem Lesen der Anfrage. Beim Abschluss `proces
 
 **Tempo (Wunsch des Nutzers): Schon bei der Adresse ALLE Flächen fertig rechnen** (Hindernisse, PVGIS, `mountings`), damit die Auswahl im Planer sofort die Belegung zeigt und keine zweite Runde nötig ist. Unabhängige Abrufe immer gleichzeitig in einem Schritt starten (ALKIS, STAC, Luftbild, Street View; alle PVGIS-Abfragen). PVGIS mit `outputformat=basic` (kurze Antwort, Jahreswert in der Zeile `Year`, 2. Spalte).
 
-Rangfolge der Quellen: **amtliche Daten vor Bildauswertung.** Luftbilder (Bing) sind keine echten Orthofotos (Dächer leicht versetzt), Linien im Dach sind mehrdeutig (First, Traufkante, Fensterband).
+Rangfolge der Quellen: **Baupläne des Nutzers (Schnitte, Ansichten, Dachaufsicht) vor amtlichen Daten vor Bildauswertung.** Liegen Pläne vor: Neigungen, Firstlage, Traufbreite und Dachfenster daraus übernehmen und gegen Street View/Luftbild prüfen (Maßstab aus Plankopf, z. B. 1:50; bekannte Länge zur Kontrolle). Luftbilder (Bing) sind keine echten Orthofotos (Dächer leicht versetzt), Linien im Dach sind mehrdeutig (First, Traufkante, Fensterband).
 
 1. Nominatim per Firecrawl (`formats: ["rawHtml"]`, `maxAge: 0`): `https://nominatim.openstreetmap.org/search?q=<Adresse>&format=jsonv2&limit=1`.
 2. **Liegenschaftskataster (ALKIS, nur Niedersachsen, LGLN Open Data):** Gebäudeumrisse per Firecrawl `rawHtml`:
