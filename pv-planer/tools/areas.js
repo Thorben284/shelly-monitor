@@ -42,6 +42,13 @@ async function main(cfgFile, out) {
     ow: { label: "Ost-West 10°", tilt: 10, axes: "vu", w: mw, h: dep(10), pitches: [dep(10) + .05, dep(10) + .35], comp: [br, br + 180] },
     eben: { label: "flach 5°", tilt: 5, axes: "uv", w: mw, h: dep(5), pitches: [dep(5) + .02], comp: [br + 90 * facingV] }
   };
+  /* Nur nach Westen aufgeständert 10° (Wunsch des Nutzers bei Flachdächern): Reihen quer zu der Gebäudeachse, die am nächsten an West (270°) liegt;
+     Reihenabstand 0,6 m (Verschattungswinkel ca. 27°) */
+  {
+    const cand = [[br + 90, "uv"], [br - 90, "uv"], [br, "vu"], [br + 180, "vu"]].map(([a, ax]) => [((a % 360) + 360) % 360, ax]);
+    const [wa, wax] = cand.reduce((b, c) => Math.abs(((c[0] - 270 + 540) % 360) - 180) < Math.abs(((b[0] - 270 + 540) % 360) - 180) ? c : b);
+    MOUNT.west = { label: "West aufgeständert 10°", tilt: 10, axes: wax, w: mw, h: dep(10), pitches: [dep(10) + .6], comp: [wa] };
+  }
   /* Geneigte Dachfläche (`slope: {tilt, fall}`, fall = Gefällerichtung ° ab Nord): Module dachparallel,
      lokales x entlang der Traufe, y hangaufwärts in wahrer Länge (Grundriss / cos Neigung) */
   const pitched = (a, orient) => {

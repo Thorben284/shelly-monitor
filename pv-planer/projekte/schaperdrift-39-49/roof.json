@@ -1,0 +1,315 @@
+{
+ "address": "Schaperdrift 39-49, Lüneburg",
+ "title": "Schaperdrift 39–49, Lüneburg",
+ "pagetitle": "PV Schaperdrift",
+ "orient": "hoch",
+ "geo": {
+  "lat": 53.2343,
+  "lon": 10.3798
+ },
+ "frame": {
+  "origin": [
+   10.3796750626034,
+   53.2347214906351
+  ],
+  "bearing": -3.8
+ },
+ "aerial": {
+  "file": "sd.png",
+  "lat": 53.2346,
+  "lon": 10.37985,
+  "zoom": 21,
+  "cx": 700,
+  "cy": 590,
+  "crop": [
+   380,
+   220,
+   1000,
+   2500
+  ],
+  "scale": 1,
+  "source": "Bing Luftbild (Zoom 21)"
+ },
+ "areas": [
+  {
+   "id": "A",
+   "name": "Schaperdrift 39–43 Flachdach",
+   "kind": "Flachdach",
+   "building": "Schaperdrift 39–43",
+   "note": "Flachdach (Angabe Nutzer, Luftbild: helle Dachbahn ohne Gefälle erkennbar). Umriss = ALKIS-Außenwand, im Luftbild deckungsgleich (Dachrand ohne Überstand). Randabstand 0,8 m. Module nur nach Westen aufgeständert 10° (Vorgabe).",
+   "poly": [
+    [
+     0.0,
+     0.0
+    ],
+    [
+     -45.2,
+     -0.01
+    ],
+    [
+     -45.21,
+     12.09
+    ],
+    [
+     -0.01,
+     12.08
+    ]
+   ],
+   "selected": true,
+   "mountings": [
+    "west"
+   ],
+   "edge": 0.8
+  },
+  {
+   "id": "B",
+   "name": "Schaperdrift 45–49 Flachdach",
+   "kind": "Flachdach",
+   "building": "Schaperdrift 45–49",
+   "note": "Flachdach (Angabe Nutzer, Luftbild: helle Dachbahn ohne Gefälle erkennbar). Umriss = ALKIS-Außenwand, im Luftbild deckungsgleich (Dachrand ohne Überstand). Randabstand 0,8 m. Module nur nach Westen aufgeständert 10° (Vorgabe).",
+   "poly": [
+    [
+     -51.16,
+     3.99
+    ],
+    [
+     -96.35,
+     3.99
+    ],
+    [
+     -96.36,
+     16.08
+    ],
+    [
+     -51.16,
+     16.08
+    ]
+   ],
+   "selected": true,
+   "mountings": [
+    "west"
+   ],
+   "edge": 0.8
+  }
+ ],
+ "excluded": [],
+ "obstacles": [
+  {
+   "type": "sonstiges",
+   "u": -12.98,
+   "v": 6.79,
+   "w": 16.97,
+   "h": 0.24,
+   "c": 0.3,
+   "label": "Leitung auf dem Dach (Luftbild, vermutl. Blitzschutz) – vor Ort prüfen"
+  },
+  {
+   "type": "sonstiges",
+   "u": -27.68,
+   "v": 6.53,
+   "w": 12.43,
+   "h": 0.28,
+   "c": 0.3,
+   "label": "Leitung auf dem Dach (Luftbild, vermutl. Blitzschutz) – vor Ort prüfen"
+  },
+  {
+   "type": "sonstiges",
+   "u": -36.23,
+   "v": 6.46,
+   "w": 3.78,
+   "h": 0.15,
+   "c": 0.3,
+   "label": "Leitung auf dem Dach (Luftbild, vermutl. Blitzschutz) – vor Ort prüfen"
+  },
+  {
+   "type": "sonstiges",
+   "u": -3.37,
+   "v": 5.41,
+   "w": 0.2,
+   "h": 3.12,
+   "c": 0.3,
+   "label": "Leitung auf dem Dach (Luftbild, vermutl. Blitzschutz) – vor Ort prüfen"
+  },
+  {
+   "type": "sonstiges",
+   "u": -4.38,
+   "v": 7.36,
+   "w": 0.15,
+   "h": 1.34,
+   "c": 0.3,
+   "label": "Leitung auf dem Dach (Luftbild, vermutl. Blitzschutz) – vor Ort prüfen"
+  },
+  {
+   "type": "sonstiges",
+   "u": -7.55,
+   "v": 6.75,
+   "w": 0.15,
+   "h": 0.98,
+   "c": 0.3,
+   "label": "Leitung auf dem Dach (Luftbild, vermutl. Blitzschutz) – vor Ort prüfen"
+  },
+  {
+   "type": "sonstiges",
+   "u": -27.43,
+   "v": 6.17,
+   "w": 0.22,
+   "h": 3.35,
+   "c": 0.3,
+   "label": "Leitung auf dem Dach (Luftbild, vermutl. Blitzschutz) – vor Ort prüfen"
+  },
+  {
+   "type": "sonstiges",
+   "u": -38.03,
+   "v": 7.03,
+   "w": 0.15,
+   "h": 1.12,
+   "c": 0.3,
+   "label": "Leitung auf dem Dach (Luftbild, vermutl. Blitzschutz) – vor Ort prüfen"
+  },
+  {
+   "type": "entlueftung",
+   "u": -23.74,
+   "v": 6.16,
+   "label": "Lüfter/Dachdurchführung (Luftbild)"
+  },
+  {
+   "type": "entlueftung",
+   "u": -41.88,
+   "v": 7.56,
+   "label": "Lüfter/Dachdurchführung (Luftbild)"
+  },
+  {
+   "type": "entlueftung",
+   "u": -41.83,
+   "v": 8.77,
+   "label": "Lüfter/Dachdurchführung (Luftbild)"
+  },
+  {
+   "type": "entlueftung",
+   "u": -43.0,
+   "v": 7.62,
+   "label": "Lüfter/Dachdurchführung (Luftbild)"
+  },
+  {
+   "type": "sonstiges",
+   "u": -67.14,
+   "v": 10.58,
+   "w": 17.2,
+   "h": 0.24,
+   "c": 0.3,
+   "label": "Leitung auf dem Dach (Luftbild, vermutl. Blitzschutz) – vor Ort prüfen"
+  },
+  {
+   "type": "sonstiges",
+   "u": -84.4,
+   "v": 10.33,
+   "w": 17.32,
+   "h": 0.26,
+   "c": 0.3,
+   "label": "Leitung auf dem Dach (Luftbild, vermutl. Blitzschutz) – vor Ort prüfen"
+  },
+  {
+   "type": "sonstiges",
+   "u": -58.55,
+   "v": 11.49,
+   "w": 0.15,
+   "h": 1.56,
+   "c": 0.3,
+   "label": "Leitung auf dem Dach (Luftbild, vermutl. Blitzschutz) – vor Ort prüfen"
+  },
+  {
+   "type": "sonstiges",
+   "u": -69.41,
+   "v": 10.32,
+   "w": 0.22,
+   "h": 3.34,
+   "c": 0.3,
+   "label": "Leitung auf dem Dach (Luftbild, vermutl. Blitzschutz) – vor Ort prüfen"
+  },
+  {
+   "type": "sonstiges",
+   "u": -88.14,
+   "v": 11.2,
+   "w": 0.15,
+   "h": 1.34,
+   "c": 0.3,
+   "label": "Leitung auf dem Dach (Luftbild, vermutl. Blitzschutz) – vor Ort prüfen"
+  },
+  {
+   "type": "sonstiges",
+   "u": -91.48,
+   "v": 11.2,
+   "w": 0.15,
+   "h": 1.34,
+   "c": 0.3,
+   "label": "Leitung auf dem Dach (Luftbild, vermutl. Blitzschutz) – vor Ort prüfen"
+  },
+  {
+   "type": "sonstiges",
+   "u": -93.3,
+   "v": 8.39,
+   "w": 0.15,
+   "h": 2.23,
+   "c": 0.3,
+   "label": "Leitung auf dem Dach (Luftbild, vermutl. Blitzschutz) – vor Ort prüfen"
+  },
+  {
+   "type": "entlueftung",
+   "u": -53.75,
+   "v": 12.14,
+   "label": "Lüfter/Dachdurchführung (Luftbild)"
+  },
+  {
+   "type": "entlueftung",
+   "u": -53.34,
+   "v": 11.36,
+   "label": "Lüfter/Dachdurchführung (Luftbild)"
+  },
+  {
+   "type": "entlueftung",
+   "u": -54.31,
+   "v": 11.21,
+   "label": "Lüfter/Dachdurchführung (Luftbild)"
+  },
+  {
+   "type": "entlueftung",
+   "u": -71.79,
+   "v": 10.63,
+   "label": "Lüfter/Dachdurchführung (Luftbild)"
+  },
+  {
+   "type": "entlueftung",
+   "u": -74.01,
+   "v": 11.24,
+   "label": "Lüfter/Dachdurchführung (Luftbild)"
+  }
+ ],
+ "pvgis": {
+  "10|86": 823.91
+ },
+ "addresses": [
+  "Schaperdrift 39",
+  "Schaperdrift 41",
+  "Schaperdrift 43",
+  "Schaperdrift 45",
+  "Schaperdrift 47",
+  "Schaperdrift 49"
+ ],
+ "notes": [
+  "Zwei Gebäude laut Kataster: Schaperdrift 39, 41, 43 und 45, 47, 49 (je ca. 45,4 × 12,0 m, Wohngebäude; OSM: Wohnheim). Flachdächer (Angabe Nutzer, Luftbild).",
+  "Belegung nach Vorgabe: Module nur nach Westen, aufgeständert 10°, hochkant, Reihen parallel zur Gebäudelängsachse, Reihenabstand 0,6 m (Verschattung ab ca. 27° Sonnenhöhe aus Westen). Randabstand 0,8 m. Keine kWp-Obergrenze.",
+  "Auf beiden Dächern verläuft mittig eine Leitung mit Abzweigen (vermutl. Blitzschutz) – mit 0,3 m Abstand ausgespart; Lüfter/Dachdurchführungen aus dem Luftbild (Lage ±0,3 m). Vor Ort prüfen.",
+  "Bitte vor Ausführung Tragfähigkeit der Dächer (Ballast für Aufständerung, Windsog) prüfen lassen – bei Modulbauweise oft begrenzt.",
+  "LoD2-Modell nicht auswertbar (Abruf leer), Street View nicht ausgewertet; Flachdach und Umriss aus Kataster, Luftbild und Angabe des Nutzers.",
+  "Quellen: ALKIS (LGLN Open Data, CC BY 4.0, Stand 24.07.2017), Bing Luftbild Zoom 21, PVGIS 5.2. Verschattung durch Bäume nicht berücksichtigt."
+ ],
+ "request": {
+  "type": "adresse",
+  "address": "Schaperdrift 39-49, Lüneburg",
+  "at": "2026-11-05T09:20:00.000Z"
+ },
+ "processed": {
+  "type": "adresse",
+  "at": "2026-11-05T09:50:00.000Z"
+ }
+}

@@ -480,7 +480,7 @@ async function makePdf(){
   const K=[["Leistung",fmt(k,1)+" kWp"],["Module",fmt(n)+" Stk."],["Ertrag",fmt(e/1000,1)+" MWh/a"],["Spez. Ertrag",fmt(k?e/k:0)+" kWh/kWp"]];
   K.forEach(([l,v],i)=>{const x=M+i*46.5;doc.setDrawColor(200);doc.rect(x,31,44,13);doc.setTextColor(90);doc.setFontSize(7);T(l.toUpperCase(),x+2.5,35.5);doc.setTextColor(20);doc.setFont("helvetica","bold");doc.setFontSize(11);T(v,x+2.5,41.5);doc.setFont("helvetica","normal")});
   // Plan links
-  const img=await planImage(),pw=Math.min(62,240*img.w/img.h),ph=pw*img.h/img.w;doc.addImage(img.url,"JPEG",M,49,pw,ph);
+  const img=await planImage(),pw=Math.min(62,222*img.w/img.h),ph=pw*img.h/img.w;doc.addImage(img.url,"JPEG",M,49,pw,ph);
   doc.setFontSize(6.5);doc.setTextColor(90);T(doc.splitTextToSize(A1((D.image.source||"Luftbild")+" · Norden oben"),pw),M,49+ph+3.5);
   // Tabellen rechts
   let x=M+pw+6,y=52;const cw=W-M-x;
