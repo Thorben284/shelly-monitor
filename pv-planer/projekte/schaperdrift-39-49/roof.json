@@ -2,7 +2,7 @@
  "address": "Schaperdrift 39-49, Lüneburg",
  "title": "Schaperdrift 39–49, Lüneburg",
  "pagetitle": "PV Schaperdrift",
- "orient": "hoch",
+ "orient": "quer",
  "geo": {
   "lat": 53.2343,
   "lon": 10.3798
@@ -36,7 +36,7 @@
    "name": "Schaperdrift 39–43 Flachdach",
    "kind": "Flachdach",
    "building": "Schaperdrift 39–43",
-   "note": "Flachdach (Angabe Nutzer, Luftbild: helle Dachbahn ohne Gefälle erkennbar). Umriss = ALKIS-Außenwand, im Luftbild deckungsgleich (Dachrand ohne Überstand). Randabstand 0,8 m. Module nur nach Westen aufgeständert 10° (Vorgabe).",
+   "note": "Flachdach (Angabe Nutzer, Luftbild: helle Dachbahn ohne Gefälle erkennbar). Umriss = ALKIS-Außenwand, im Luftbild deckungsgleich (Dachrand ohne Überstand). Randabstand 0,8 m. Module nur nach Osten aufgeständert 10°, quer (Vorgabe).",
    "poly": [
     [
      0.0,
@@ -57,7 +57,7 @@
    ],
    "selected": true,
    "mountings": [
-    "west"
+    "ost"
    ],
    "edge": 0.8
   },
@@ -66,7 +66,7 @@
    "name": "Schaperdrift 45–49 Flachdach",
    "kind": "Flachdach",
    "building": "Schaperdrift 45–49",
-   "note": "Flachdach (Angabe Nutzer, Luftbild: helle Dachbahn ohne Gefälle erkennbar). Umriss = ALKIS-Außenwand, im Luftbild deckungsgleich (Dachrand ohne Überstand). Randabstand 0,8 m. Module nur nach Westen aufgeständert 10° (Vorgabe).",
+   "note": "Flachdach (Angabe Nutzer, Luftbild: helle Dachbahn ohne Gefälle erkennbar). Umriss = ALKIS-Außenwand, im Luftbild deckungsgleich (Dachrand ohne Überstand). Randabstand 0,8 m. Module nur nach Osten aufgeständert 10°, quer (Vorgabe).",
    "poly": [
     [
      -51.16,
@@ -87,7 +87,7 @@
    ],
    "selected": true,
    "mountings": [
-    "west"
+    "ost"
    ],
    "edge": 0.8
   }
@@ -285,7 +285,8 @@
   }
  ],
  "pvgis": {
-  "10|86": 823.91
+  "10|86": 823.91,
+  "10|-94": 818.03
  },
  "addresses": [
   "Schaperdrift 39",
@@ -297,7 +298,7 @@
  ],
  "notes": [
   "Zwei Gebäude laut Kataster: Schaperdrift 39, 41, 43 und 45, 47, 49 (je ca. 45,4 × 12,0 m, Wohngebäude; OSM: Wohnheim). Flachdächer (Angabe Nutzer, Luftbild).",
-  "Belegung nach Vorgabe: Module nur nach Westen, aufgeständert 10°, hochkant, Reihen parallel zur Gebäudelängsachse, Reihenabstand 0,6 m (Verschattung ab ca. 27° Sonnenhöhe aus Westen). Randabstand 0,8 m. Keine kWp-Obergrenze.",
+  "Belegung nach Vorgabe: Module nur nach Osten, aufgeständert 10°, quer (lange Seite entlang der Reihe), Reihen parallel zur Gebäudelängsachse, Reihenabstand 0,6 m (Verschattung ab ca. 18° Sonnenhöhe aus Osten). Randabstand 0,8 m. Keine kWp-Obergrenze.",
   "Auf beiden Dächern verläuft mittig eine Leitung mit Abzweigen (vermutl. Blitzschutz) – mit 0,3 m Abstand ausgespart; Lüfter/Dachdurchführungen aus dem Luftbild (Lage ±0,3 m). Vor Ort prüfen.",
   "Bitte vor Ausführung Tragfähigkeit der Dächer (Ballast für Aufständerung, Windsog) prüfen lassen – bei Modulbauweise oft begrenzt.",
   "LoD2-Modell nicht auswertbar (Abruf leer), Street View nicht ausgewertet; Flachdach und Umriss aus Kataster, Luftbild und Angabe des Nutzers.",

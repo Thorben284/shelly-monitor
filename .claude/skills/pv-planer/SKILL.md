@@ -62,7 +62,7 @@ Rangfolge der Quellen: **Baupläne des Nutzers (Schnitte, Ansichten, Dachaufsich
 ## request.type = "auswahl"
 Nur noch nötig für Flächen ohne Berechnung (z. B. nachträglich ergänzt) oder Korrekturen.
 1. Für `request.ids`: Hindernisse auf diesen Flächen aus dem Luftbild erfassen (`obstacles`: type lichtkuppel/entlueftung/ausstieg/schornstein/antenne/sonstiges, u, v; optional w, h, c). Nicht nutzbare Teilflächen (Technik) als `excluded`.
-2. `selected` = genau die ids; `mountings` + `edge` setzen: Flachdach `["ow","sued"]` (nur West gewünscht: `["west"]`, aufgeständert 10°, Reihenabstand 0,6 m), edge 0,8; Carport `["eben"]`, edge 0,3. Geneigte Dachseiten: `["dach_quer","dach_hoch"]`, edge 0,3; Neigung aus LoD2 (sonst Street View) in `notes` nennen.
+2. `selected` = genau die ids; `mountings` + `edge` setzen: Flachdach `["ow","sued"]` (nur eine Richtung gewünscht: `["west"]` oder `["ost"]`, aufgeständert 10°, Reihenabstand 0,6 m; Querformat für ein Projekt: `orient: "quer"`), edge 0,8; Carport `["eben"]`, edge 0,3. Geneigte Dachseiten: `["dach_quer","dach_hoch"]`, edge 0,3; Neigung aus LoD2 (sonst Street View) in `notes` nennen.
 3. PVGIS je Montage per Firecrawl (`PVcalc`, loss 14, usehorizon 1), Jahreswert `E_y` in `pvgis["<Neigung>|<Azimut>"]` (Schlüssel, die areas.js als fehlend meldet). Hat der Nutzer im Planer Flächen gewählt, `keep_selection: true` setzen: die kWp-Obergrenze gilt dann nur innerhalb seiner Auswahl.
 4. `processed` setzen, bauen, veröffentlichen. Beispiel: `pv-planer/beispiele/lueneburg-auf-der-hoehe-54.json`.
 

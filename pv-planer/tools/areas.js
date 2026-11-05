@@ -42,12 +42,13 @@ async function main(cfgFile, out) {
     ow: { label: "Ost-West 10°", tilt: 10, axes: "vu", w: mw, h: dep(10), pitches: [dep(10) + .05, dep(10) + .35], comp: [br, br + 180] },
     eben: { label: "flach 5°", tilt: 5, axes: "uv", w: mw, h: dep(5), pitches: [dep(5) + .02], comp: [br + 90 * facingV] }
   };
-  /* Nur nach Westen aufgeständert 10° (Wunsch des Nutzers bei Flachdächern): Reihen quer zu der Gebäudeachse, die am nächsten an West (270°) liegt;
-     Reihenabstand 0,6 m (Verschattungswinkel ca. 27°) */
-  {
+  /* Nur nach Westen bzw. Osten aufgeständert 10° (Wunsch des Nutzers bei Flachdächern): Reihen quer zu der Gebäudeachse, die am nächsten
+     an der Zielrichtung liegt; Reihenabstand 0,6 m (Verschattungswinkel ca. 27° bei hochkant, ca. 18° bei quer) */
+  for (const [key, name, target] of [["west", "West", 270], ["ost", "Ost", 90]]) {
     const cand = [[br + 90, "uv"], [br - 90, "uv"], [br, "vu"], [br + 180, "vu"]].map(([a, ax]) => [((a % 360) + 360) % 360, ax]);
-    const [wa, wax] = cand.reduce((b, c) => Math.abs(((c[0] - 270 + 540) % 360) - 180) < Math.abs(((b[0] - 270 + 540) % 360) - 180) ? c : b);
-    MOUNT.west = { label: "West aufgeständert 10°", tilt: 10, axes: wax, w: mw, h: dep(10), pitches: [dep(10) + .6], comp: [wa] };
+    const off = a => Math.abs(((a - target + 540) % 360) - 180);
+    const [wa, wax] = cand.reduce((b, c) => off(c[0]) < off(b[0]) ? c : b);
+    MOUNT[key] = { label: `${name} aufgeständert 10°`, tilt: 10, axes: wax, w: mw, h: dep(10), pitches: [dep(10) + .6], comp: [wa] };
   }
   /* Geneigte Dachfläche (`slope: {tilt, fall}`, fall = Gefällerichtung ° ab Nord): Module dachparallel,
      lokales x entlang der Traufe, y hangaufwärts in wahrer Länge (Grundriss / cos Neigung) */
@@ -115,7 +116,7 @@ async function main(cfgFile, out) {
   // Luftbildausschnitt als JPEG (ohne Luftbild: leerer Planer mit Adresseingabe)
   const jpg = AE ? await cropJpeg(path.resolve(dir, AE.file), AE.crop, S) : null;
   const data = {
-    address: R.address || "", title: R.title || R.address || "", created: new Date().toISOString().slice(0, 10), stamp: Date.now(), module: M,
+    address: R.address || "", title: R.title || R.address || "", orient: R.orient || "hoch", created: new Date().toISOString().slice(0, 10), stamp: Date.now(), module: M,
     image: AE ? { src: jpg, w: (cx1 - cx0) * S, h: (cy1 - cy0) * S, mpp: A.mpp(AE) / S, source: AE.source } : null,
     excluded: (R.excluded || []).map(e => ({ name: e.name, poly: e.poly.map(px) })),
     areas, target: R.target_kwp || null, entrances: R.entrances || null, addresses: R.addresses || null, split: R.split || null,
