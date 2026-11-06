@@ -293,6 +293,14 @@ app.get('/api/status', (_q, res) => res.json({
   eufy:     { ok: cfg.hasEufy, cameras: eufyCameras.length },
 }));
 
+require('./jarvis')(app, {
+  cfg,
+  getShelly:        () => shellyCurrent,
+  getShellyHistory: () => shellyHistory,
+  getVictron:       () => victronCurrent,
+  getEufy:          () => ({ configured: cfg.hasEufy, cameras: eufyCameras }),
+});
+
 app.listen(cfg.port, () => {
   const mode = cfg.simulate ? '[SIMULATION]' : '[LIVE]';
   console.log(`\nEnergie-Dashboard: http://localhost:${cfg.port}  ${mode}`);

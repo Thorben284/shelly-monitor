@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0d0d0d" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Jarvis</title>
+  <style>
+    :root {
+      --bg: #0d0d0d; --surface: #1a1a19; --surface2: #242422; --border: #383835;
+      --solar: #c98500; --blue: #3987e5; --aqua: #199e70; --red: #e66767; --violet: #9085e9;
+      --text: #ffffff; --text2: #c3c2b7; --muted: #898781; --good: #0ca30c; --warn: #fab219;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; min-height: 100vh; }
+    header { display: flex; align-items: center; justify-content: space-between; padding: .75rem 1rem; background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
+    header h1 { font-size: 1.1rem; letter-spacing: .08em; }
+    header a { color: var(--text2); font-size: .85rem; text-decoration: none; }
+    main { max-width: 760px; margin: 0 auto; padding: 1rem; display: grid; gap: 1rem; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; }
+    .card h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: .6rem; display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+    .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: .6rem; }
+    .tile { background: var(--surface2); border-radius: 10px; padding: .6rem; }
+    .tile .l { font-size: .72rem; color: var(--muted); }
+    .tile .v { font-size: 1.25rem; font-weight: 600; margin-top: .15rem; font-variant-numeric: tabular-nums; }
+    @media (max-width: 520px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
+
+    .mic-wrap { display: flex; flex-direction: column; align-items: center; gap: .6rem; padding: .5rem 0; }
+    #mic { width: 112px; height: 112px; border-radius: 50%; border: 2px solid var(--blue); background: radial-gradient(circle, #1d3550 0%, #0d0d0d 70%); color: var(--text); font-size: 2.2rem; cursor: pointer; transition: transform .15s; }
+    #mic:active { transform: scale(.96); }
+    #mic.listening { border-color: var(--aqua); outline: 3px solid var(--aqua); outline-offset: 6px; }
+    #mic.busy { border-color: var(--violet); animation: pulse 1.2s infinite; }
+    @keyframes pulse { 50% { opacity: .55; } }
+    @media (prefers-reduced-motion: reduce) { #mic.busy { animation: none; } }
+    #hint { font-size: .85rem; color: var(--text2); text-align: center; min-height: 1.2em; }
+
+    form { display: flex; gap: .5rem; margin-top: .6rem; }
+    input[type=text] { flex: 1; min-width: 0; background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: .6rem .7rem; font-size: 1rem; }
+    button.btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: .5rem .8rem; font-size: .9rem; cursor: pointer; }
+    button.btn:hover { border-color: var(--blue); }
+    button.btn:disabled { opacity: .5; cursor: default; }
+
+    #log { display: grid; gap: .5rem; max-height: 45vh; overflow-y: auto; }
+    .msg { padding: .55rem .75rem; border-radius: 10px; line-height: 1.4; max-width: 90%; }
+    .msg.me { background: #1d3550; justify-self: end; }
+    .msg.ai { background: var(--surface2); }
+    .msg.err { background: #3a1d1d; color: #ffd0d0; }
+    .msg .act { display: block; font-size: .78rem; color: var(--aqua); margin-top: .25rem; }
+    #briefing { line-height: 1.5; color: var(--text2); white-space: pre-wrap; }
+    .row { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+    .sw { display: flex; align-items: center; justify-content: space-between; padding: .55rem 0; border-top: 1px solid var(--border); gap: .5rem; }
+    .sw:first-child { border-top: 0; }
+    .sw small { color: var(--muted); }
+    .toggle { width: 52px; height: 30px; border-radius: 15px; border: 1px solid var(--border); background: var(--surface2); position: relative; cursor: pointer; flex-shrink: 0; }
+    .toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--muted); transition: left .15s; }
+    .toggle.on { background: var(--aqua); border-color: var(--aqua); }
+    .toggle.on::after { left: 25px; background: #fff; }
+    .toggle:disabled { opacity: .45; cursor: default; }
+    .muted { color: var(--muted); font-size: .85rem; }
+    label.chk { font-size: .8rem; color: var(--text2); display: flex; gap: .3rem; align-items: center; text-transform: none; letter-spacing: 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>JARVIS</h1>
+    <a href="/">Dashboard →</a>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Jetzt</h2>
+      <div class="tiles">
+        <div class="tile"><div class="l">PV</div><div class="v" id="t-pv" style="color:var(--solar)">–</div></div>
+        <div class="tile"><div class="l">Verbrauch</div><div class="v" id="t-cons">–</div></div>
+        <div class="tile"><div class="l" id="t-grid-l">Netz</div><div class="v" id="t-grid" style="color:var(--blue)">–</div></div>
+        <div class="tile"><div class="l">Batterie</div><div class="v" id="t-soc" style="color:var(--aqua)">–</div></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Sprechen <label class="chk"><input type="checkbox" id="speak" checked> Antworten vorlesen</label></h2>
+      <div class="mic-wrap">
+        <button id="mic" aria-label="Sprechen">🎙</button>
+        <div id="hint">Tippen und sprechen</div>
+      </div>
+      <div id="log" aria-live="polite"></div>
+      <form id="f">
+        <input type="text" id="q" placeholder="Oder hier tippen …" autocomplete="off" />
+        <button class="btn" type="submit">Senden</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Briefing <span class="row"><button class="btn" id="b-read">Vorlesen</button><button class="btn" id="b-new">Neu</button></span></h2>
+      <div id="briefing" class="muted">Wird geladen …</div>
+    </section>
+
+    <section class="card">
+      <h2>Schalter</h2>
+      <div id="sw" class="muted">Wird geladen …</div>
+    </section>
+  </main>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const store = {
+    get(k) { try { return localStorage.getItem(k) || ''; } catch { return ''; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+  };
+  let conversation = '';
+
+  // ── API mit Zugangscode ─────────────────────────────────────
+  async function api(path, opts = {}, retry = true) {
+    const res = await fetch('/api/jarvis' + path, {
+      ...opts,
+      headers: { 'Content-Type': 'application/json', 'x-jarvis-token': store.get('jarvisToken'), ...(opts.headers || {}) },
+    });
+    if (res.status === 401 && retry) {
+      const t = prompt('Jarvis-Zugangscode:');
+      if (t) { store.set('jarvisToken', t.trim()); return api(path, opts, false); }
+    }
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(j.error || `HTTP ${res.status}`);
+    return j;
+  }
+
+  // ── Kacheln ─────────────────────────────────────────────────
+  const kw = w => w == null ? '–' : Math.abs(w) >= 1000 ? (w / 1000).toFixed(1).replace('.', ',') + ' kW' : Math.round(w) + ' W';
+  async function tiles() {
+    try {
+      const d = (await (await fetch('/api/data')).json()).current;
+      $('t-pv').textContent = kw(d.pv);
+      $('t-cons').textContent = kw(d.consumption);
+      $('t-grid').textContent = kw(Math.abs(d.grid));
+      $('t-grid-l').textContent = d.grid < 0 ? 'Einspeisung' : 'Netzbezug';
+      const v = await (await fetch('/api/victron')).json();
+      $('t-soc').textContent = v.current?.soc != null ? Math.round(v.current.soc) + ' %' : '–';
+    } catch {}
+  }
+  tiles(); setInterval(tiles, 10000);
+
+  // ── Sprachausgabe ───────────────────────────────────────────
+  let voice = null;
+  function pickVoice() {
+    const vs = speechSynthesis.getVoices().filter(v => v.lang?.toLowerCase().startsWith('de'));
+    voice = vs.find(v => /google|neural|premium|enhanced/i.test(v.name)) || vs[0] || null;
+  }
+  if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+  function say(text, force) {
+    if (!('speechSynthesis' in window) || (!force && !$('speak').checked)) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'de-DE'; if (voice) u.voice = voice;
+    speechSynthesis.speak(u);
+  }
+  $('speak').checked = store.get('jarvisSpeak') !== '0';
+  $('speak').onchange = e => store.set('jarvisSpeak', e.target.checked ? '1' : '0');
+
+  // ── Chat ────────────────────────────────────────────────────
+  function add(cls, text, actions) {
+    const el = document.createElement('div');
+    el.className = 'msg ' + cls; el.textContent = text;
+    (actions || []).forEach(a => { const s = document.createElement('span'); s.className = 'act'; s.textContent = `✓ ${a.schalter}: ${a.gesetzt}`; el.appendChild(s); });
+    $('log').appendChild(el); $('log').scrollTop = $('log').scrollHeight;
+  }
+  let busy = false;
+  async function send(text) {
+    text = text.trim(); if (!text || busy) return;
+    busy = true; $('mic').classList.add('busy'); $('hint').textContent = 'Jarvis denkt nach …';
+    add('me', text);
+    try {
+      const r = await api('/chat', { method: 'POST', body: JSON.stringify({ text, conversation }) });
+      conversation = r.conversation;
+      add('ai', r.text, r.actions); say(r.text);
+      if (r.actions?.length) loadSwitches();
+    } catch (e) { add('err', e.message); }
+    busy = false; $('mic').classList.remove('busy'); $('hint').textContent = 'Tippen und sprechen';
+  }
+  $('f').onsubmit = e => { e.preventDefault(); send($('q').value); $('q').value = ''; };
+
+  // ── Spracherkennung ─────────────────────────────────────────
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let rec = null, listening = false;
+  if (!SR) {
+    $('hint').textContent = 'Spracheingabe hier nicht verfügbar (Chrome/Edge bzw. Safari nötig) – bitte tippen.';
+  } else if (!window.isSecureContext) {
+    $('hint').textContent = 'Mikrofon braucht HTTPS (z. B. über Tailscale) – bitte tippen.';
+  } else {
+    rec = new SR(); rec.lang = 'de-DE'; rec.interimResults = true; rec.maxAlternatives = 1;
+    rec.onresult = e => {
+      const r = e.results[e.results.length - 1];
+      $('hint').textContent = r[0].transcript;
+      if (r.isFinal) send(r[0].transcript);
+    };
+    rec.onend = () => { listening = false; $('mic').classList.remove('listening'); if (!busy) $('hint').textContent = 'Tippen und sprechen'; };
+    rec.onerror = e => { $('hint').textContent = e.error === 'not-allowed' ? 'Mikrofon nicht erlaubt.' : 'Nicht verstanden – nochmal tippen.'; };
+  }
+  $('mic').onclick = () => {
+    if (!rec || busy) return $('q').focus();
+    if (listening) return rec.stop();
+    if ('speechSynthesis' in window) speechSynthesis.cancel();
+    try { rec.start(); listening = true; $('mic').classList.add('listening'); $('hint').textContent = 'Ich höre …'; } catch {}
+  };
+
+  // ── Briefing ────────────────────────────────────────────────
+  let briefingText = '';
+  async function loadBriefing(refresh) {
+    $('briefing').textContent = refresh ? 'Wird neu erstellt …' : 'Wird geladen …';
+    try {
+      const b = await api('/briefing' + (refresh ? '?refresh=1' : ''));
+      briefingText = b.text;
+      $('briefing').textContent = b.text + '\n\nStand: ' + new Date(b.ts).toLocaleString('de-DE');
+      $('briefing').classList.remove('muted');
+    } catch (e) { $('briefing').textContent = 'Fehler: ' + e.message; }
+  }
+  $('b-read').onclick = () => briefingText && say(briefingText, true);
+  $('b-new').onclick = () => loadBriefing(true);
+
+  // ── Schalter ────────────────────────────────────────────────
+  async function loadSwitches() {
+    try {
+      const d = await api('/switches');
+      const box = $('sw'); box.innerHTML = ''; box.classList.remove('muted');
+      if (!d.switches.length) { box.textContent = 'Keine Schalter freigegeben (SWITCH1_… in .env).'; box.classList.add('muted'); return; }
+      if (d.simulated) { box.textContent = 'Simulationsmodus – Schalten nicht möglich.'; box.classList.add('muted'); return; }
+      d.switches.forEach(s => {
+        const row = document.createElement('div'); row.className = 'sw';
+        const info = document.createElement('div');
+        info.innerHTML = '<div></div><small></small>';
+        info.firstChild.textContent = s.name;
+        info.lastChild.textContent = s.fehler ? s.fehler : (s.leistung_w != null ? kw(s.leistung_w) : (s.online ? '' : 'offline'));
+        const t = document.createElement('button');
+        t.className = 'toggle' + (s.an ? ' on' : ''); t.setAttribute('aria-label', s.name + (s.an ? ' ausschalten' : ' einschalten'));
+        t.disabled = !d.canSwitch || s.an == null;
+        t.onclick = async () => {
+          t.disabled = true;
+          try { await api('/switches', { method: 'POST', body: JSON.stringify({ name: s.name, an: !s.an }) }); }
+          catch (e) { alert(e.message); }
+          setTimeout(loadSwitches, 1500);
+        };
+        row.append(info, t); box.appendChild(row);
+      });
+      if (!d.canSwitch) { const n = document.createElement('p'); n.className = 'muted'; n.textContent = 'Schalten gesperrt: JARVIS_TOKEN in .env setzen.'; box.appendChild(n); }
+    } catch (e) { $('sw').textContent = 'Fehler: ' + e.message; }
+  }
+
+  loadBriefing(false);
+  loadSwitches();
+})();
+</script>
+</body>
+</html>
