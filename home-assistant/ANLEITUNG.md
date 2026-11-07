@@ -38,9 +38,9 @@ Dann im Browser `http://<pi-ip>:8123` öffnen und Benutzerkonto anlegen.
 | Gerät | Integration | Hinweis |
 |---|---|---|
 | Shelly | **Shelly** (fester Bestandteil von HA) | wird meist automatisch gefunden, lokal ohne Cloud |
-| Roborock | **Roborock** (fester Bestandteil von HA) | Login mit Roborock-App-Konto |
+| Roborock (mit Absaug-/Waschstation) | **Roborock** (fester Bestandteil von HA) | Anmeldung mit dem Konto der Roborock-App; das Modell erkennt HA selbst |
 | eufy | **Eufy Security** (Community, fuatakgun) | siehe Schritt 3 |
-| Waschmaschine | abhängig von Marke | Marke/Modell nachreichen |
+| Waschmaschine Bosch WGB2560X0 | **Home Connect** (fester Bestandteil von HA) | siehe Abschnitt 5 |
 
 ## 3. eufy-Integration (Community-Erweiterung)
 
@@ -74,15 +74,32 @@ In HA: Integration „Eufy Security“ hinzufügen → Host `127.0.0.1`, Port `3
    ```
 4. Dashboard neu starten. Startseite ist jetzt **Zuhause**.
 
-## 5. Waschmaschine
+## 5. Waschmaschine (Bosch WGB2560X0, Home Connect)
 
-Marke egal: Waschmaschine über einen **messenden Zwischenstecker** (z. B. Shelly Plug S) anschließen,
-in HA einbinden und dessen Leistungssensor eintragen:
-```
-WASCHMASCHINE_POWER_ENTITY=sensor.<name>_leistung
-```
-Jarvis erkennt „läuft“ ab 8 W und meldet „fertig“, wenn die Leistung 3 Minuten unter 4 W bleibt.
-Hat die Maschine eine eigene HA-Integration, geht alternativ `WASCHMASCHINE_STATUS_ENTITY`.
+Voraussetzung: Die Maschine ist in der **Home-Connect-App** eingerichtet und im WLAN.
+
+1. Auf **developer.home-connect.com** mit derselben E-Mail wie in der Home-Connect-App ein
+   Entwicklerkonto anlegen.
+2. Dort unter „Applications“ → „Register Application“:
+   - OAuth Flow: **Authorization Code Grant Flow**
+   - Redirect URI: `https://my.home-assistant.io/redirect/oauth`
+   - Client ID und Client Secret notieren.
+3. In HA: Einstellungen → Geräte & Dienste → Integration hinzufügen → **Home Connect**,
+   Client ID/Secret eingeben und mit dem Home-Connect-Konto anmelden.
+4. In HA beim Gerät „Waschmaschine“ die Sensoren **Betriebszustand** (Operation state) und
+   **Endzeit** (Finish time) suchen, Entitäts-IDs kopieren und in die `.env` eintragen:
+   ```
+   WASCHMASCHINE_STATUS_ENTITY=sensor.<name>_betriebszustand
+   WASCHMASCHINE_ENDE_ENTITY=sensor.<name>_endzeit
+   ```
+   (Die genauen IDs vergibt HA selbst – bitte aus HA kopieren.)
+
+Jarvis zeigt dann „läuft, fertig um 14:35 Uhr“ und meldet **fertig**, **braucht dich**
+(z. B. Tür/Waschmittel) und **Fehler**. Die Daten laufen über die Bosch-Cloud (Home Connect).
+
+Alternative ohne Cloud: messender Zwischenstecker (z. B. Shelly Plug S) und
+`WASCHMASCHINE_POWER_ENTITY=sensor.<name>_leistung` – erkennt „läuft“ ab 8 W und „fertig“
+nach 3 Minuten unter 4 W.
 
 ## 6. KI-Fragen (optional)
 

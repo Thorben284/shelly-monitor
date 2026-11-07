@@ -1,6 +1,6 @@
 // Befehle und Fragen ohne KI: feste Regeln für die häufigsten Sätze.
 // Gibt null zurück, wenn kein Muster passt – dann übernimmt (falls eingerichtet) die KI.
-const { fmtPower, fmtAgo, sentence } = require('./home');
+const { fmtPower, fmtAgo, fmtClock, sentence, washerWarnText, washerDoneText } = require('./home');
 
 function norm(s) {
   return String(s || '').toLowerCase()
@@ -119,11 +119,15 @@ class Commands {
 
     if (has(t, /waschmaschine|waesche|waschen/)) {
       const w = this.home.washer.info(this.ha);
-      if (!w.configured) return { reply: 'Die Waschmaschine ist noch nicht eingerichtet. Trage WASCHMASCHINE_POWER_ENTITY in die .env ein.' };
-      if (w.state === 'läuft') return { reply: `Die Waschmaschine läuft${w.since ? ' seit ' + fmtAgo(w.since).replace('vor ', '').replace(/\.$/, '') : ''} und zieht gerade ${fmtPower(w.power)}.` };
-      if (w.state === 'fertig') return { reply: w.since ? sentence(`Die Waschmaschine ist fertig, seit ${fmtAgo(w.since).replace('vor ', '')}`) : 'Die Waschmaschine ist fertig.' };
-      if (w.statusText) return { reply: `Die Waschmaschine meldet: ${w.statusText}.` };
-      return { reply: 'Die Waschmaschine ist aus.' };
+      if (!w.configured) return { reply: 'Die Waschmaschine ist noch nicht eingerichtet (Anleitung, Abschnitt 5).' };
+      if (w.state === 'läuft') {
+        const end = w.endsAt ? `, fertig um ${fmtClock(w.endsAt)} Uhr` : w.since ? ` seit ${fmtAgo(w.since).replace('vor ', '').replace(/\.$/, '')}` : '';
+        const pw = w.power != null && !w.raw ? ` und zieht gerade ${fmtPower(w.power)}` : '';
+        return { reply: `Die Waschmaschine läuft${end}${pw}.` };
+      }
+      if (w.state === 'fertig') return { reply: washerDoneText(w) };
+      if (w.level === 'warn') return { reply: `${washerWarnText(w)} Bitte an der Maschine nachsehen.` };
+      return { reply: `Die Waschmaschine ist ${w.state}.` };
     }
 
     if (has(t, /akku|batterie|speicher/)) {

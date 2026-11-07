@@ -30,18 +30,26 @@ function fmtAgo(iso) {
   return `vor ${Math.floor(h / 24)} Tag${h >= 48 ? 'en' : ''}`;
 }
 
+// Zustände der Home-Connect-Integration (Bosch, Siemens, Neff …) → Deutsch
+const HOME_CONNECT_STATE = {
+  inactive: 'aus', ready: 'bereit', delayedstart: 'Startzeit gesetzt', run: 'läuft', pause: 'pausiert',
+  actionrequired: 'braucht dich', finished: 'fertig', error: 'Fehler', aborting: 'bricht ab',
+  unavailable: 'nicht erreichbar', unknown: 'unbekannt',
+};
+
 /**
- * Waschmaschine erkennen: entweder über die Leistung einer Zwischenstecker-Messung
- * (z. B. Shelly Plug, markenunabhängig) oder über einen Status-Sensor der Hersteller-Integration.
+ * Waschmaschine: bevorzugt über den Betriebszustand der Hersteller-Integration
+ * (Bosch → Home Connect), sonst über die Leistung eines messenden Zwischensteckers.
  */
 class Washer {
-  constructor({ powerEntity, statusEntity, runW = 8, idleW = 4, idleMinutes = 3 }) {
+  constructor({ powerEntity, statusEntity, endEntity, runW = 8, idleW = 4, idleMinutes = 3 }) {
     this.powerEntity = powerEntity || '';
     this.statusEntity = statusEntity || '';
+    this.endEntity = endEntity || '';
     this.runW = runW;
     this.idleW = idleW;
     this.idleMs = idleMinutes * 60000;
-    this.state = 'aus';       // aus | läuft | fertig
+    this.state = 'aus';       // nur Leistungs-Erkennung: aus | läuft | fertig
     this.since = null;
     this.aboveSince = null;
     this.belowSince = null;
@@ -51,7 +59,7 @@ class Washer {
   get configured() { return !!(this.powerEntity || this.statusEntity); }
 
   tick(ha) {
-    if (!this.powerEntity) return;
+    if (!this.powerEntity || this.statusEntity) return; // Status-Sensor hat Vorrang
     const s = ha.get(this.powerEntity);
     const p = s ? parseFloat(s.state) : NaN;
     if (!Number.isFinite(p)) return;
@@ -75,18 +83,40 @@ class Washer {
   info(ha) {
     if (!this.configured) return { configured: false };
     const p = this.powerEntity ? parseFloat(ha.get(this.powerEntity)?.state) : NaN;
-    const st = this.statusEntity ? ha.get(this.statusEntity) : null;
+    const power = Number.isFinite(p) ? p : null;
+
+    if (this.statusEntity) {
+      const st = ha.get(this.statusEntity);
+      const raw = st?.state ?? 'unknown';
+      const state = HOME_CONNECT_STATE[raw] || raw;
+      const endRaw = this.endEntity ? ha.get(this.endEntity)?.state : null;
+      const end = endRaw && !Number.isNaN(Date.parse(endRaw)) ? new Date(endRaw).toISOString() : null;
+      return {
+        configured: true, state, raw,
+        level: ['actionrequired', 'error'].includes(raw) ? 'warn' : null,
+        since: st?.last_changed || null,
+        endsAt: ['run', 'pause', 'delayedstart'].includes(raw) ? end : null,
+        power,
+      };
+    }
+
     // Anzeige sofort, Meldung „fertig“ erst nach stabiler Erkennung (siehe tick)
-    const shown = this.powerEntity ? (this.state === 'aus' && p > this.runW ? 'läuft' : this.state) : null;
+    const shown = this.state === 'aus' && p > this.runW ? 'läuft' : this.state;
     return {
-      configured: true,
-      state: shown,
+      configured: true, state: shown, raw: null, level: null,
       since: shown === this.state && this.since ? new Date(this.since).toISOString() : null,
-      power: Number.isFinite(p) ? p : null,
-      statusText: st ? st.state : null,
+      endsAt: null,
+      power,
     };
   }
 }
+
+const washerWarnText = w => w.raw === 'actionrequired' ? 'Die Waschmaschine braucht dich.' : 'Die Waschmaschine meldet einen Fehler.';
+const washerDoneText = w => {
+  const a = w.since ? fmtAgo(w.since) : null;
+  return !a || a === 'gerade eben' ? 'Die Waschmaschine ist gerade fertig geworden.' : `Die Waschmaschine ist seit ${a.replace('vor ', '').replace(/\.$/, '')} fertig.`;
+};
+const fmtClock = iso => new Date(iso).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Berlin' });
 
 class Home {
   constructor({ ha, getShelly, getVictron, washer }) {
@@ -156,8 +186,10 @@ class Home {
       if (m) lines.push(m.active ? `Gerade Bewegung: ${m.name}.` : sentence(`Letzte Bewegung: ${m.name}, ${m.ago}`));
       for (const v of this.vacuums()) if (['cleaning', 'returning', 'error'].includes(v.state)) lines.push(`${v.name} ${v.text}.`);
       const w = this.washer.info(this.ha);
-      if (w.state === 'läuft') lines.push(w.since ? sentence(`Die Waschmaschine läuft seit ${fmtAgo(w.since).replace('vor ', '')}`) : 'Die Waschmaschine läuft.');
+      if (w.state === 'läuft') lines.push(w.endsAt ? `Die Waschmaschine läuft, fertig um ${fmtClock(w.endsAt)} Uhr.`
+        : w.since ? sentence(`Die Waschmaschine läuft seit ${fmtAgo(w.since).replace('vor ', '')}`) : 'Die Waschmaschine läuft.');
       if (w.state === 'fertig') lines.push('Die Waschmaschine ist fertig.');
+      if (w.level === 'warn') lines.push(washerWarnText(w));
       const on = this.activeSwitches().length;
       if (on) lines.push(on === 1 ? 'Ein Gerät ist eingeschaltet.' : `${on} Geräte sind eingeschaltet.`);
     } else if (this.ha.enabled) {
@@ -180,4 +212,4 @@ class Home {
 
 const sentence = t => /[.!?]$/.test(t) ? t : t + '.';
 
-module.exports = { sentence, Home, fmtPower, fmtAgo, ALARM_TEXT, VACUUM_TEXT };
+module.exports = { sentence, fmtClock, washerWarnText, washerDoneText, HOME_CONNECT_STATE, Home, fmtPower, fmtAgo, ALARM_TEXT, VACUUM_TEXT };

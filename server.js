@@ -308,6 +308,7 @@ const home = new Home({
   washer: {
     powerEntity: process.env.WASCHMASCHINE_POWER_ENTITY,
     statusEntity: process.env.WASCHMASCHINE_STATUS_ENTITY,
+    endEntity: process.env.WASCHMASCHINE_ENDE_ENTITY,
   },
 });
 const notifier = new Notifier({ ha, home, surplusW: parseInt(process.env.JARVIS_UEBERSCHUSS_W || '1500') });

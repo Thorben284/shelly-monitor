@@ -65,9 +65,15 @@ class Notifier {
       }
     }
 
-    if (this.home.washer.statusEntity === s.entity_id && /fertig|finish|end|complete|done/i.test(s.state)) {
-      this.push({ kind: 'washer', level: 'info', title: 'Waschmaschine fertig', text: 'Die Wäsche kann raus.',
-        throttleKey: 'washer', throttleMs: 30 * 60000 });
+    if (this.home.washer.statusEntity === s.entity_id) {
+      if (s.state === 'finished') {
+        this.push({ kind: 'washer', level: 'info', title: 'Waschmaschine fertig', text: 'Die Wäsche kann raus.',
+          throttleKey: 'washer', throttleMs: 30 * 60000 });
+      } else if (s.state === 'actionrequired') {
+        this.push({ kind: 'washer', level: 'warn', title: 'Waschmaschine braucht dich', text: 'Bitte an der Maschine nachsehen.' });
+      } else if (s.state === 'error') {
+        this.push({ kind: 'washer', level: 'warn', title: 'Waschmaschine meldet einen Fehler', text: 'Details in der Home-Connect-App.' });
+      }
     }
   }
 

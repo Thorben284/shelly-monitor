@@ -270,15 +270,18 @@
     if (!w.configured) {
       box.className = 'jv-device';
       box.innerHTML = `<div class="jv-device-top">${icon('washer')}<div><div class="jv-device-name">Waschmaschine</div>
-        <p class="jv-empty">Noch nicht eingerichtet. Am einfachsten über einen messenden Zwischenstecker (z. B. Shelly Plug): seinen Leistungssensor als <code>WASCHMASCHINE_POWER_ENTITY</code> in die <code>.env</code> eintragen.</p></div></div>`;
+        <p class="jv-empty">Noch nicht eingerichtet: Home-Connect-Integration in Home Assistant hinzufügen und den Sensor „Betriebszustand“ als <code>WASCHMASCHINE_STATUS_ENTITY</code> in die <code>.env</code> eintragen (Anleitung, Abschnitt 5).</p></div></div>`;
       return;
     }
-    const st = w.state || w.statusText || 'unbekannt';
-    box.className = 'jv-device' + (w.state === 'läuft' ? ' is-active' : w.state === 'fertig' ? ' is-done' : '');
-    const since = w.since ? (w.state === 'läuft' ? ` seit ${ago(w.since).replace('vor ', '')}` : ` · ${ago(w.since)}`) : '';
-    const pw = w.power != null ? ` · ${fmtW(w.power)}` : '';
+    const st = w.state || 'unbekannt';
+    box.className = 'jv-device' + (w.level === 'warn' ? ' is-warn' : w.state === 'läuft' ? ' is-active' : w.state === 'fertig' ? ' is-done' : '');
+    let extra = '';
+    if (w.endsAt) extra = ` · fertig um ${clock(w.endsAt)} Uhr`;
+    else if (w.since && w.state === 'läuft') extra = ` seit ${ago(w.since).replace('vor ', '')}`;
+    else if (w.since && w.state === 'fertig') extra = ` · ${ago(w.since)}`;
+    if (w.power != null && !w.raw) extra += ` · ${fmtW(w.power)}`;
     box.innerHTML = `<div class="jv-device-top">${icon('washer')}<div><div class="jv-device-name">Waschmaschine</div>
-      <div class="jv-device-state"><b>${esc(st)}</b>${esc(since)}${esc(pw)}</div></div></div>`;
+      <div class="jv-device-state"><b>${esc(st)}</b>${esc(extra)}</div></div></div>`;
   }
 
   function renderSwitches(list) {

@@ -32,6 +32,9 @@ const states = new Map([
   S('binary_sensor.garten_bewegung', 'off', { friendly_name: 'Garten Bewegung', device_class: 'motion' }, ago(190)),
   S('binary_sensor.flur_bewegungsmelder', 'off', { friendly_name: 'Flur Bewegungsmelder', device_class: 'motion' }, ago(6)),
   S('sensor.waschmaschine_leistung', '312', { friendly_name: 'Waschmaschine Leistung', unit_of_measurement: 'W', device_class: 'power' }),
+  // Bosch über Home Connect (Zustände wie in der HA-Integration)
+  S('sensor.waschmaschine_betriebszustand', 'run', { friendly_name: 'Waschmaschine Betriebszustand', device_class: 'enum' }, ago(38)),
+  S('sensor.waschmaschine_endzeit', new Date(Date.now() + 47 * 60000).toISOString(), { friendly_name: 'Waschmaschine Endzeit', device_class: 'timestamp' }),
   S('sensor.wohnzimmer_temperatur', '21.4', { friendly_name: 'Wohnzimmer Temperatur', unit_of_measurement: '°C', device_class: 'temperature' }),
 ].map(s => [s.entity_id, s]));
 
@@ -43,7 +46,11 @@ const set = (id, state, extra) => {
 const auth = (req, res, next) => req.get('authorization') === 'Bearer test' ? next() : res.status(401).end();
 app.use('/api', auth);
 
+
 app.get('/api/states', (_q, res) => res.json([...states.values()]));
+
+// Testhilfe: Zustand direkt setzen, z. B. POST /test/set {"entity_id":"sensor.waschmaschine_betriebszustand","state":"finished"}
+app.post('/test/set', (req, res) => { set(req.body.entity_id, req.body.state); res.json(states.get(req.body.entity_id)); });
 
 const SERVICES = {
   turn_on: () => 'on', turn_off: () => 'off', toggle: s => (s.state === 'on' ? 'off' : 'on'),
