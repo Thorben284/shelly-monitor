@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Energie-Zentrale</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <title>Jarvis</title>
+  <meta name="theme-color" content="#0d0d0d" />
+  <link rel="stylesheet" href="jarvis.css" />
+  <script src="/vendor/chart.umd.js"></script>
   <style>
     /* ── Design Tokens ───────────────────────────────────────────── */
     :root {
@@ -67,10 +69,6 @@
       font-size: 1rem;
       font-weight: 700;
       letter-spacing: -0.01em;
-      background: linear-gradient(135deg, var(--solar) 0%, var(--blue) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
     }
 
     .header-right {
@@ -518,14 +516,16 @@
 <!-- ── Header ────────────────────────────────────────────────────── -->
 <header>
   <div class="brand">
-    <div class="brand-icon">⚡</div>
-    <h1>Energie-Zentrale</h1>
+    <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-core"/></svg>
+    <h1>Jarvis</h1>
   </div>
   <div class="header-right">
     <div class="source-dots">
       <div class="dot-badge"><div class="dot" id="dot-shelly"></div> Shelly</div>
       <div class="dot-badge"><div class="dot" id="dot-victron"></div> Victron</div>
       <div class="dot-badge"><div class="dot" id="dot-eufy"></div> eufy</div>
+      <div class="dot-badge"><div class="dot" id="dot-ha"></div> Haus</div>
+      <div class="dot-badge"><div class="dot" id="dot-ki"></div> KI</div>
     </div>
     <div class="last-update" id="last-update">Verbinde…</div>
   </div>
@@ -533,13 +533,164 @@
 
 <!-- ── Tab Bar ───────────────────────────────────────────────────── -->
 <nav class="tabs">
-  <button class="tab-btn active" data-tab="energie">⚡ Energie</button>
-  <button class="tab-btn"        data-tab="victron">🔋 Victron</button>
-  <button class="tab-btn"        data-tab="kameras">📷 Kameras</button>
+  <button class="tab-btn active" data-tab="zuhause">Zuhause</button>
+  <button class="tab-btn"        data-tab="energie">Energie</button>
+  <button class="tab-btn"        data-tab="victron">Victron</button>
+  <button class="tab-btn"        data-tab="kameras">Kameras</button>
 </nav>
 
+<!-- Symbole: eigene Linien-Icons, einheitlich 1,75 px -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-core" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.75"/><circle cx="12" cy="12" r="3.25" fill="currentColor"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-speaker" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></symbol>
+    <symbol id="i-house" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"><path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5.5h4V20"/></symbol>
+    <symbol id="i-pylon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21 12 3l3 18M7 8h10M6 13h12M9.5 13 14 21M14.5 13 10 21"/></symbol>
+    <symbol id="i-battery" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"><rect x="3" y="7" width="16" height="10" rx="2"/><path d="M21 10.5v3" stroke-linecap="round"/></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"><path d="M12 21c-3.6 0-6-2.4-6-5.6 0-3.4 2.6-5 3.3-8.4 1.9 1.3 3 3 3.2 4.8.9-.6 1.5-1.6 1.7-2.8 1.7 1.6 3.8 3.6 3.8 6.4 0 3.2-2.4 5.6-6 5.6z"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"><path d="M12 3 4.5 6v5.5c0 4.6 3.1 8.3 7.5 9.5 4.4-1.2 7.5-4.9 7.5-9.5V6z"/></symbol>
+    <symbol id="i-robot" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/><path d="M6.5 7.5h11"/></symbol>
+    <symbol id="i-washer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2.5" width="16" height="19" rx="2"/><path d="M4 7h16M7.5 4.8h.01M10.5 4.8h.01"/><circle cx="12" cy="14" r="4.5"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z"/><path d="M10 21h4"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"><path d="M7.5 5v14l11-7z"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M9 5.5v13M15 5.5v13"/></symbol>
+    <symbol id="i-dock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10 7 5 12l5 5"/><path d="M5 12h9a5 5 0 0 0 5-5V5"/></symbol>
+    <symbol id="i-locate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol>
+    <symbol id="i-power" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M12 3v8"/><path d="M6.6 6.6a7.5 7.5 0 1 0 10.8 0"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  </defs>
+</svg>
+
+<!-- ═══════════════ TAB 0: ZUHAUSE (LAGEBILD) ═════════════════════ -->
+<div id="tab-zuhause" class="tab-panel active">
+<div class="jv-wrap">
+
+  <!-- Jarvis-Konsole: das Haus spricht in Sätzen, du antwortest -->
+  <section class="jv-console" aria-labelledby="jv-greeting">
+    <div class="jv-briefing">
+      <h2 id="jv-greeting" class="jv-greeting">Einen Moment …</h2>
+      <p id="jv-lines" class="jv-lines"></p>
+    </div>
+
+    <form id="jv-form" class="jv-form" autocomplete="off">
+      <button type="button" id="jv-mic" class="jv-iconbtn jv-mic" aria-label="Spracheingabe starten" title="Spracheingabe">
+        <svg viewBox="0 0 24 24"><use href="#i-mic"/></svg>
+      </button>
+      <label class="sr-only" for="jv-input">Befehl oder Frage an Jarvis</label>
+      <input id="jv-input" class="jv-input" type="text" enterkeyhint="send" maxlength="500"
+             placeholder="Frag Jarvis oder gib einen Befehl – z. B. „Heizstab aus“" />
+      <button type="submit" class="jv-iconbtn jv-send" aria-label="Senden">
+        <svg viewBox="0 0 24 24"><use href="#i-send"/></svg>
+      </button>
+    </form>
+
+    <div id="jv-pin" class="jv-pin" hidden>
+      <label for="jv-pin-input">Dieses Gerät braucht die Jarvis-PIN.</label>
+      <input id="jv-pin-input" type="password" inputmode="numeric" autocomplete="current-password" />
+      <button type="button" id="jv-pin-save" class="jv-btn">Entsperren</button>
+    </div>
+
+    <div class="jv-answer-row">
+      <p id="jv-answer" class="jv-answer" aria-live="polite"></p>
+    </div>
+
+    <div class="jv-console-foot">
+      <div id="jv-chips" class="jv-chips" aria-label="Vorschläge">
+        <button type="button" class="jv-chip">Status</button>
+        <button type="button" class="jv-chip">Wie viel PV?</button>
+        <button type="button" class="jv-chip">Sauger starten</button>
+        <button type="button" class="jv-chip">Was ist an?</button>
+        <button type="button" class="jv-chip">Ist die Waschmaschine fertig?</button>
+      </div>
+      <label class="jv-toggle-label" title="Antworten und wichtige Hinweise vorlesen">
+        <input type="checkbox" id="jv-speak" />
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-speaker"/></svg>
+        Vorlesen
+      </label>
+    </div>
+  </section>
+
+  <!-- Energie in einer Zeile -->
+  <section class="jv-energy" aria-label="Energie jetzt">
+    <div class="jv-read" data-tone="solar"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-sun"/></svg>
+      <span class="jv-read-label">PV</span><span class="jv-read-val" id="je-pv">–</span></div>
+    <div class="jv-read" data-tone="blue"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-house"/></svg>
+      <span class="jv-read-label">Haus</span><span class="jv-read-val" id="je-cons">–</span></div>
+    <div class="jv-read" id="je-grid-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pylon"/></svg>
+      <span class="jv-read-label" id="je-grid-label">Netz</span><span class="jv-read-val" id="je-grid">–</span></div>
+    <div class="jv-read" data-tone="aqua" id="je-soc-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-battery"/></svg>
+      <span class="jv-read-label">Akku</span><span class="jv-read-val" id="je-soc">–</span></div>
+    <div class="jv-read" data-tone="red" id="je-heiz-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-flame"/></svg>
+      <span class="jv-read-label">Heizstab</span><span class="jv-read-val" id="je-heiz">–</span></div>
+  </section>
+
+  <div id="jv-ha-banner" class="banner info jv-banner" hidden></div>
+
+  <div class="jv-grid">
+    <!-- Sicherheit -->
+    <section class="panel jv-sec" aria-labelledby="jv-sec-title">
+      <div class="jv-head">
+        <h3 id="jv-sec-title" class="jv-title"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-shield"/></svg>Sicherheit</h3>
+        <span id="jv-alarm-state" class="jv-pill">–</span>
+      </div>
+      <div id="jv-alarm-actions" class="jv-seg" role="group" aria-label="Alarmanlage schalten">
+        <button type="button" class="jv-seg-btn" data-alarm="alarm_arm_away">Abwesend</button>
+        <button type="button" class="jv-seg-btn" data-alarm="alarm_arm_home">Zuhause</button>
+        <button type="button" class="jv-seg-btn" data-alarm="alarm_disarm">Aus</button>
+      </div>
+      <div id="jv-cams" class="cam-wall"></div>
+      <ul id="jv-motion" class="jv-list jv-motion"></ul>
+    </section>
+
+    <div class="jv-side">
+      <!-- Geräte -->
+      <section class="panel" aria-labelledby="jv-dev-title">
+        <div class="jv-head"><h3 id="jv-dev-title" class="jv-title"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-robot"/></svg>Geräte</h3></div>
+        <div id="jv-vacuums"></div>
+        <div id="jv-washer" class="jv-device"></div>
+      </section>
+
+      <!-- Hinweise -->
+      <section class="panel" aria-labelledby="jv-log-title">
+        <div class="jv-head">
+          <h3 id="jv-log-title" class="jv-title"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-bell"/></svg>Hinweise</h3>
+          <button type="button" id="jv-notify-btn" class="jv-link" hidden>Auf diesem Gerät melden</button>
+        </div>
+        <ol id="jv-log" class="jv-list jv-log"></ol>
+      </section>
+    </div>
+  </div>
+
+  <!-- Schalter -->
+  <section class="panel" aria-labelledby="jv-sw-title">
+    <div class="jv-head">
+      <h3 id="jv-sw-title" class="jv-title"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-power"/></svg>Schalter</h3>
+      <label class="sr-only" for="jv-sw-filter">Schalter filtern</label>
+      <input id="jv-sw-filter" class="jv-filter" type="search" placeholder="Filtern …" />
+    </div>
+    <ul id="jv-switches" class="jv-switches"></ul>
+  </section>
+
+</div>
+</div>
+
+<!-- Kamera groß (Livebild) -->
+<dialog id="jv-cam-dialog" class="jv-dialog" aria-labelledby="jv-cam-title">
+  <div class="jv-dialog-head">
+    <h3 id="jv-cam-title">Kamera</h3>
+    <button type="button" class="jv-iconbtn" id="jv-cam-close" aria-label="Schließen"><svg viewBox="0 0 24 24"><use href="#i-close"/></svg></button>
+  </div>
+  <div class="jv-dialog-img"><img id="jv-cam-img" alt="" /></div>
+  <p id="jv-cam-note" class="jv-dialog-note"></p>
+</dialog>
+
+<div id="jv-toasts" class="jv-toasts" aria-live="polite"></div>
+
 <!-- ═══════════════ TAB 1: ENERGIE (SHELLY) ═══════════════════════ -->
-<div id="tab-energie" class="tab-panel active">
+<div id="tab-energie" class="tab-panel">
 <div class="wrapper">
 
   <div class="banner error" id="shelly-error">
@@ -782,6 +933,7 @@
 <div id="tab-kameras" class="tab-panel">
 <div class="wrapper">
 
+  <div id="ha-cam-page" class="cam-wall cam-wall-large" hidden></div>
   <div id="eufy-setup" style="display:none">
     <div class="setup-box">
       <div class="setup-icon">📷</div>
@@ -1148,6 +1300,7 @@ function batColor(pct) {
 }
 
 async function updateEufy() {
+  if (!$('eufy-setup')) return; // Kameras kommen über Home Assistant (jarvis.js)
   try {
     const res = await fetch('/api/eufy');
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -1213,5 +1366,6 @@ async function init() {
 
 init();
 </script>
+<script src="jarvis.js"></script>
 </body>
 </html>

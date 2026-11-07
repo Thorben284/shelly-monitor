@@ -5,6 +5,8 @@ const crypto = require('crypto');
 
 const app = express();
 app.use(express.static(path.join(__dirname, 'public')));
+// Chart.js vom Pi selbst ausliefern – Dashboard funktioniert auch ohne Internet
+app.get('/vendor/chart.umd.js', (_q, res) => res.sendFile(path.join(__dirname, 'node_modules/chart.js/dist/chart.umd.js')));
 
 // ── Konfiguration ──────────────────────────────────────────────────
 function loadPvMeters() {
@@ -287,98 +289,130 @@ app.get('/api/eufy', (_q, res) => res.json({
   configured: cfg.hasEufy,
 }));
 
-// ── Home Assistant (Jarvis-Brücke) ─────────────────────────────────
-// Token bleibt auf dem Server; der Browser sieht nur diese Endpunkte.
-const HA_URL   = (process.env.HA_URL || '').replace(/\/$/, '');
-const HA_TOKEN = process.env.HA_TOKEN || '';
-const hasHA    = !!(HA_URL && HA_TOKEN);
+// ── Jarvis: Home Assistant, Lagebild, Hinweise, Befehle, KI ───────
+const { HomeAssistant } = require('./jarvis/ha');
+const { Home } = require('./jarvis/home');
+const { Notifier } = require('./jarvis/notify');
+const { Commands } = require('./jarvis/commands');
+const { Assistant } = require('./jarvis/ai');
 
-const HA_DOMAINS = new Set(['switch', 'light', 'vacuum', 'camera', 'binary_sensor',
-  'sensor', 'alarm_control_panel', 'lock', 'climate', 'select', 'button']);
-// Nur diese Befehle dürfen vom Dashboard ausgelöst werden
-const HA_SERVICES = new Set([
-  'switch.turn_on', 'switch.turn_off', 'switch.toggle',
-  'light.turn_on', 'light.turn_off', 'light.toggle',
-  'vacuum.start', 'vacuum.pause', 'vacuum.stop', 'vacuum.return_to_base', 'vacuum.locate',
-  'button.press',
-  'alarm_control_panel.alarm_arm_away', 'alarm_control_panel.alarm_arm_home',
-  'alarm_control_panel.alarm_disarm',
-]);
+const ha = new HomeAssistant({
+  url: process.env.HA_URL,
+  token: process.env.HA_TOKEN,
+  hide: (process.env.JARVIS_HIDE || '').split(','),
+});
+const home = new Home({
+  ha,
+  getShelly: () => shellyCurrent,
+  getVictron: () => victronCurrent,
+  washer: {
+    powerEntity: process.env.WASCHMASCHINE_POWER_ENTITY,
+    statusEntity: process.env.WASCHMASCHINE_STATUS_ENTITY,
+  },
+});
+const notifier = new Notifier({ ha, home, surplusW: parseInt(process.env.JARVIS_UEBERSCHUSS_W || '1500') });
+const commands = new Commands({ ha, home });
+const assistant = new Assistant({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+  model: process.env.JARVIS_MODEL,
+  ha, home,
+});
+ha.start();
+notifier.start();
 
-async function ha(path, opts = {}) {
-  const res = await fetch(`${HA_URL}/api${path}`, {
-    ...opts,
-    headers: { Authorization: `Bearer ${HA_TOKEN}`, 'Content-Type': 'application/json' },
-    signal: AbortSignal.timeout(10000),
-  });
-  if (!res.ok) throw new Error(`HA HTTP ${res.status}`);
-  return res;
+// Optionale PIN: schützt alle schaltenden Endpunkte (Gäste-WLAN, Kinder …)
+const JARVIS_PIN = process.env.JARVIS_PIN || '';
+function pinCheck(req, res, next) {
+  if (!JARVIS_PIN) return next();
+  const cookie = /(?:^|;\s*)jarvis_pin=([^;]+)/.exec(req.get('cookie') || '');
+  const given = String(req.get('x-jarvis-pin') || (cookie ? decodeURIComponent(cookie[1]) : ''));
+  const a = Buffer.from(given), b = Buffer.from(JARVIS_PIN);
+  if (a.length === b.length && crypto.timingSafeEqual(a, b)) return next();
+  res.status(401).json({ error: 'PIN erforderlich', pin: true });
 }
 
-app.get('/api/ha/states', async (_q, res) => {
-  if (!hasHA) return res.json({ configured: false, entities: [] });
+// Alles unter /api/jarvis und /api/ha (außer config) nur mit PIN – auch Kamerabilder und Anwesenheit
+app.use(['/api/jarvis', '/api/ha'], (req, res, next) => req.path === '/config' ? next() : pinCheck(req, res, next));
+
+const haReady = (_q, res, next) => ha.enabled ? next() : res.status(503).json({ error: 'Home Assistant ist nicht eingerichtet (HA_URL / HA_TOKEN)' });
+
+app.get('/api/jarvis/config', (_q, res) => res.json({
+  ha: ha.enabled, haOk: ha.ok, haError: ha.error,
+  ai: assistant.enabled, pinRequired: !!JARVIS_PIN,
+  washer: home.washer.configured,
+}));
+
+app.get('/api/jarvis/home', (_q, res) => res.json({
+  briefing: home.briefing(),
+  energy: home.energy(),
+  alarm: ha.ok ? home.alarm() : null,
+  vacuums: ha.ok ? home.vacuums() : [],
+  washer: home.washer.info(ha),
+  lastMotion: ha.ok ? home.lastMotion() : null,
+  motion: ha.ok ? ha.motionSensors() : [],
+  cameras: ha.ok ? ha.byDomain('camera') : [],
+  switches: ha.ok ? ha.entities().filter(e => ['switch', 'light', 'fan'].includes(e.domain)) : [],
+  ha: { enabled: ha.enabled, ok: ha.ok, error: ha.error },
+}));
+
+app.get('/api/jarvis/hinweise', (_q, res) => res.json(notifier.log));
+app.get('/api/jarvis/stream', (req, res) => notifier.attach(req, res));
+
+app.post('/api/jarvis/ask', express.json({ limit: '4kb' }), async (req, res) => {
+  const text = String(req.body?.text || '').trim().slice(0, 500);
+  if (!text) return res.status(400).json({ error: 'Kein Text' });
   try {
-    const all = await (await ha('/states')).json();
-    const entities = all
-      .filter(s => HA_DOMAINS.has(s.entity_id.split('.')[0]))
-      .map(s => ({
-        id: s.entity_id,
-        domain: s.entity_id.split('.')[0],
-        name: s.attributes.friendly_name || s.entity_id,
-        state: s.state,
-        unit: s.attributes.unit_of_measurement || null,
-        deviceClass: s.attributes.device_class || null,
-        battery: s.attributes.battery_level ?? null,
-        updated: s.last_updated,
-      }));
-    res.json({ configured: true, entities });
+    const r = await commands.run(text);
+    if (r) return res.json({ ...r, source: 'regel' });
+    const k = await assistant.ask(text);
+    if (k) return res.json(k);
+    res.json({ reply: `Das habe ich nicht verstanden. ${commands.help()}`, source: 'keine' });
   } catch (e) {
-    res.status(502).json({ configured: true, error: e.message, entities: [] });
+    res.json({ reply: `Das hat nicht geklappt: ${e.message}.`, source: 'fehler' });
   }
 });
 
-app.post('/api/ha/service/:domain/:service', express.json(), async (req, res) => {
-  if (!hasHA) return res.status(503).json({ error: 'Home Assistant nicht konfiguriert' });
-  const { domain, service } = req.params;
-  const entityId = req.body?.entity_id;
-  if (!HA_SERVICES.has(`${domain}.${service}`)) return res.status(403).json({ error: 'Befehl nicht erlaubt' });
-  if (typeof entityId !== 'string' || !entityId.startsWith(`${domain}.`))
-    return res.status(400).json({ error: 'entity_id fehlt oder passt nicht zur Domäne' });
+app.get('/api/ha/states', haReady, (_q, res) => res.json({ ok: ha.ok, error: ha.error, entities: ha.entities() }));
+
+app.post('/api/ha/service/:domain/:service', express.json({ limit: '2kb' }), haReady, async (req, res) => {
   try {
-    await ha(`/services/${domain}/${service}`, { method: 'POST', body: JSON.stringify({ entity_id: entityId }) });
+    await ha.call(req.params.domain, req.params.service, req.body?.entity_id);
     res.json({ ok: true });
   } catch (e) {
-    res.status(502).json({ error: e.message });
+    res.status(400).json({ error: e.message });
   }
 });
 
-// Kamerabild (Standbild) über HA weiterreichen
-app.get('/api/ha/camera/:entityId', async (req, res) => {
-  if (!hasHA) return res.status(503).end();
-  const id = req.params.entityId;
-  if (!/^camera\.[a-z0-9_]+$/.test(id)) return res.status(400).end();
+const CAM_ID = /^camera\.[a-z0-9_]+$/;
+app.get('/api/ha/camera/:entityId', haReady, async (req, res) => {
+  if (!CAM_ID.test(req.params.entityId)) return res.status(400).end();
   try {
-    const r = await ha(`/camera_proxy/${id}`);
-    res.set('Content-Type', r.headers.get('content-type') || 'image/jpeg');
-    res.set('Cache-Control', 'no-store');
-    res.send(Buffer.from(await r.arrayBuffer()));
-  } catch (e) {
-    res.status(502).end();
-  }
+    const img = await ha.cameraImage(req.params.entityId);
+    res.set({ 'Content-Type': img.type, 'Cache-Control': 'no-store' }).send(img.body);
+  } catch { res.status(502).end(); }
+});
+
+app.get('/api/ha/camera/:entityId/live', haReady, async (req, res) => {
+  if (!CAM_ID.test(req.params.entityId)) return res.status(400).end();
+  try { await ha.cameraStream(req.params.entityId, res, req); }
+  catch { if (!res.headersSent) res.status(502).end(); }
 });
 
 app.get('/api/status', (_q, res) => res.json({
   shelly:   { ok: !cfg.simulate, sim: cfg.simulate },
   victron:  { ok: cfg.hasVictron, siteId: cfg.victronSiteId },
   eufy:     { ok: cfg.hasEufy, cameras: eufyCameras.length },
-  homeassistant: { ok: hasHA },
+  homeassistant: { ok: ha.ok, enabled: ha.enabled },
+  ki: { ok: assistant.enabled },
 }));
 
 app.listen(cfg.port, () => {
   const mode = cfg.simulate ? '[SIMULATION]' : '[LIVE]';
-  console.log(`\nEnergie-Dashboard: http://localhost:${cfg.port}  ${mode}`);
+  console.log(`\nJarvis: http://localhost:${cfg.port}  ${mode}`);
   if (!cfg.simulate) cfg.pvMeters.forEach(m => console.log(`  PV ${m.index}: ${m.id} (${m.type})`));
   if (cfg.hasVictron) console.log(`  Victron VRM: Installation ${cfg.victronSiteId}`);
   if (cfg.hasEufy)    console.log(`  eufy: ${cfg.eufyEmail}`);
+  console.log(`  Home Assistant: ${ha.enabled ? process.env.HA_URL : 'nicht eingerichtet'}`);
+  console.log(`  KI: ${assistant.enabled ? assistant.model : 'aus'}   PIN: ${JARVIS_PIN ? 'aktiv' : 'aus'}`);
   console.log('');
 });

@@ -59,22 +59,74 @@ docker restart homeassistant
 
 In HA: Integration „Eufy Security“ hinzufügen → Host `127.0.0.1`, Port `3001`.
 
-## 4. Dashboard mit HA verbinden
+## 4. Jarvis mit HA verbinden
 
 1. In HA: Profil (unten links) → Sicherheit → **Langlebiges Zugriffstoken** erstellen.
-2. In `~/shelly-monitor/.env` ergänzen:
+2. Dashboard aktualisieren und Abhängigkeiten installieren:
+   ```bash
+   cd ~/shelly-monitor && git pull && npm install
+   ```
+3. In `~/shelly-monitor/.env` ergänzen (Vorlage: `.env.example`):
    ```
    HA_URL=http://127.0.0.1:8123
    HA_TOKEN=<token>
+   JARVIS_PIN=<4–8 Ziffern>
    ```
-3. Dashboard neu starten. Test: `http://<pi-ip>:3000/api/ha/states`
+4. Dashboard neu starten. Startseite ist jetzt **Zuhause**.
+
+## 5. Waschmaschine
+
+Marke egal: Waschmaschine über einen **messenden Zwischenstecker** (z. B. Shelly Plug S) anschließen,
+in HA einbinden und dessen Leistungssensor eintragen:
+```
+WASCHMASCHINE_POWER_ENTITY=sensor.<name>_leistung
+```
+Jarvis erkennt „läuft“ ab 8 W und meldet „fertig“, wenn die Leistung 3 Minuten unter 4 W bleibt.
+Hat die Maschine eine eigene HA-Integration, geht alternativ `WASCHMASCHINE_STATUS_ENTITY`.
+
+## 6. KI-Fragen (optional)
+
+Ohne KI versteht Jarvis feste Befehle („Heizstab aus“, „Sauger starten“, „Status“, „Wie viel PV?“ …).
+Für freie Fragen einen Schlüssel unter console.anthropic.com anlegen und eintragen:
+```
+ANTHROPIC_API_KEY=<schlüssel>
+JARVIS_MODEL=claude-haiku-5-5   # optional: deutlich günstiger
+```
+Die KI sieht dabei den aktuellen Gerätezustand (Namen und Werte, keine Kamerabilder) und darf nur
+dieselben freigegebenen Befehle auslösen wie das Dashboard. Kosten fallen je Frage an.
+
+## 7. Spracheingabe und Benachrichtigungen
+
+Browser erlauben Mikrofon und Benachrichtigungen nur über **HTTPS**. Über `http://<pi-ip>:3000`
+ist der Mikrofon-Knopf deshalb ausgegraut. Vorlesen funktioniert trotzdem.
+
+Möglicher Weg: **Tailscale** auf Pi und Handy installieren und auf dem Pi
+`sudo tailscale serve --bg 3000` ausführen. Dann ist Jarvis unter `https://<pi-name>.<tailnet>.ts.net`
+erreichbar, auch unterwegs, ohne Portfreigabe im Router. (Auf eurem Netz noch nicht getestet.)
+
+Hinweis: Die Spracherkennung in Chrome/Edge schickt die Aufnahme an Google zur Auswertung.
 
 ## Sicherheit
 
-- Ports 3000, 3001, 8123 **nicht** im Router freigeben. Fernzugriff später per VPN (z. B. Tailscale).
-- Das Dashboard hat keine Anmeldung – wer im WLAN ist, kann schalten. Gäste-WLAN trennen.
+- Ports 3000, 3001, 8123 **nicht** im Router freigeben. Fernzugriff nur per VPN (z. B. Tailscale).
+- `JARVIS_PIN` setzen: Ohne PIN kann jeder im WLAN schalten und Kamerabilder sehen.
+  Die Energiewerte bleiben ohne PIN sichtbar.
+- Die Alarmanlage lässt sich nur schalten, wenn HA dafür keinen Code verlangt.
 
-## Prüfprotokoll Community-Code (07.11.2026)
+## Ohne echtes Home Assistant ausprobieren
+
+`node tools/mock-ha.js` startet ein Test-HA mit erfundenen Geräten (Port 8124, Token `test`):
+```bash
+HA_URL=http://127.0.0.1:8124 HA_TOKEN=test PORT=3999 node server.js
+```
+
+## Prüfprotokoll Fremd-Code (07.11.2026)
+
+**Offizielle Pakete:** `@anthropic-ai/sdk` 1.6.0 (Herausgeber Anthropic) und `chart.js` 4.4.0
+(bisher per CDN geladen, jetzt lokal) – beide ohne Installationsskripte, `npm audit`: 0 bekannte Lücken.
+Dabei wurden drei bekannte Lücken in Express-Unterpaketen (body-parser, proxy-addr, qs) per Update behoben.
+
+### Community-Code
 
 Gesichtet: Quellcode beider Projekte nach `eval`, `child_process`, verschleiertem Code
 (Base64/atob) und fremden Server-Adressen. **Ergebnis: nichts Auffälliges**; die einzigen
