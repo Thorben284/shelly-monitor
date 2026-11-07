@@ -1,0 +1,29 @@
+# Home Assistant + eufy-Brücke für den Raspberry Pi
+# Start:  docker compose up -d   (im Ordner home-assistant/)
+# Das bestehende Dashboard (Port 3000) läuft unverändert weiter.
+
+services:
+  homeassistant:
+    container_name: homeassistant
+    image: ghcr.io/home-assistant/home-assistant:stable
+    restart: unless-stopped
+    network_mode: host          # nötig für Geräte-Erkennung (Shelly, Roborock …)
+    privileged: true
+    volumes:
+      - ./ha-config:/config
+      - /etc/localtime:/etc/localtime:ro
+      - /run/dbus:/run/dbus:ro
+    environment:
+      - TZ=Europe/Berlin
+    # Weboberfläche: http://<pi-ip>:8123
+
+  eufy-security-ws:
+    container_name: eufy-security-ws
+    image: bropat/eufy-security-ws:latest   # nach Test auf feste Version setzen
+    restart: unless-stopped
+    network_mode: host          # HomeBase 3 wird lokal per P2P angesprochen
+    env_file: ./eufy.env        # Zugangsdaten NICHT hier eintragen
+    environment:
+      - PORT=3001               # 3000 ist schon vom Dashboard belegt
+    volumes:
+      - ./eufy-data:/data

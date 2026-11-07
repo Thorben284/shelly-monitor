@@ -287,10 +287,91 @@ app.get('/api/eufy', (_q, res) => res.json({
   configured: cfg.hasEufy,
 }));
 
+// ── Home Assistant (Jarvis-Brücke) ─────────────────────────────────
+// Token bleibt auf dem Server; der Browser sieht nur diese Endpunkte.
+const HA_URL   = (process.env.HA_URL || '').replace(/\/$/, '');
+const HA_TOKEN = process.env.HA_TOKEN || '';
+const hasHA    = !!(HA_URL && HA_TOKEN);
+
+const HA_DOMAINS = new Set(['switch', 'light', 'vacuum', 'camera', 'binary_sensor',
+  'sensor', 'alarm_control_panel', 'lock', 'climate', 'select', 'button']);
+// Nur diese Befehle dürfen vom Dashboard ausgelöst werden
+const HA_SERVICES = new Set([
+  'switch.turn_on', 'switch.turn_off', 'switch.toggle',
+  'light.turn_on', 'light.turn_off', 'light.toggle',
+  'vacuum.start', 'vacuum.pause', 'vacuum.stop', 'vacuum.return_to_base', 'vacuum.locate',
+  'button.press',
+  'alarm_control_panel.alarm_arm_away', 'alarm_control_panel.alarm_arm_home',
+  'alarm_control_panel.alarm_disarm',
+]);
+
+async function ha(path, opts = {}) {
+  const res = await fetch(`${HA_URL}/api${path}`, {
+    ...opts,
+    headers: { Authorization: `Bearer ${HA_TOKEN}`, 'Content-Type': 'application/json' },
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!res.ok) throw new Error(`HA HTTP ${res.status}`);
+  return res;
+}
+
+app.get('/api/ha/states', async (_q, res) => {
+  if (!hasHA) return res.json({ configured: false, entities: [] });
+  try {
+    const all = await (await ha('/states')).json();
+    const entities = all
+      .filter(s => HA_DOMAINS.has(s.entity_id.split('.')[0]))
+      .map(s => ({
+        id: s.entity_id,
+        domain: s.entity_id.split('.')[0],
+        name: s.attributes.friendly_name || s.entity_id,
+        state: s.state,
+        unit: s.attributes.unit_of_measurement || null,
+        deviceClass: s.attributes.device_class || null,
+        battery: s.attributes.battery_level ?? null,
+        updated: s.last_updated,
+      }));
+    res.json({ configured: true, entities });
+  } catch (e) {
+    res.status(502).json({ configured: true, error: e.message, entities: [] });
+  }
+});
+
+app.post('/api/ha/service/:domain/:service', express.json(), async (req, res) => {
+  if (!hasHA) return res.status(503).json({ error: 'Home Assistant nicht konfiguriert' });
+  const { domain, service } = req.params;
+  const entityId = req.body?.entity_id;
+  if (!HA_SERVICES.has(`${domain}.${service}`)) return res.status(403).json({ error: 'Befehl nicht erlaubt' });
+  if (typeof entityId !== 'string' || !entityId.startsWith(`${domain}.`))
+    return res.status(400).json({ error: 'entity_id fehlt oder passt nicht zur Domäne' });
+  try {
+    await ha(`/services/${domain}/${service}`, { method: 'POST', body: JSON.stringify({ entity_id: entityId }) });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(502).json({ error: e.message });
+  }
+});
+
+// Kamerabild (Standbild) über HA weiterreichen
+app.get('/api/ha/camera/:entityId', async (req, res) => {
+  if (!hasHA) return res.status(503).end();
+  const id = req.params.entityId;
+  if (!/^camera\.[a-z0-9_]+$/.test(id)) return res.status(400).end();
+  try {
+    const r = await ha(`/camera_proxy/${id}`);
+    res.set('Content-Type', r.headers.get('content-type') || 'image/jpeg');
+    res.set('Cache-Control', 'no-store');
+    res.send(Buffer.from(await r.arrayBuffer()));
+  } catch (e) {
+    res.status(502).end();
+  }
+});
+
 app.get('/api/status', (_q, res) => res.json({
   shelly:   { ok: !cfg.simulate, sim: cfg.simulate },
   victron:  { ok: cfg.hasVictron, siteId: cfg.victronSiteId },
   eufy:     { ok: cfg.hasEufy, cameras: eufyCameras.length },
+  homeassistant: { ok: hasHA },
 }));
 
 app.listen(cfg.port, () => {
