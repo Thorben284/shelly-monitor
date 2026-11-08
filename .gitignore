@@ -3,3 +3,4 @@ node_modules/
 home-assistant/ha-config/
 home-assistant/eufy-data/
 home-assistant/eufy.env
+/data/

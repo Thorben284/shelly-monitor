@@ -88,6 +88,24 @@ class Commands {
       return { reply: `Okay, die Alarmanlage ${msg}.`, action: { entity: a.id, service: `alarm_control_panel.${svc}` } };
     }
 
+    // ── Rollläden ──────────────────────────────────────────────────
+    if (has(t, /rollladen|rolllaeden|rollo|jalousie|markise/)) {
+      const svc = has(t, /\b(hoch|auf|oeffnen|oeffne|rauf)\b/) ? 'open_cover'
+        : has(t, /\b(runter|zu|schliessen|schliesse|herunter)\b/) ? 'close_cover'
+        : has(t, /stopp?|anhalten|halt/) ? 'stop_cover' : null;
+      const rest = words.filter(w => !/^(rollladen|rolllaeden|rollo|rollos|jalousie|jalousien|markise|hoch|auf|oeffnen|oeffne|rauf|runter|zu|schliessen|schliesse|herunter|stopp?|anhalten|halt|ist|sind|steht|wie|offen|geschlossen|unten|oben)$/.test(w) && !FILLER.has(w));
+      const covers = this.ha.byDomain('cover');
+      if (!covers.length) return { reply: 'Ich finde keine Rollläden in Home Assistant.' };
+      const found = rest.length ? this.findEntity(rest.join(' '), ['cover']) : (covers.length === 1 ? { entity: covers[0] } : { ambiguous: covers.slice(0, 4) });
+      if (found.none && covers.length === 1) { found.entity = covers[0]; delete found.none; }
+      if (found.ambiguous) return { reply: `Welcher Rollladen: ${found.ambiguous.map(e => e.name).join(', ')}?` };
+      if (!found.entity) return { reply: 'Diesen Rollladen finde ich nicht.' };
+      const e = found.entity;
+      if (!svc || question) return { reply: `${e.name} ist ${({ open: 'offen', closed: 'geschlossen', opening: 'am Öffnen', closing: 'am Schließen' })[e.state] || e.state}${e.position != null ? ` (${e.position} %)` : ''}.` };
+      await this.ha.call('cover', svc, e.id);
+      return { reply: `Okay, ${e.name} ${({ open_cover: 'fährt hoch', close_cover: 'fährt runter', stop_cover: 'hält an' })[svc]}.`, action: { entity: e.id, service: `cover.${svc}` } };
+    }
+
     // ── Schalten (Shelly, Licht …) ─────────────────────────────────
     const onIdx = Math.max(...ON_WORDS.map(w => words.lastIndexOf(w)));
     const offIdx = Math.max(...OFF_WORDS.map(w => words.lastIndexOf(w)));
@@ -167,7 +185,7 @@ class Commands {
 
   help() {
     return 'Zum Beispiel: „Status“, „Wie viel PV?“, „Heizstab aus“, „Licht Küche an“, „Sauger starten“, ' +
-      '„Sauger nach Hause“, „Alarm scharf“, „Ist die Waschmaschine fertig?“.';
+      '„Sauger nach Hause“, „Alarm scharf“, „Rollladen Küche runter“, „Ist die Waschmaschine fertig?“.';
   }
 }
 

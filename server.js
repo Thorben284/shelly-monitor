@@ -295,6 +295,8 @@ const { Home } = require('./jarvis/home');
 const { Notifier } = require('./jarvis/notify');
 const { Commands } = require('./jarvis/commands');
 const { Assistant } = require('./jarvis/ai');
+const { Discovery } = require('./jarvis/discovery');
+const { OTHER_DOMAINS } = require('./jarvis/ha');
 
 const ha = new HomeAssistant({
   url: process.env.HA_URL,
@@ -318,8 +320,15 @@ const assistant = new Assistant({
   model: process.env.JARVIS_MODEL,
   ha, home,
 });
+const discovery = new Discovery({
+  ha, notifier,
+  file: path.join(__dirname, 'data', 'bekannte-geraete.json'),
+  intervalMin: parseInt(process.env.JARVIS_PRUEFUNG_MIN || '60'),
+});
+const CAM_REFRESH_MIN = Math.max(1, parseInt(process.env.JARVIS_KAMERA_MIN || '10'));
 ha.start();
 notifier.start();
+discovery.start();
 
 // Optionale PIN: schützt alle schaltenden Endpunkte (Gäste-WLAN, Kinder …)
 const JARVIS_PIN = process.env.JARVIS_PIN || '';
@@ -341,6 +350,7 @@ app.get('/api/jarvis/config', (_q, res) => res.json({
   ha: ha.enabled, haOk: ha.ok, haError: ha.error,
   ai: assistant.enabled, pinRequired: !!JARVIS_PIN,
   washer: home.washer.configured,
+  cameraRefreshMin: CAM_REFRESH_MIN,
 }));
 
 app.get('/api/jarvis/home', (_q, res) => res.json({
@@ -353,10 +363,14 @@ app.get('/api/jarvis/home', (_q, res) => res.json({
   motion: ha.ok ? ha.motionSensors() : [],
   cameras: ha.ok ? ha.byDomain('camera') : [],
   switches: ha.ok ? ha.entities().filter(e => ['switch', 'light', 'fan'].includes(e.domain)) : [],
+  others: ha.ok ? ha.entities().filter(e => OTHER_DOMAINS.has(e.domain)) : [],
+  neu: Object.keys(discovery.newSince),
+  discovery: discovery.status(),
   ha: { enabled: ha.enabled, ok: ha.ok, error: ha.error },
 }));
 
 app.get('/api/jarvis/hinweise', (_q, res) => res.json(notifier.log));
+app.post('/api/jarvis/pruefen', (_q, res) => res.json(discovery.run()));
 app.get('/api/jarvis/stream', (req, res) => notifier.attach(req, res));
 
 app.post('/api/jarvis/ask', express.json({ limit: '4kb' }), async (req, res) => {

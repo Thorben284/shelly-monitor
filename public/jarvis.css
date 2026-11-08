@@ -328,6 +328,7 @@ h1 { color: var(--text); font-size: 1.05rem; letter-spacing: 0.01em; }
 
 .cam-tile-name { font-weight: 600; color: #fff; }
 .cam-tile-ago { color: rgba(255, 255, 255, 0.72); font-variant-numeric: tabular-nums; }
+.cam-tile-shot { display: block; color: rgba(255, 255, 255, 0.6); font-size: 0.7rem; font-variant-numeric: tabular-nums; }
 .cam-tile.is-motion { box-shadow: 0 0 0 2px var(--warn); }
 .cam-tile.is-motion .cam-tile-ago { color: var(--warn); font-weight: 600; }
 .cam-tile-empty { display: grid; place-items: center; height: 100%; color: var(--muted); font-size: 0.8rem; }
@@ -421,6 +422,40 @@ h1 { color: var(--text); font-size: 1.05rem; letter-spacing: 0.01em; }
 
 .jv-sw[aria-checked="true"] .jv-knob { background: var(--solar); border-color: var(--solar); }
 .jv-sw[aria-checked="true"] .jv-knob::after { transform: translateX(1.1rem); background: #1a1205; }
+
+.jv-new {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  vertical-align: 0.1em;
+  color: #cfe2fa;
+  background: rgba(57, 135, 229, 0.22);
+  border: 1px solid rgba(57, 135, 229, 0.55);
+}
+
+.jv-disc {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+#jv-others { grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+.jv-other { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 0.7rem; padding: 0.6rem 0.6rem 0.6rem 0.85rem; min-height: 3.4rem; }
+.jv-other-btns { display: flex; gap: 0.3rem; flex: none; }
+.jv-other-btns .jv-act { min-height: 2.5rem; min-width: 2.5rem; padding: 0.3rem; }
+.jv-other-btns .jv-act svg { width: 1.15rem; height: 1.15rem; }
 
 /* ── Dialog Kamera ──────────────────────────────────────────────── */
 .jv-dialog {

@@ -49,12 +49,16 @@ app.use('/api', auth);
 
 app.get('/api/states', (_q, res) => res.json([...states.values()]));
 
+// Testhilfe: neues Gerät „anschließen“, z. B. POST /test/add {"entity_id":"cover.kueche","state":"open","attributes":{...}}
+app.post('/test/add', (req, res) => { const b = req.body; states.set(b.entity_id, S(b.entity_id, b.state, b.attributes || {})); res.json(states.get(b.entity_id)); });
+
 // Testhilfe: Zustand direkt setzen, z. B. POST /test/set {"entity_id":"sensor.waschmaschine_betriebszustand","state":"finished"}
 app.post('/test/set', (req, res) => { set(req.body.entity_id, req.body.state); res.json(states.get(req.body.entity_id)); });
 
 const SERVICES = {
   turn_on: () => 'on', turn_off: () => 'off', toggle: s => (s.state === 'on' ? 'off' : 'on'),
   start: () => 'cleaning', pause: () => 'paused', stop: () => 'idle', return_to_base: () => 'returning', locate: s => s.state,
+  open_cover: () => 'open', close_cover: () => 'closed', stop_cover: s => s.state,
   alarm_arm_away: () => 'armed_away', alarm_arm_home: () => 'armed_home', alarm_disarm: () => 'disarmed',
 };
 app.post('/api/services/:domain/:service', (req, res) => {

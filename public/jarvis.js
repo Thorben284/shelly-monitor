@@ -12,6 +12,8 @@
   let cfg = { ha: false, ai: false, pinRequired: false };
   let pin = store.get('jarvis_pin', '');
   let lastHome = null;
+  let neu = new Set();
+  const isNew = id => neu.has(id);
   const busy = new Set();
 
   // ── Formatierung ────────────────────────────────────────────────
@@ -211,10 +213,10 @@
       wall.innerHTML = list.length ? list.map(c => `
         <button type="button" class="cam-tile" data-cam="${esc(c.id)}" data-name="${esc(c.name)}" aria-label="${esc(c.name)} groß anzeigen">
           <img alt="" loading="lazy" decoding="async" />
-          <span class="cam-tile-meta"><span class="cam-tile-name">${esc(c.name)}</span><span class="cam-tile-ago"></span></span>
+          <span class="cam-tile-meta"><span><span class="cam-tile-name">${esc(c.name)}</span>${isNew(c.id) ? '<span class="jv-new">neu</span>' : ''}<span class="cam-tile-shot"></span></span><span class="cam-tile-ago"></span></span>
         </button>`).join('')
         : `<p class="jv-empty">Keine Kameras in Home Assistant gefunden. Die eufy-Integration einrichten (Anleitung, Schritt 3).</p>`;
-      if (list.length) setTimeout(refreshCamImages, 0);
+      if (list.length) setTimeout(() => refreshCamImages(true), 0);
     }
     const norm = s => s.toLowerCase().replace(/[^a-zäöüß0-9]+/g, ' ');
     wall.querySelectorAll('.cam-tile').forEach(tile => {
@@ -227,12 +229,18 @@
     });
   }
 
-  function refreshCamImages() {
+  function refreshCamImages(onlyMissing = false) {
     camStamp = Date.now();
     document.querySelectorAll('.tab-panel.active .cam-tile img').forEach(img => {
-      const id = img.closest('.cam-tile').dataset.cam;
+      if (onlyMissing && img.getAttribute('src')) return;
+      const tile = img.closest('.cam-tile');
+      const id = tile.dataset.cam;
       const next = new Image();
-      next.onload = () => { img.src = next.src; };
+      next.onload = () => {
+        img.src = next.src;
+        tile.dataset.shot = new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+        tile.querySelector('.cam-tile-shot').textContent = `Bild ${tile.dataset.shot}`;
+      };
       next.onerror = () => { if (!img.src) img.closest('.cam-tile').classList.add('is-broken'); };
       next.src = `/api/ha/camera/${encodeURIComponent(id)}?t=${camStamp}`;
     });
@@ -296,10 +304,53 @@
       const kind = { light: 'Licht', fan: 'Lüfter' }[s.domain] || 'Schalter';
       return `<li><button type="button" class="jv-sw${busy.has(s.id) ? ' is-busy' : ''}" role="switch" aria-checked="${on}"
         data-entity="${esc(s.id)}" ${na ? 'disabled' : ''}>
-        <span class="jv-sw-name">${esc(s.name)}<span class="jv-sw-sub">${na ? 'nicht erreichbar' : `${kind} · ${on ? 'an' : 'aus'}`}</span></span>
+        <span class="jv-sw-name">${esc(s.name)}${isNew(s.id) ? '<span class="jv-new">neu</span>' : ''}<span class="jv-sw-sub">${na ? 'nicht erreichbar' : `${kind} · ${on ? 'an' : 'aus'}`}</span></span>
         <span class="jv-knob" aria-hidden="true"></span></button></li>`;
     }).join('');
   }
+
+  const OTHER_KIND = { cover: 'Rollladen', climate: 'Thermostat', lock: 'Schloss', media_player: 'Medien', water_heater: 'Warmwasser' };
+  const STATE_DE = { open: 'offen', closed: 'geschlossen', opening: 'öffnet', closing: 'schließt', locked: 'verriegelt',
+    unlocked: 'entriegelt', playing: 'spielt', paused: 'pausiert', idle: 'bereit', off: 'aus', on: 'an', heat: 'heizt',
+    cool: 'kühlt', auto: 'automatisch', standby: 'Standby', unavailable: 'nicht erreichbar' };
+
+  function renderOthers(list) {
+    $('jv-others-panel').hidden = !list.length;
+    $('jv-others').innerHTML = list.map(o => {
+      let detail = STATE_DE[o.state] || o.state;
+      if (o.domain === 'cover' && o.position != null) detail += ` · ${o.position} %`;
+      if ((o.domain === 'climate' || o.domain === 'water_heater') && o.temperature != null)
+        detail = `${String(o.temperature).replace('.', ',')} °C` + (o.target != null ? ` → ${String(o.target).replace('.', ',')} °C` : '') + ` · ${detail}`;
+      if (o.domain === 'media_player' && o.title) detail += ` · ${o.title}`;
+      const dis = busy.has(o.id) || o.state === 'unavailable' ? 'disabled' : '';
+      const btns = o.domain === 'cover' ? `<div class="jv-other-btns">
+          <button type="button" class="jv-act" data-svc="open_cover" aria-label="${esc(o.name)} öffnen" ${dis}>${icon('up')}</button>
+          <button type="button" class="jv-act" data-svc="stop_cover" aria-label="${esc(o.name)} anhalten" ${dis}>${icon('pause')}</button>
+          <button type="button" class="jv-act" data-svc="close_cover" aria-label="${esc(o.name)} schließen" ${dis}>${icon('down')}</button></div>` : '';
+      return `<li class="jv-other" data-entity="${esc(o.id)}"><span class="jv-sw-name">${esc(o.name)}${isNew(o.id) ? '<span class="jv-new">neu</span>' : ''}
+        <span class="jv-sw-sub">${esc(OTHER_KIND[o.domain] || o.domain)} · ${esc(detail)}</span></span>${btns}</li>`;
+    }).join('');
+  }
+
+  $('jv-others').addEventListener('click', e => {
+    const b = e.target.closest('.jv-act');
+    if (b) callService(b.closest('.jv-other').dataset.entity, b.dataset.svc);
+  });
+
+  function renderDiscovery(d) {
+    if (!d) return;
+    const t = iso => iso ? clock(iso) : '–';
+    $('jv-disc-text').textContent = d.lastRun
+      ? `Geräteprüfung ${t(d.lastRun)}: ${d.result?.text || '–'} · nächste ${t(d.nextRun)}`
+      : `Geräteprüfung alle ${d.intervalMin} Min. – startet, sobald Home Assistant antwortet`;
+  }
+
+  $('jv-disc-run').addEventListener('click', async e => {
+    e.target.disabled = true;
+    try { await api('/api/jarvis/pruefen', { method: 'POST' }); await refresh(); }
+    catch (err) { if (!err.pin) toast({ level: 'warn', title: 'Prüfung fehlgeschlagen', text: err.message }); }
+    finally { e.target.disabled = false; }
+  });
 
   // ── Schalten ────────────────────────────────────────────────────
   async function callService(entity, service) {
@@ -434,7 +485,10 @@
     renderMotion(h.motion);
     renderVacuums(h.vacuums);
     renderWasher(h.washer);
+    neu = new Set(h.neu || []);
     renderSwitches(h.switches);
+    renderOthers(h.others || []);
+    renderDiscovery(h.discovery);
     $('dot-ha').className = 'dot ' + (haOk ? 'ok' : h.ha.enabled ? 'err' : '');
   }
 
@@ -467,9 +521,12 @@
     connectStream();
 
     setInterval(() => { if (!document.hidden) refresh(); }, 4000);
-    setInterval(() => { if (!document.hidden) refreshCamImages(); }, 15000);
-    document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => setTimeout(refreshCamImages, 50)));
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) { refresh(); refreshCamImages(); } });
+    // Kamera-Standbilder nur alle N Minuten (Standard 10) – schont Akku-Kameras
+    const camMs = (cfg.cameraRefreshMin || 10) * 60000;
+    let camDue = Date.now() + camMs;
+    setInterval(() => { if (!document.hidden && Date.now() >= camDue) { camDue = Date.now() + camMs; refreshCamImages(); } }, 30000);
+    document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => setTimeout(() => refreshCamImages(true), 50)));
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
   }
 
   init();

@@ -9,12 +9,16 @@ const ALLOWED_SERVICES = new Set([
   'fan.turn_on', 'fan.turn_off',
   'vacuum.start', 'vacuum.pause', 'vacuum.stop', 'vacuum.return_to_base', 'vacuum.locate',
   'button.press',
+  'cover.open_cover', 'cover.close_cover', 'cover.stop_cover',
   'alarm_control_panel.alarm_arm_away', 'alarm_control_panel.alarm_arm_home',
   'alarm_control_panel.alarm_disarm',
 ]);
 
 const UI_DOMAINS = new Set(['switch', 'light', 'fan', 'vacuum', 'camera', 'binary_sensor',
-  'sensor', 'alarm_control_panel', 'button']);
+  'sensor', 'alarm_control_panel', 'button', 'cover', 'climate', 'lock', 'media_player', 'water_heater']);
+
+// Gerätearten ohne eigenes Feld auf der Startseite → Bereich „Weitere Geräte“
+const OTHER_DOMAINS = new Set(['cover', 'climate', 'lock', 'media_player', 'water_heater']);
 
 const MOTION_CLASSES = new Set(['motion', 'occupancy', 'presence']);
 
@@ -103,6 +107,10 @@ class HomeAssistant {
         deviceClass: a.device_class || null,
         battery: a.battery_level ?? null,
         status: a.status ?? null,
+        position: a.current_position ?? null,
+        temperature: a.current_temperature ?? null,
+        target: a.temperature ?? null,
+        title: a.media_title ?? null,
         // Alarm: verlangt HA einen Code, kann das Dashboard nicht schalten
         codeRequired: domain === 'alarm_control_panel' ? !!a.code_format : undefined,
         changed: s.last_changed,
@@ -149,4 +157,4 @@ class HomeAssistant {
   }
 }
 
-module.exports = { HomeAssistant, ALLOWED_SERVICES, MOTION_CLASSES };
+module.exports = { HomeAssistant, ALLOWED_SERVICES, MOTION_CLASSES, OTHER_DOMAINS };

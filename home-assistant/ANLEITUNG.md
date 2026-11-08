@@ -112,6 +112,20 @@ JARVIS_MODEL=claude-haiku-5-5   # optional: deutlich günstiger
 Die KI sieht dabei den aktuellen Gerätezustand (Namen und Werte, keine Kamerabilder) und darf nur
 dieselben freigegebenen Befehle auslösen wie das Dashboard. Kosten fallen je Frage an.
 
+## 6b. Neue Geräte und Kamerabilder
+
+- **Geräteprüfung alle 60 Minuten** (`JARVIS_PRUEFUNG_MIN`): Jarvis vergleicht die Geräte in
+  Home Assistant mit dem gespeicherten Stand (`data/bekannte-geraete.json`) und meldet neue und
+  entfernte Geräte unter „Hinweise“. Neue Geräte erscheinen sofort in der Oberfläche und sind 24 Stunden
+  mit „neu“ markiert. Prüfung von Hand: „Jetzt prüfen“ unter „Hinweise“.
+- Automatisch eingebunden werden: Schalter, Lichter, Lüfter, Saugroboter, Kameras, Bewegungsmelder,
+  Alarmanlage, Rollläden (hoch/stopp/runter), Thermostate, Schlösser und Mediengeräte (nur Anzeige).
+  Ganz neue Gerätearten zeigt Jarvis erst nach einer Programmerweiterung.
+- Ein neues Gerät muss zuerst in **Home Assistant** eingebunden sein (meist automatisch erkannt,
+  sonst unter Einstellungen → Geräte & Dienste).
+- **Kamera-Standbilder alle 10 Minuten** (`JARVIS_KAMERA_MIN`), mit Uhrzeit der Aufnahme.
+  Ein Klick auf ein Bild öffnet das Livebild.
+
 ## 7. Spracheingabe und Benachrichtigungen
 
 Browser erlauben Mikrofon und Benachrichtigungen nur über **HTTPS**. Über `http://<pi-ip>:3000`

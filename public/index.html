@@ -560,6 +560,8 @@
     <symbol id="i-dock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10 7 5 12l5 5"/><path d="M5 12h9a5 5 0 0 0 5-5V5"/></symbol>
     <symbol id="i-locate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol>
     <symbol id="i-power" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M12 3v8"/><path d="M6.6 6.6a7.5 7.5 0 1 0 10.8 0"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></symbol>
     <symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></symbol>
   </defs>
 </svg>
@@ -660,6 +662,10 @@
           <button type="button" id="jv-notify-btn" class="jv-link" hidden>Auf diesem Gerät melden</button>
         </div>
         <ol id="jv-log" class="jv-list jv-log"></ol>
+        <div class="jv-disc">
+          <span id="jv-disc-text">Geräteprüfung: wartet auf Home Assistant</span>
+          <button type="button" id="jv-disc-run" class="jv-link">Jetzt prüfen</button>
+        </div>
       </section>
     </div>
   </div>
@@ -672,6 +678,12 @@
       <input id="jv-sw-filter" class="jv-filter" type="search" placeholder="Filtern …" />
     </div>
     <ul id="jv-switches" class="jv-switches"></ul>
+  </section>
+
+  <!-- Weitere Geräte (Rollläden, Thermostate, Schlösser, Medien) – erscheinen automatisch -->
+  <section class="panel" id="jv-others-panel" aria-labelledby="jv-oth-title" hidden>
+    <div class="jv-head"><h3 id="jv-oth-title" class="jv-title"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-house"/></svg>Weitere Geräte</h3></div>
+    <ul id="jv-others" class="jv-switches"></ul>
   </section>
 
 </div>
