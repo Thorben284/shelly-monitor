@@ -170,7 +170,7 @@ class Commands {
       const a = this.home.alarm();
       const parts = [];
       if (a) parts.push(`Die Alarmanlage ist ${a.text}.`);
-      parts.push(m ? (m.active ? `Gerade Bewegung: ${m.name}.` : sentence(`Letzte Bewegung: ${m.name}, ${m.ago}`)) : 'Keine Bewegungsmelder gefunden.');
+      parts.push(m ? (m.active ? `Gerade Bewegung: ${m.name}.` : sentence(`Letzte Bewegung: ${m.name}, ${m.ago}`)) : this.ha.motionSensors().length ? 'Mir ist keine Bewegung bekannt.' : 'Keine Bewegungsmelder gefunden.');
       return { reply: parts.join(' ') };
     }
 

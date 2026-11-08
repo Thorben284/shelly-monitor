@@ -30,6 +30,7 @@
     const h = Math.floor(m / 60);
     return h < 24 ? `vor ${h} Std.` : `vor ${Math.floor(h / 24)} T.`;
   };
+  const fullTime = iso => new Date(iso).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + ' Uhr';
   const clock = iso => new Date(iso).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
   const icon = id => `<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-${id}"/></svg>`;
 
@@ -218,14 +219,14 @@
         : `<p class="jv-empty">Keine Kameras in Home Assistant gefunden. Die eufy-Integration einrichten (Anleitung, Schritt 3).</p>`;
       if (list.length) setTimeout(() => refreshCamImages(true), 0);
     }
-    const norm = s => s.toLowerCase().replace(/[^a-zäöüß0-9]+/g, ' ');
     wall.querySelectorAll('.cam-tile').forEach(tile => {
       const cam = list.find(c => c.id === tile.dataset.cam);
-      // passenden Bewegungsmelder über den Namen finden (z. B. „Einfahrt“ ↔ „Einfahrt Bewegung“)
-      const first = norm(cam?.name || '').split(' ')[0];
-      const m = motion.find(x => first && norm(x.name).includes(first));
-      tile.classList.toggle('is-motion', m?.state === 'on');
-      tile.querySelector('.cam-tile-ago').textContent = m ? (m.state === 'on' ? 'Bewegung' : ago(m.changed)) : '';
+      if (!cam) return;
+      // Zeit = Beginn der letzten Bewegung an den Meldern dieser Kamera (vom Server ermittelt)
+      const el = tile.querySelector('.cam-tile-ago');
+      tile.classList.toggle('is-motion', !!cam.motionActive);
+      el.textContent = cam.motionActive ? 'Bewegung' : cam.motionAt ? ago(cam.motionAt) : (cam.sensors?.length ? 'keine Bewegung bekannt' : '');
+      el.title = cam.motionAt ? `Letzte Bewegung: ${fullTime(cam.motionAt)}` : (cam.sensors?.length ? '' : 'Kein Bewegungsmelder zugeordnet');
     });
   }
 
@@ -247,9 +248,13 @@
   }
 
   function renderMotion(motion) {
-    const sorted = [...motion].sort((a, b) => new Date(b.changed) - new Date(a.changed));
-    $('jv-motion').innerHTML = sorted.map(m =>
-      `<li class="${m.state === 'on' ? 'is-on' : ''}"><span>${esc(m.name)}</span><span class="ago">${m.state === 'on' ? 'Bewegung' : esc(ago(m.changed))}</span></li>`).join('');
+    const t = m => (m.lastMotion ? Date.parse(m.lastMotion) : 0) + (m.state === 'on' ? 1e13 : 0);
+    const sorted = [...motion].sort((a, b) => t(b) - t(a));
+    $('jv-motion').innerHTML = sorted.map(m => {
+      const txt = m.state === 'on' ? 'Bewegung' : m.lastMotion ? ago(m.lastMotion) : 'keine bekannt';
+      const tip = m.lastMotion ? ` title="Letzte Bewegung: ${esc(fullTime(m.lastMotion))}"` : '';
+      return `<li class="${m.state === 'on' ? 'is-on' : ''}"><span>${esc(m.name)}</span><span class="ago"${tip}>${esc(txt)}</span></li>`;
+    }).join('');
   }
 
   function renderVacuums(vacs) {

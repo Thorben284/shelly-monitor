@@ -123,6 +123,11 @@ dieselben freigegebenen Befehle auslösen wie das Dashboard. Kosten fallen je Fr
   Ganz neue Gerätearten zeigt Jarvis erst nach einer Programmerweiterung.
 - Ein neues Gerät muss zuerst in **Home Assistant** eingebunden sein (meist automatisch erkannt,
   sonst unter Einstellungen → Geräte & Dienste).
+- **Letzte Bewegung je Kamera** = Beginn der letzten Bewegung an den Meldern, die in HA zum selben
+  Gerät gehören wie die Kamera. Dafür muss der Zugriffsschlüssel von einem **Administrator-Konto**
+  stammen. Sonst ordnet Jarvis die Melder über den Namen zu (Kamera „Einfahrt“ ↔ Melder „Einfahrt …“).
+  Die Zeiten kommen aus dem HA-Verlauf und überstehen Neustarts (`data/bewegungen.json`).
+  Maus über die Zeit zeigt Datum und Uhrzeit.
 - **Kamera-Standbilder alle 10 Minuten** (`JARVIS_KAMERA_MIN`), mit Uhrzeit der Aufnahme.
   Ein Klick auf ein Bild öffnet das Livebild.
 

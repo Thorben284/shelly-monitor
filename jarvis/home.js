@@ -149,11 +149,14 @@ class Home {
     return this.ha.byDomain('vacuum').map(v => ({ ...v, text: VACUUM_TEXT[v.state] || v.state }));
   }
 
+  /** Letzter Bewegungsbeginn (aus MotionTracker, übersteht Neustarts). */
   lastMotion() {
-    const m = this.ha.motionSensors()
-      .filter(e => e.changed && e.state !== 'unavailable')
-      .sort((a, b) => new Date(b.changed) - new Date(a.changed))[0];
-    return m ? { ...m, active: m.state === 'on', ago: fmtAgo(m.changed) } : null;
+    const at = id => this.motion?.lastFor(id) || null;
+    const sensors = this.ha.motionSensors();
+    const active = sensors.find(e => e.state === 'on');
+    if (active) return { ...active, active: true, at: at(active.id), ago: 'gerade' };
+    const m = sensors.filter(e => at(e.id)).sort((a, b) => Date.parse(at(b.id)) - Date.parse(at(a.id)))[0];
+    return m ? { ...m, active: false, at: at(m.id), ago: fmtAgo(at(m.id)) } : null;
   }
 
   activeSwitches() {

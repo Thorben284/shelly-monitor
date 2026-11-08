@@ -296,6 +296,7 @@ const { Notifier } = require('./jarvis/notify');
 const { Commands } = require('./jarvis/commands');
 const { Assistant } = require('./jarvis/ai');
 const { Discovery } = require('./jarvis/discovery');
+const { MotionTracker } = require('./jarvis/motion');
 const { OTHER_DOMAINS } = require('./jarvis/ha');
 
 const ha = new HomeAssistant({
@@ -320,6 +321,8 @@ const assistant = new Assistant({
   model: process.env.JARVIS_MODEL,
   ha, home,
 });
+const motion = new MotionTracker({ ha, file: path.join(__dirname, 'data', 'bewegungen.json') });
+home.motion = motion;
 const discovery = new Discovery({
   ha, notifier,
   file: path.join(__dirname, 'data', 'bekannte-geraete.json'),
@@ -329,6 +332,7 @@ const CAM_REFRESH_MIN = Math.max(1, parseInt(process.env.JARVIS_KAMERA_MIN || '1
 ha.start();
 notifier.start();
 discovery.start();
+motion.start();
 
 // Optionale PIN: schützt alle schaltenden Endpunkte (Gäste-WLAN, Kinder …)
 const JARVIS_PIN = process.env.JARVIS_PIN || '';
@@ -360,8 +364,9 @@ app.get('/api/jarvis/home', (_q, res) => res.json({
   vacuums: ha.ok ? home.vacuums() : [],
   washer: home.washer.info(ha),
   lastMotion: ha.ok ? home.lastMotion() : null,
-  motion: ha.ok ? ha.motionSensors() : [],
-  cameras: ha.ok ? ha.byDomain('camera') : [],
+  motion: ha.ok ? ha.motionSensors().map(m => ({ ...m, lastMotion: motion.lastFor(m.id) })) : [],
+  cameras: ha.ok ? ha.byDomain('camera').map(c => ({ ...c, ...motion.forCamera(c.id) })) : [],
+  motionMap: motion.mapSource,
   switches: ha.ok ? ha.entities().filter(e => ['switch', 'light', 'fan'].includes(e.domain)) : [],
   others: ha.ok ? ha.entities().filter(e => OTHER_DOMAINS.has(e.domain)) : [],
   neu: Object.keys(discovery.newSince),

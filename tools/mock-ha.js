@@ -24,13 +24,13 @@ const states = new Map([
   S('vacuum.roborock', 'docked', { friendly_name: 'Roborock', battery_level: 100, status: 'Lädt' }),
   S('alarm_control_panel.homebase_3', 'disarmed', { friendly_name: 'HomeBase 3', code_format: null }),
   S('camera.einfahrt', 'idle', { friendly_name: 'Einfahrt' }),
-  S('camera.haustuer', 'idle', { friendly_name: 'Haustür' }),
+  S('camera.haustuer', 'idle', { friendly_name: 'Kamera Haustür' }),
   S('camera.garten', 'idle', { friendly_name: 'Garten' }),
   S('camera.terrasse', 'idle', { friendly_name: 'Terrasse' }),
-  S('binary_sensor.einfahrt_bewegung', 'off', { friendly_name: 'Einfahrt Bewegung', device_class: 'motion' }, ago(14)),
-  S('binary_sensor.haustuer_bewegung', 'off', { friendly_name: 'Haustür Bewegung', device_class: 'motion' }, ago(52)),
-  S('binary_sensor.garten_bewegung', 'off', { friendly_name: 'Garten Bewegung', device_class: 'motion' }, ago(190)),
-  S('binary_sensor.flur_bewegungsmelder', 'off', { friendly_name: 'Flur Bewegungsmelder', device_class: 'motion' }, ago(6)),
+  S('binary_sensor.einfahrt_bewegung', 'off', { friendly_name: 'Einfahrt Bewegung', device_class: 'motion' }),
+  S('binary_sensor.haustuer_bewegung', 'off', { friendly_name: 'Haustür Bewegung', device_class: 'motion' }),
+  S('binary_sensor.garten_bewegung', 'off', { friendly_name: 'Garten Bewegung', device_class: 'motion' }),
+  S('binary_sensor.flur_bewegungsmelder', 'off', { friendly_name: 'Flur Bewegungsmelder', device_class: 'motion' }),
   S('sensor.waschmaschine_leistung', '312', { friendly_name: 'Waschmaschine Leistung', unit_of_measurement: 'W', device_class: 'power' }),
   // Bosch über Home Connect (Zustände wie in der HA-Integration)
   S('sensor.waschmaschine_betriebszustand', 'run', { friendly_name: 'Waschmaschine Betriebszustand', device_class: 'enum' }, ago(38)),
@@ -48,6 +48,27 @@ app.use('/api', auth);
 
 
 app.get('/api/states', (_q, res) => res.json([...states.values()]));
+
+// Verlauf: echte Bewegungszeiten (Beginn „on“) – wie /api/history/period mit minimal_response
+const HISTORY = { 'binary_sensor.einfahrt_bewegung': 14, 'binary_sensor.haustuer_bewegung': 52,
+  'binary_sensor.garten_bewegung': 190, 'binary_sensor.flur_bewegungsmelder': 6 };
+app.get('/api/history/period/:start', (req, res) => {
+  const ids = String(req.query.filter_entity_id || '').split(',');
+  res.json(ids.filter(id => HISTORY[id]).map(id => [
+    { entity_id: id, state: 'off', last_changed: ago(600) },
+    { state: 'on', last_changed: ago(HISTORY[id]) },
+    { state: 'off', last_changed: ago(HISTORY[id] - 1) },
+    { state: 'unavailable', last_changed: ago(2) },
+    { state: 'off', last_changed: ago(1) },
+  ]));
+});
+
+// Template: Kamera ↔ Melder über das Gerät (nur das, was Jarvis abfragt); MOCK_NO_TEMPLATE=1 → 403 wie ohne Admin
+const DEVICE = { 'camera.einfahrt': 'binary_sensor.einfahrt_bewegung', 'camera.haustuer': 'binary_sensor.haustuer_bewegung', 'camera.garten': 'binary_sensor.garten_bewegung' };
+app.post('/api/template', (req, res) => {
+  if (process.env.MOCK_NO_TEMPLATE) return res.status(403).end();
+  res.type('text/plain').send([...states.keys()].filter(k => k.startsWith('camera.')).map(c => `${c}=${DEVICE[c] || ''}`).join('\n'));
+});
 
 // Testhilfe: neues Gerät „anschließen“, z. B. POST /test/add {"entity_id":"cover.kueche","state":"open","attributes":{...}}
 app.post('/test/add', (req, res) => { const b = req.body; states.set(b.entity_id, S(b.entity_id, b.state, b.attributes || {})); res.json(states.get(b.entity_id)); });
