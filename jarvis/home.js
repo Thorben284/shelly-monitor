@@ -152,7 +152,8 @@ class Home {
   /** Letzter Bewegungsbeginn (aus MotionTracker, übersteht Neustarts). */
   lastMotion() {
     const at = id => this.motion?.lastFor(id) || null;
-    const sensors = this.ha.motionSensors();
+    const ids = this.motion ? this.motion.tracked() : new Set(this.ha.motionSensors().map(m => m.id));
+    const sensors = this.ha.entities().filter(e => ids.has(e.id));
     const active = sensors.find(e => e.state === 'on');
     if (active) return { ...active, active: true, at: at(active.id), ago: 'gerade' };
     const m = sensors.filter(e => at(e.id)).sort((a, b) => Date.parse(at(b.id)) - Date.parse(at(a.id)))[0];

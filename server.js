@@ -376,6 +376,7 @@ app.get('/api/jarvis/home', (_q, res) => res.json({
 
 app.get('/api/jarvis/hinweise', (_q, res) => res.json(notifier.log));
 app.post('/api/jarvis/pruefen', (_q, res) => res.json(discovery.run()));
+app.get('/api/jarvis/diagnose/bewegung', (_q, res) => res.json(motion.diagnose()));
 app.get('/api/jarvis/stream', (req, res) => notifier.attach(req, res));
 
 app.post('/api/jarvis/ask', express.json({ limit: '4kb' }), async (req, res) => {

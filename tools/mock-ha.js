@@ -27,6 +27,9 @@ const states = new Map([
   S('camera.haustuer', 'idle', { friendly_name: 'Kamera Haustür' }),
   S('camera.garten', 'idle', { friendly_name: 'Garten' }),
   S('camera.terrasse', 'idle', { friendly_name: 'Terrasse' }),
+  S('camera.gartentor', 'idle', { friendly_name: 'Gartentor' }),
+  // eufy-Melder ohne Geräteklasse (wie manche Personen-/Ereignis-Melder)
+  S('binary_sensor.gartentor_person_erkannt', 'off', { friendly_name: 'Gartentor Person erkannt' }),
   S('binary_sensor.einfahrt_bewegung', 'off', { friendly_name: 'Einfahrt Bewegung', device_class: 'motion' }),
   S('binary_sensor.haustuer_bewegung', 'off', { friendly_name: 'Haustür Bewegung', device_class: 'motion' }),
   S('binary_sensor.garten_bewegung', 'off', { friendly_name: 'Garten Bewegung', device_class: 'motion' }),
@@ -38,8 +41,10 @@ const states = new Map([
   S('sensor.wohnzimmer_temperatur', '21.4', { friendly_name: 'Wohnzimmer Temperatur', unit_of_measurement: '°C', device_class: 'temperature' }),
 ].map(s => [s.entity_id, s]));
 
+const LOG = {}; // Verlauf seit Start (für /api/history)
 const set = (id, state, extra) => {
   const s = states.get(id);
+  (LOG[id] ||= []).push({ state, last_changed: now() });
   states.set(id, { ...s, state, attributes: { ...s.attributes, ...extra }, last_changed: now(), last_updated: now() });
 };
 
@@ -54,17 +59,16 @@ const HISTORY = { 'binary_sensor.einfahrt_bewegung': 14, 'binary_sensor.haustuer
   'binary_sensor.garten_bewegung': 190, 'binary_sensor.flur_bewegungsmelder': 6 };
 app.get('/api/history/period/:start', (req, res) => {
   const ids = String(req.query.filter_entity_id || '').split(',');
-  res.json(ids.filter(id => HISTORY[id]).map(id => [
+  res.json(ids.filter(id => HISTORY[id] || LOG[id]).map(id => [
     { entity_id: id, state: 'off', last_changed: ago(600) },
-    { state: 'on', last_changed: ago(HISTORY[id]) },
-    { state: 'off', last_changed: ago(HISTORY[id] - 1) },
-    { state: 'unavailable', last_changed: ago(2) },
-    { state: 'off', last_changed: ago(1) },
+    ...(HISTORY[id] ? [{ state: 'on', last_changed: ago(HISTORY[id]) }, { state: 'off', last_changed: ago(HISTORY[id] - 1) },
+      { state: 'unavailable', last_changed: ago(2) }, { state: 'off', last_changed: ago(1) }] : []),
+    ...(LOG[id] || []),
   ]));
 });
 
 // Template: Kamera ↔ Melder über das Gerät (nur das, was Jarvis abfragt); MOCK_NO_TEMPLATE=1 → 403 wie ohne Admin
-const DEVICE = { 'camera.einfahrt': 'binary_sensor.einfahrt_bewegung', 'camera.haustuer': 'binary_sensor.haustuer_bewegung', 'camera.garten': 'binary_sensor.garten_bewegung' };
+const DEVICE = { 'camera.gartentor': 'binary_sensor.gartentor_person_erkannt', 'camera.einfahrt': 'binary_sensor.einfahrt_bewegung', 'camera.haustuer': 'binary_sensor.haustuer_bewegung', 'camera.garten': 'binary_sensor.garten_bewegung' };
 app.post('/api/template', (req, res) => {
   if (process.env.MOCK_NO_TEMPLATE) return res.status(403).end();
   res.type('text/plain').send([...states.keys()].filter(k => k.startsWith('camera.')).map(c => `${c}=${DEVICE[c] || ''}`).join('\n'));

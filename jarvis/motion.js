@@ -11,6 +11,8 @@ const GENERIC = new Set(['kamera', 'camera', 'cam', 'eufy', 'eufycam', 'indoor',
   'bewegungsmelder', 's', 'e', 'c']);
 const norm = s => String(s || '').toLowerCase().replace(/[^a-zäöüß0-9]+/g, ' ').trim();
 const tokens = s => norm(s).split(' ').filter(w => w.length > 1 && !GENERIC.has(w));
+// Melder am Kamera-Gerät, die Bewegung/Personen melden – auch ohne Geräteklasse „motion“
+const MOTION_NAME = /motion|bewegung|person|human|mensch|erkannt|detected|ereignis|event|ring|klingel/i;
 
 class MotionTracker {
   constructor({ ha, file, historyDays = 7 }) {
@@ -25,16 +27,20 @@ class MotionTracker {
     try { this.last = JSON.parse(fs.readFileSync(file, 'utf8')).last || {}; } catch { /* erster Start */ }
 
     ha.onChange((s, prev) => {
-      if (!s.entity_id.startsWith('binary_sensor.') || s.state !== 'on') return;
-      if (!MOTION_CLASSES.has(s.attributes?.device_class)) return;
-      // „unavailable → on“ nach Neustart nur zählen, wenn HA den Wechsel wirklich jetzt sah
-      const ts = s.last_changed || new Date().toISOString();
-      if (prev.state === 'on') return;
-      this.record(s.entity_id, ts);
+      if (s.state !== 'on' || prev.state === 'on') return;
+      if (!this.tracked().has(s.entity_id)) return;
+      this.record(s.entity_id, s.last_changed || new Date().toISOString());
     });
   }
 
   isMotion(id) { return MOTION_CLASSES.has(this.ha.get(id)?.attributes?.device_class); }
+
+  /** Alle Melder, deren Bewegungen Jarvis mitschreibt. */
+  tracked() {
+    const set = new Set(this.ha.motionSensors().map(m => m.id));
+    for (const ids of Object.values(this.camMap)) for (const id of ids) set.add(id);
+    return set;
+  }
 
   record(id, iso) {
     if (!iso || (this.last[id] && Date.parse(this.last[id]) >= Date.parse(iso))) return;
@@ -51,10 +57,10 @@ class MotionTracker {
   }
 
   /** Letzte „on“-Zeiten aus dem HA-Verlauf holen (z. B. nach Neustart von Jarvis). */
-  async seedFromHistory() {
-    const ids = this.ha.motionSensors().map(m => m.id);
+  async seedFromHistory(minutes = this.historyDays * 1440) {
+    const ids = [...this.tracked()];
     if (!ids.length) return;
-    const start = new Date(Date.now() - this.historyDays * 86400000).toISOString();
+    const start = new Date(Date.now() - minutes * 60000).toISOString();
     const q = `filter_entity_id=${encodeURIComponent(ids.join(','))}&minimal_response&no_attributes&significant_changes_only=0`;
     const lists = await (await this.ha.request(`/history/period/${encodeURIComponent(start)}?${q}`, { signal: AbortSignal.timeout(30000) })).json();
     for (const list of lists || []) {
@@ -78,7 +84,8 @@ class MotionTracker {
     for (const line of txt.split('\n')) {
       const [cam, list] = line.trim().split('=');
       if (!cam?.startsWith('camera.')) continue;
-      map[cam] = (list || '').split(',').map(x => x.trim()).filter(id => id && this.isMotion(id));
+      map[cam] = (list || '').split(',').map(x => x.trim()).filter(id => id && this.ha.get(id) &&
+        (this.isMotion(id) || MOTION_NAME.test(`${id} ${this.ha.get(id).attributes?.friendly_name || ''}`)));
     }
     return map;
   }
@@ -109,8 +116,8 @@ class MotionTracker {
   }
 
   async init() {
-    try { await this.seedFromHistory(); } catch (e) { console.warn('Bewegungen: Verlauf nicht lesbar –', e.message); }
     await this.remap();
+    try { await this.seedFromHistory(); } catch (e) { console.warn('Bewegungen: Verlauf nicht lesbar –', e.message); }
     this.ready = true;
   }
 
@@ -121,6 +128,29 @@ class MotionTracker {
       wasOk = this.ha.ok;
     }, 10000);
     setInterval(() => { if (this.ha.ok) this.remap(); }, 60 * 60000);
+    // Kurze Bewegungsimpulse (kürzer als die 3-s-Abfrage) aus dem Verlauf nachholen
+    setInterval(() => {
+      if (this.ha.ok && this.ready) this.seedFromHistory(15).catch(e => console.warn('Bewegungen:', e.message));
+    }, 30000);
+  }
+
+  /** Diagnose: was Jarvis je Kamera sieht. */
+  diagnose() {
+    return {
+      zuordnung: this.mapSource,
+      kameras: this.ha.byDomain('camera').map(c => ({
+        kamera: c.id, name: c.name,
+        melder: (this.camMap[c.id] || []).map(id => {
+          const s = this.ha.get(id);
+          return { id, name: s?.attributes?.friendly_name, zustand: s?.state, geraeteklasse: s?.attributes?.device_class ?? null,
+            ha_last_changed: s?.last_changed, jarvis_letzte_bewegung: this.last[id] || null };
+        }),
+      })),
+      // Melder am Haus, die Jarvis NICHT als Bewegung zählt (Hinweis auf falsche Zuordnung)
+      andere_binary_sensoren: [...this.ha.states.values()]
+        .filter(s => s.entity_id.startsWith('binary_sensor.') && !this.tracked().has(s.entity_id))
+        .map(s => ({ id: s.entity_id, name: s.attributes?.friendly_name, zustand: s.state, geraeteklasse: s.attributes?.device_class ?? null })),
+    };
   }
 
   lastFor(id) { return this.last[id] || null; }
