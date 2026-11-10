@@ -131,6 +131,19 @@ dieselben freigegebenen Befehle auslösen wie das Dashboard. Kosten fallen je Fr
 - **Kamera-Standbilder alle 10 Minuten** (`JARVIS_KAMERA_MIN`), mit Uhrzeit der Aufnahme.
   Ein Klick auf ein Bild öffnet das Livebild.
 
+## 6c. Systemcheck – wenn etwas nicht stimmt
+
+Unter „Hinweise“ → **Systemcheck** (oder Befehl „Systemcheck“) prüft Jarvis auf dem Pi:
+laufende Version, Shelly, Victron, Home Assistant, **eufy-Brücke inkl. Bewegungsmeldungen**,
+jede Kamera mit ihren Bewegungsmeldern, Sauger, Waschmaschine, Alarm, KI und PIN.
+
+**Bewegungen kommen nicht an?** Meist meldet der Systemcheck dann
+„eufy-Bewegungsmeldungen: Benachrichtigungsdienst NICHT verbunden“. Die eufy-Brücke erfährt
+Bewegungen nur über den Benachrichtigungsdienst der eufy-Cloud. Abhilfe:
+1. In der eufy-App beim Konto, das die Brücke nutzt, Benachrichtigungen erlauben.
+2. `docker restart eufy-security-ws`, danach Systemcheck erneut.
+3. Hilft das nicht: `docker logs eufy-security-ws --tail 100` ansehen (Login-, Captcha- oder Push-Fehler).
+
 ## 7. Spracheingabe und Benachrichtigungen
 
 Browser erlauben Mikrofon und Benachrichtigungen nur über **HTTPS**. Über `http://<pi-ip>:3000`

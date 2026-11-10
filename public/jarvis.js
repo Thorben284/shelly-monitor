@@ -350,6 +350,23 @@
       : `Geräteprüfung alle ${d.intervalMin} Min. – startet, sobald Home Assistant antwortet`;
   }
 
+  // ── Systemcheck ────────────────────────────────────────────────
+  const checkDlg = $('jv-check-dialog');
+  $('jv-check-close').addEventListener('click', () => checkDlg.close());
+  $('jv-check-run').addEventListener('click', async () => {
+    $('jv-check-list').innerHTML = '<li><span class="st"></span><b>Prüfe …</b><span>Das dauert einige Sekunden.</span></li>';
+    $('jv-check-note').textContent = '';
+    checkDlg.showModal();
+    try {
+      const r = await api('/api/jarvis/systemcheck');
+      $('jv-check-list').innerHTML = r.checks.map(c => `<li data-st="${esc(c.status)}"><span class="st" aria-label="${esc(c.status)}"></span>
+        <b>${esc(c.bereich)}</b><span>${esc(c.text)}${c.hilfe ? `<span class="hilfe">${esc(c.hilfe)}</span>` : ''}</span></li>`).join('');
+      $('jv-check-note').textContent = `Geprüft ${clock(r.zeit)} Uhr – ${r.gesamt === 'ok' ? 'alles in Ordnung' : r.gesamt === 'warn' ? 'mit Hinweisen' : 'mit Fehlern'}.`;
+    } catch (e) {
+      $('jv-check-list').innerHTML = `<li data-st="fail"><span class="st"></span><b>Systemcheck</b><span>${esc(e.message)}</span></li>`;
+    }
+  });
+
   $('jv-disc-run').addEventListener('click', async e => {
     e.target.disabled = true;
     try { await api('/api/jarvis/pruefen', { method: 'POST' }); await refresh(); }

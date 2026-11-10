@@ -664,7 +664,8 @@
         <ol id="jv-log" class="jv-list jv-log"></ol>
         <div class="jv-disc">
           <span id="jv-disc-text">Geräteprüfung: wartet auf Home Assistant</span>
-          <button type="button" id="jv-disc-run" class="jv-link">Jetzt prüfen</button>
+          <span><button type="button" id="jv-disc-run" class="jv-link">Geräte prüfen</button>
+          <button type="button" id="jv-check-run" class="jv-link">Systemcheck</button></span>
         </div>
       </section>
     </div>
@@ -697,6 +698,15 @@
   </div>
   <div class="jv-dialog-img"><img id="jv-cam-img" alt="" /></div>
   <p id="jv-cam-note" class="jv-dialog-note"></p>
+</dialog>
+
+<dialog id="jv-check-dialog" class="jv-dialog jv-check" aria-labelledby="jv-check-title">
+  <div class="jv-dialog-head">
+    <h3 id="jv-check-title">Systemcheck</h3>
+    <button type="button" class="jv-iconbtn" id="jv-check-close" aria-label="Schließen"><svg viewBox="0 0 24 24"><use href="#i-close"/></svg></button>
+  </div>
+  <ul id="jv-check-list" class="jv-check-list"></ul>
+  <p class="jv-dialog-note" id="jv-check-note"></p>
 </dialog>
 
 <div id="jv-toasts" class="jv-toasts" aria-live="polite"></div>

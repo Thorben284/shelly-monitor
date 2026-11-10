@@ -56,6 +56,14 @@ class Commands {
 
     if (has(t, /^(hilfe|was kannst du|was geht|befehle)/)) return { reply: this.help() };
 
+    if (has(t, /systemcheck|system check|systempruefung|diagnose|funktioniert alles|laeuft alles/) && this.systemCheck) {
+      const r = await this.systemCheck.run();
+      const bad = r.checks.filter(c => c.status === 'fail' || c.status === 'warn');
+      if (!bad.length) return { reply: 'Systemcheck: Alles in Ordnung.', check: r };
+      return { reply: `Systemcheck: ${bad.length} Punkt${bad.length === 1 ? '' : 'e'} offen. ` +
+        bad.slice(0, 4).map(c => `${c.bereich}: ${c.text}.`).join(' ') + (bad.length > 4 ? ' Details unter „Systemcheck“.' : ''), check: r };
+    }
+
     // ── Saugroboter ────────────────────────────────────────────────
     if (has(t, /\b(staub)?sauger\b|\broboter\b|\broborock\b|\bsaugen\b/)) {
       const v = this.home.vacuums()[0];

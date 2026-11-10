@@ -297,6 +297,7 @@ const { Commands } = require('./jarvis/commands');
 const { Assistant } = require('./jarvis/ai');
 const { Discovery } = require('./jarvis/discovery');
 const { MotionTracker } = require('./jarvis/motion');
+const { SystemCheck } = require('./jarvis/systemcheck');
 const { OTHER_DOMAINS } = require('./jarvis/ha');
 
 const ha = new HomeAssistant({
@@ -333,6 +334,12 @@ ha.start();
 notifier.start();
 discovery.start();
 motion.start();
+const systemCheck = new SystemCheck({
+  root: __dirname, cfg, ha, home, motion, discovery, assistant,
+  getShelly: () => shellyCurrent, getVictron: () => victronCurrent,
+  pin: !!process.env.JARVIS_PIN, eufyUrl: process.env.EUFY_WS_URL || 'ws://127.0.0.1:3001',
+});
+commands.systemCheck = systemCheck;
 
 // Optionale PIN: schützt alle schaltenden Endpunkte (Gäste-WLAN, Kinder …)
 const JARVIS_PIN = process.env.JARVIS_PIN || '';
@@ -377,6 +384,9 @@ app.get('/api/jarvis/home', (_q, res) => res.json({
 app.get('/api/jarvis/hinweise', (_q, res) => res.json(notifier.log));
 app.post('/api/jarvis/pruefen', (_q, res) => res.json(discovery.run()));
 app.get('/api/jarvis/diagnose/bewegung', (_q, res) => res.json(motion.diagnose()));
+app.get('/api/jarvis/systemcheck', async (_q, res) => {
+  try { res.json(await systemCheck.run()); } catch (e) { res.status(500).json({ error: e.message }); }
+});
 app.get('/api/jarvis/stream', (req, res) => notifier.attach(req, res));
 
 app.post('/api/jarvis/ask', express.json({ limit: '4kb' }), async (req, res) => {

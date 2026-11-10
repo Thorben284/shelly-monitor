@@ -476,6 +476,19 @@ h1 { color: var(--text); font-size: 1.05rem; letter-spacing: 0.01em; }
 .jv-dialog-img img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .jv-dialog-note { font-size: 0.8rem; color: var(--muted); padding: 0.6rem 0.25rem 0.1rem; }
 
+/* ── Systemcheck ─────────────────────────────────────────────────── */
+.jv-check { width: min(720px, calc(100vw - 2rem)); }
+.jv-check-list { list-style: none; display: grid; max-height: 70vh; overflow-y: auto; }
+.jv-check-list li { display: grid; grid-template-columns: 1.4rem 9.5rem 1fr; gap: 0.6rem; padding: 0.6rem 0.25rem; border-top: 1px solid var(--border); font-size: 0.86rem; align-items: start; }
+.jv-check-list li:first-child { border-top: 0; }
+.jv-check-list .st { width: 0.7rem; height: 0.7rem; border-radius: 50%; margin-top: 0.3rem; background: var(--muted); }
+.jv-check-list [data-st="ok"] .st { background: var(--good); }
+.jv-check-list [data-st="warn"] .st { background: var(--warn); }
+.jv-check-list [data-st="fail"] .st { background: var(--crit); }
+.jv-check-list b { font-weight: 600; }
+.jv-check-list .hilfe { display: block; color: var(--muted); font-size: 0.8rem; margin-top: 0.15rem; }
+@media (max-width: 560px) { .jv-check-list li { grid-template-columns: 1.2rem 1fr; } .jv-check-list li > span:last-child { grid-column: 2; } }
+
 /* ── Meldungen ──────────────────────────────────────────────────── */
 .jv-toasts {
   position: fixed;
